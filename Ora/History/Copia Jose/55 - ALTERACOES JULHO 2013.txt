@@ -1,0 +1,160 @@
+ALTER TABLE GRUPOS_ETIQUETAS ADD(DIGITO_CODIGO VARCHAR2(1));
+UPDATE GRUPOS_ETIQUETAS SET DIGITO_CODIGO = 'N';
+ALTER TABLE GRUPOS_ETIQUETAS MODIFY DIGITO_CODIGO NOT NULL;
+
+CREATE OR REPLACE PROCEDURE PRC_GRUPOS_ETIQUETAS(V_GRUPO_ETIQUETA         IN OUT GRUPOS_ETIQUETAS.GRUPO_ETIQUETA%TYPE,
+                                                 V_NOME                   IN     GRUPOS_ETIQUETAS.NOME%TYPE,
+                                                 V_MATERIAL               IN     GRUPOS_ETIQUETAS.MATERIAL%TYPE,
+                                                 V_QT_ETIQUETAS           IN     GRUPOS_ETIQUETAS.QT_ETIQUETAS%TYPE,
+                                                 V_SEPARA_ETIQUETAS       IN     GRUPOS_ETIQUETAS.SEPARA_ETIQUETAS%TYPE,
+                                                 V_TIPO_CODIGO            IN     GRUPOS_ETIQUETAS.TIPO_CODIGO%TYPE,
+                                                 V_MARGEM_ESQUERDA_CODIGO IN     GRUPOS_ETIQUETAS.MARGEM_ESQUERDA_CODIGO%TYPE,
+                                                 V_RATIO_CODIGO           IN     GRUPOS_ETIQUETAS.RATIO_CODIGO%TYPE,
+                                                 V_REALCA_NOME            IN     GRUPOS_ETIQUETAS.REALCA_NOME%TYPE,
+                                                 V_IMPRESSORA             IN     GRUPOS_ETIQUETAS.IMPRESSORA%TYPE,
+                                                 V_DIGITO_CODIGO          IN     GRUPOS_ETIQUETAS.DIGITO_CODIGO%TYPE,
+                                                 V_FUNCAO                 IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_GRUPO_ETIQUETA.NEXTVAL INTO V_GRUPO_ETIQUETA FROM DUAL;
+     INSERT INTO GRUPOS_ETIQUETAS VALUES (V_GRUPO_ETIQUETA, V_NOME, V_MATERIAL, V_QT_ETIQUETAS, V_SEPARA_ETIQUETAS, V_TIPO_CODIGO, V_MARGEM_ESQUERDA_CODIGO, V_RATIO_CODIGO, V_REALCA_NOME, V_IMPRESSORA, V_DIGITO_CODIGO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE GRUPOS_ETIQUETAS SET NOME = V_NOME, MATERIAL = V_MATERIAL, QT_ETIQUETAS = V_QT_ETIQUETAS, SEPARA_ETIQUETAS = V_SEPARA_ETIQUETAS,
+            TIPO_CODIGO = V_TIPO_CODIGO, MARGEM_ESQUERDA_CODIGO = V_MARGEM_ESQUERDA_CODIGO, RATIO_CODIGO = V_RATIO_CODIGO, REALCA_NOME = V_REALCA_NOME,
+            IMPRESSORA = V_IMPRESSORA, DIGITO_CODIGO = V_DIGITO_CODIGO
+      WHERE GRUPO_ETIQUETA = V_GRUPO_ETIQUETA;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE GRUPOS_ETIQUETAS WHERE GRUPO_ETIQUETA = V_GRUPO_ETIQUETA;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_GRUPOS_ETIQUETAS;
+/
+
+ALTER TABLE EQUIPAMENTOS MODIFY HEADER_ASTM VARCHAR2(100);
+ALTER TABLE EQUIPAMENTOS ADD(MASK_ORDER_SPECIMEN_ID VARCHAR2(30));
+ALTER TABLE EQUIPAMENTOS ADD(ACTION_CODE_ASTM VARCHAR2(1));
+ALTER TABLE EQUIPAMENTOS ADD(REPORT_TYPE_ASTM VARCHAR2(1));
+
+
+
+CREATE OR REPLACE PROCEDURE PRC_EQUIPAMENTOS(V_EQUIPAMENTO              IN OUT  EQUIPAMENTOS.EQUIPAMENTO%TYPE,
+                                             V_NOME                     IN      EQUIPAMENTOS.NOME%TYPE,
+                                             V_MODELO_EQUIPAMENTO       IN      EQUIPAMENTOS.MODELO_EQUIPAMENTO%TYPE,
+                                             V_STATUS                   IN      EQUIPAMENTOS.STATUS%TYPE,
+                                             V_HOST                     IN      EQUIPAMENTOS.HOST%TYPE,
+                                             V_PORTA                    IN      EQUIPAMENTOS.PORTA%TYPE,
+                                             V_BITS_SEGUNDO             IN      EQUIPAMENTOS.BITS_SEGUNDO%TYPE,
+                                             V_BITS_DADOS               IN      EQUIPAMENTOS.BITS_DADOS%TYPE,
+                                             V_PARIDADE                 IN      EQUIPAMENTOS.PARIDADE%TYPE,
+                                             V_BITS_PARADA              IN      EQUIPAMENTOS.BITS_PARADA%TYPE,
+                                             V_CONTROLE_FLUXO           IN      EQUIPAMENTOS.CONTROLE_FLUXO%TYPE,
+                                             V_MODO_OPERACAO            IN      EQUIPAMENTOS.MODO_OPERACAO%TYPE,
+                                             V_TIPO_COMUNICACAO         IN      EQUIPAMENTOS.TIPO_COMUNICACAO%TYPE,
+                                             V_LOCAL_IN                 IN      EQUIPAMENTOS.LOCAL_IN%TYPE,
+                                             V_LOCAL_OUT                IN      EQUIPAMENTOS.LOCAL_OUT%TYPE,
+                                             V_ENDERECO_IP              IN      EQUIPAMENTOS.ENDERECO_IP%TYPE,
+                                             V_ALIAS                    IN      EQUIPAMENTOS.ALIAS%TYPE,
+                                             V_FORMATO_INTERFACE        IN      EQUIPAMENTOS.FORMATO_INTERFACE%TYPE,
+                                             V_HEADER_ASTM              IN      EQUIPAMENTOS.HEADER_ASTM%TYPE,
+                                             V_SEPARA_EXAMES_ASTM       IN      EQUIPAMENTOS.SEPARA_EXAMES_ASTM%TYPE,
+                                             V_DIFERENCIA_PRIMEIRO_ASTM IN      EQUIPAMENTOS.DIFERENCIA_PRIMEIRO_ASTM%TYPE,
+                                             V_FINAL_LINEA_ASTM         IN      EQUIPAMENTOS.FINAL_LINEA_ASTM%TYPE,
+                                             V_SEPARA_LOGS              IN      EQUIPAMENTOS.SEPARA_LOGS%TYPE,
+                                             V_TERMINATION_CODE_ASTM    IN      EQUIPAMENTOS.TERMINATION_CODE_ASTM%TYPE,
+                                             V_MASK_ORDER_SPECIMEN_ID   IN      EQUIPAMENTOS.MASK_ORDER_SPECIMEN_ID%TYPE,
+                                             V_ACTION_CODE_ASTM         IN      EQUIPAMENTOS.ACTION_CODE_ASTM%TYPE,
+                                             V_REPORT_TYPE_ASTM         IN      EQUIPAMENTOS.REPORT_TYPE_ASTM%TYPE,
+                                             V_FUNCAO                   IN      NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_EQUIPAMENTO.NEXTVAL INTO V_EQUIPAMENTO FROM DUAL;
+     INSERT INTO EQUIPAMENTOS VALUES (V_EQUIPAMENTO, V_NOME, V_MODELO_EQUIPAMENTO, V_STATUS, V_HOST, V_PORTA, 
+                                      V_BITS_SEGUNDO, V_BITS_DADOS, V_PARIDADE, V_BITS_PARADA, V_CONTROLE_FLUXO, 
+                                      V_MODO_OPERACAO, V_TIPO_COMUNICACAO, V_LOCAL_IN, V_LOCAL_OUT, V_ENDERECO_IP, V_ALIAS, V_FORMATO_INTERFACE,
+                                      V_HEADER_ASTM, V_SEPARA_EXAMES_ASTM, V_DIFERENCIA_PRIMEIRO_ASTM, V_FINAL_LINEA_ASTM, V_SEPARA_LOGS, 
+                                      V_TERMINATION_CODE_ASTM, V_MASK_ORDER_SPECIMEN_ID, V_ACTION_CODE_ASTM, V_REPORT_TYPE_ASTM);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE EQUIPAMENTOS SET NOME = V_NOME, MODELO_EQUIPAMENTO = V_MODELO_EQUIPAMENTO,
+                             STATUS = V_STATUS, HOST = V_HOST, PORTA = V_PORTA, 
+                             BITS_SEGUNDO = V_BITS_SEGUNDO, BITS_DADOS = V_BITS_DADOS, 
+                             PARIDADE = V_PARIDADE, BITS_PARADA = V_BITS_PARADA, 
+                             CONTROLE_FLUXO = V_CONTROLE_FLUXO, MODO_OPERACAO = V_MODO_OPERACAO,
+                             TIPO_COMUNICACAO = V_TIPO_COMUNICACAO, LOCAL_IN = V_LOCAL_IN,
+                             LOCAL_OUT = V_LOCAL_OUT, ENDERECO_IP = V_ENDERECO_IP, ALIAS = V_ALIAS,
+                             FORMATO_INTERFACE = V_FORMATO_INTERFACE, HEADER_ASTM = V_HEADER_ASTM, SEPARA_EXAMES_ASTM = V_SEPARA_EXAMES_ASTM,
+                             DIFERENCIA_PRIMEIRO_ASTM = V_DIFERENCIA_PRIMEIRO_ASTM, FINAL_LINEA_ASTM = V_FINAL_LINEA_ASTM, SEPARA_LOGS = V_SEPARA_LOGS,
+   			     TERMINATION_CODE_ASTM = V_TERMINATION_CODE_ASTM, MASK_ORDER_SPECIMEN_ID = V_MASK_ORDER_SPECIMEN_ID,
+                             ACTION_CODE_ASTM = V_ACTION_CODE_ASTM, REPORT_TYPE_ASTM = V_REPORT_TYPE_ASTM
+                        WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE EQUIPAMENTOS WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_EQUIPAMENTOS;
+/
+
+
+--
+-- Caixa
+--
+create or replace PROCEDURE PRC_CAIXA(V_CONTA_HOSP     IN CAIXA.CONTA_HOSP%TYPE,
+                                      V_REGISTRO       IN CAIXA.REGISTRO%TYPE,
+                                      V_CONTA          IN CAIXA.CONTA%TYPE,
+                                      V_DATA_PAG       IN CAIXA.DATA_PAG%TYPE,
+                                      V_VALOR          IN CAIXA.VALOR%TYPE,
+                                      V_DESCONTO       IN CAIXA.DESCONTO%TYPE,
+                                      V_TIPO_DTO       IN CAIXA.TIPO_DTO%TYPE,
+                                      V_USUARIO        IN CAIXA.USUARIO%TYPE,
+                                      V_DATA_CAD       IN CAIXA.DATA_CAD%TYPE,
+                                      V_CORREL         IN OUT CAIXA.CORREL%TYPE,
+                                      V_TIPO_PAG       IN CAIXA.TIPO_PAG%TYPE,
+                                      V_CATALOGO       IN CAIXA.CATALOGO%TYPE,
+                                      V_USUARIO_DTO    IN CAIXA.USUARIO_DTO%TYPE,
+                                      V_USUARIO_ALT    IN CAIXA.USUARIO_ALT%TYPE,
+                                      V_DATA_ALT       IN CAIXA.DATA_ALT%TYPE,
+                                      V_FUNCAO         IN NUMBER) IS
+BEGIN
+  IF (V_FUNCAO = 1) OR (V_FUNCAO = 6) THEN
+     IF (V_FUNCAO = 1) THEN
+        SELECT NVL(MAX(C.CORREL)+1,1) INTO V_CORREL FROM CAIXA C 
+        WHERE C.CONTA_HOSP = V_CONTA_HOSP;
+     END IF;
+
+     INSERT INTO CAIXA VALUES (V_CONTA_HOSP,  V_REGISTRO,    V_CONTA,     V_DATA_PAG,
+                               V_VALOR,       V_DESCONTO,    V_TIPO_DTO,  V_USUARIO,
+                               V_DATA_CAD,    V_CORREL,      V_TIPO_PAG,  V_CATALOGO, 
+   			       V_USUARIO_DTO, V_USUARIO_ALT, V_DATA_ALT);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CAIXA SET VALOR = V_VALOR
+                      WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CAIXA WHERE CONTA_HOSP = V_CONTA_HOSP;
+
+  ELSIF V_FUNCAO = 4 THEN
+     DELETE CAIXA WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CAIXA SET VALOR = V_VALOR, 
+	                  DATA_PAG = V_DATA_PAG, 
+					  DESCONTO = V_DESCONTO, 
+					  TIPO_DTO = V_TIPO_DTO, 
+					  TIPO_PAG = V_TIPO_PAG,
+					  USUARIO_ALT = V_USUARIO_ALT,
+					  DATA_ALT = V_DATA_ALT			  
+                WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+
+  END IF;
+
+  COMMIT WORK;
+END PRC_CAIXA;
+

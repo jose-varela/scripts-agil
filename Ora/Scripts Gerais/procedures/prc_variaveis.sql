@@ -1,0 +1,71 @@
+CREATE OR REPLACE PROCEDURE PRC_VARIAVEIS(V_MNEMONICO           IN     TEXTOS.MNEMONICO%TYPE,
+                                          V_NUMERO              IN     TEXTOS.NUMERO%TYPE,
+                                          V_VARIAVEL            IN OUT VARIAVEIS.VARIAVEL%TYPE,
+                                          V_NOME                IN     VARIAVEIS.NOME%TYPE,
+                                          V_TIPO_VARIAVEL       IN     VARIAVEIS.TIPO_VARIAVEL%TYPE,
+                                          V_TIPO_DADO           IN     VARIAVEIS.TIPO_DADO%TYPE,
+                                          V_TAMANHO             IN     VARIAVEIS.TAMANHO%TYPE,
+                                          V_DECIMAIS            IN     VARIAVEIS.DECIMAIS%TYPE,
+                                          V_VALOR               IN     VARIAVEIS.VALOR%TYPE,
+                                          V_MASCARA             IN     VARIAVEIS.MASCARA%TYPE,
+                                          V_UNIDADE             IN     VARIAVEIS.UNIDADE%TYPE,
+                                          V_IMPRIME_NULO        IN     VARIAVEIS.IMPRIME_NULO%TYPE,
+                                          V_DISPLAY             IN     VARIAVEIS.DISPLAY%TYPE,
+                                          V_LINHAS              IN     VARIAVEIS.LINHAS%TYPE,
+                                          V_GRUPO               IN     VARIAVEIS.GRUPO%TYPE,
+                                          V_COLUNAS             IN     VARIAVEIS.COLUNAS%TYPE,
+                                          V_ORDEM_VISUALIZACAO  IN     VARIAVEIS.ORDEM_VISUALIZACAO%TYPE,
+                                          V_VISUALIZA_HISTORICO IN     VARIAVEIS.VISUALIZA_HISTORICO%TYPE,
+                                          V_ALTERACAO_MAX       IN     VARIAVEIS.ALTERACAO_MAX%TYPE,
+                                          V_ALTERACAO_MIN       IN     VARIAVEIS.ALTERACAO_MIN%TYPE,
+                                          V_FATOR_ALTERACAO     IN     VARIAVEIS.FATOR_ALTERACAO%TYPE,
+                                          V_MNEMONICO_VARIAVEL  IN     VARIAVEIS.MNEMONICO_VARIAVEL%TYPE,
+                                          V_OBRIGATORIA         IN     VARIAVEIS.OBRIGATORIA%TYPE,
+                                          V_FUNCAO              IN     NUMBER) IS
+CURSOR CUR_CONDICOES IS
+  SELECT MNEMONICO, NUMERO, CORREL FROM CONDICOES_REFERENCIA WHERE MNEMONICO = V_MNEMONICO AND NUMERO = V_NUMERO;
+
+CURSOR CUR_TEXTOS_COMPARTILHADOS IS
+  SELECT MNEMONICO, NUMERO FROM TEXTOS_COMPARTILHADOS WHERE MNEM_COMPARTILHADO = V_MNEMONICO AND NUM_COMPARTILHADO = V_NUMERO AND
+                                                           (MNEMONICO <> V_MNEMONICO OR NUMERO <> V_NUMERO);
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_VARIAVEL.NEXTVAL INTO V_VARIAVEL FROM DUAL;
+     INSERT INTO VARIAVEIS VALUES (V_VARIAVEL, V_NOME,  V_TIPO_VARIAVEL, V_TIPO_DADO, V_TAMANHO,
+                                         V_DECIMAIS, V_VALOR, V_MASCARA, V_UNIDADE, V_IMPRIME_NULO, 
+                                         V_DISPLAY, V_LINHAS, V_GRUPO, V_COLUNAS, V_ORDEM_VISUALIZACAO, V_VISUALIZA_HISTORICO,
+                                         V_ALTERACAO_MAX, V_ALTERACAO_MIN, V_FATOR_ALTERACAO, V_MNEMONICO_VARIAVEL, V_OBRIGATORIA); 
+     IF V_MNEMONICO IS NOT NULL THEN
+        FOR CONDICOES_CUR IN CUR_CONDICOES LOOP
+            INSERT INTO VALORES_REFERENCIA VALUES (V_MNEMONICO, V_NUMERO, CONDICOES_CUR.CORREL, V_VARIAVEL, '');
+        END LOOP;
+
+        INSERT INTO VARIAVEIS_TEXTOS VALUES (V_MNEMONICO, V_NUMERO, V_VARIAVEL, 'N');
+
+        FOR TEXTOS_COMPARTILHADOS_CUR IN CUR_TEXTOS_COMPARTILHADOS LOOP
+            INSERT INTO VARIAVEIS_TEXTOS VALUES (TEXTOS_COMPARTILHADOS_CUR.MNEMONICO, TEXTOS_COMPARTILHADOS_CUR.NUMERO, V_VARIAVEL, 'S');
+        END LOOP;
+     END IF;
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE VARIAVEIS SET NOME = V_NOME, TIPO_VARIAVEL = V_TIPO_VARIAVEL, TIPO_DADO = V_TIPO_DADO,
+                                TAMANHO = V_TAMANHO, DECIMAIS = V_DECIMAIS, VALOR = V_VALOR, MASCARA = V_MASCARA, UNIDADE = V_UNIDADE,
+                                IMPRIME_NULO = V_IMPRIME_NULO, DISPLAY = V_DISPLAY, LINHAS = V_LINHAS, GRUPO = V_GRUPO, COLUNAS = V_COLUNAS, 
+                                ORDEM_VISUALIZACAO = V_ORDEM_VISUALIZACAO, VISUALIZA_HISTORICO = V_VISUALIZA_HISTORICO,
+                                ALTERACAO_MAX = V_ALTERACAO_MAX, ALTERACAO_MIN = V_ALTERACAO_MIN, FATOR_ALTERACAO = V_FATOR_ALTERACAO,
+                                MNEMONICO_VARIAVEL = V_MNEMONICO_VARIAVEL, OBRIGATORIA = V_OBRIGATORIA
+                        WHERE VARIAVEL = V_VARIAVEL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE VARIAVEIS WHERE VARIAVEL = V_VARIAVEL;
+
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE VARIAVEIS SET ORDEM_VISUALIZACAO = V_ORDEM_VISUALIZACAO, VISUALIZA_HISTORICO = V_VISUALIZA_HISTORICO
+                        WHERE VARIAVEL = V_VARIAVEL;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_VARIAVEIS;
+/

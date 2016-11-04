@@ -1,0 +1,4 @@
+CREATE TABLE EMPRESAS
+(EMPRESA               SMALLINT,
+ NOME                  VARCHAR(40) NOT NULL)
+;

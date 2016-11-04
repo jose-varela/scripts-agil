@@ -1,0 +1,23 @@
+CREATE OR REPLACE PROCEDURE PRC_ENTIDADES(V_ENTIDADE    IN OUT ENTIDADES.ENTIDADE%TYPE,
+                                          V_NOME        IN     ENTIDADES.NOME%TYPE,
+                                          V_CGC         IN     ENTIDADES.CGC%TYPE,
+                                          V_TIPO        IN     ENTIDADES.TIPO%TYPE,
+                                          V_STATUS      IN     ENTIDADES.STATUS%TYPE,
+                                          V_FUNCAO      IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_ENTIDADE.NEXTVAL INTO V_ENTIDADE FROM DUAL;
+     INSERT INTO ENTIDADES VALUES (V_ENTIDADE, V_NOME, V_CGC, V_TIPO, V_STATUS);
+  
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE ENTIDADES SET NOME = V_NOME, CGC = V_CGC, TIPO = V_TIPO, STATUS = V_STATUS
+      WHERE ENTIDADE = V_ENTIDADE;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE ENTIDADES WHERE ENTIDADE = V_ENTIDADE;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_ENTIDADES;
+/

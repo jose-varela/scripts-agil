@@ -1,0 +1,11 @@
+@departamentos_estoque_ck
+@fornecedores_pessoa_ck
+@fornecedores_tabela_ck
+@compras_num_for_ck
+@compras_tipo_dto_ck
+@produtos_compra_tipo_dto_ck
+@produtos_fornecedores_ck
+@variaveis_display_ck
+@variaveis_imprime_nulo_ck
+@variaveis_textos_compart_ck
+

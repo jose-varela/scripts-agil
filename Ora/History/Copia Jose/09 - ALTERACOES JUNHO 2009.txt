@@ -1,0 +1,176 @@
+CREATE TABLE EXAMES_B2B
+(ID_EXAME_B2B       NUMBER(8)    NOT NULL,
+ POSTO              NUMBER(3)    NOT NULL,
+ ATENDIMENTO        NUMBER(6)    NOT NULL,
+ CORREL             NUMBER(2)    NOT NULL,
+ AMOSTRA            NUMBER(2)    NOT NULL,
+ POSTO_B2B          NUMBER(3)    NOT NULL,
+ ID_SERVICO_B2B     VARCHAR2(4)  NOT NULL,
+ CORREL_B2B         NUMBER(2)    NOT NULL,
+ SITUACAO_B2B       VARCHAR2(1)  NOT NULL,
+ DATA_B2B           DATE         NOT NULL,
+ USUARIO_B2B        VARCHAR2(10) NOT NULL,
+ ESTACAO_B2B        VARCHAR2(20) NOT NULL,
+ LOTE_B2B           VARCHAR2(10))
+TABLESPACE LIS_DATA;
+
+CREATE SEQUENCE SQ_EXAME_B2B
+MINVALUE 0
+MAXVALUE 99999999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+
+
+CREATE OR REPLACE PROCEDURE PRC_EXAMES_B2B(V_ID_EXAME_B2B       IN OUT EXAMES_B2B.ID_EXAME_B2B%TYPE,
+                                           V_POSTO              IN EXAMES_B2B.POSTO%TYPE,
+                                           V_ATENDIMENTO        IN EXAMES_B2B.ATENDIMENTO%TYPE,
+                                           V_CORREL             IN EXAMES_B2B.CORREL%TYPE,
+                                           V_AMOSTRA            IN EXAMES_B2B.AMOSTRA%TYPE,
+                                           V_POSTO_B2B          IN EXAMES_B2B.POSTO_B2B%TYPE,
+                                           V_ID_SERVICO_B2B     IN EXAMES_B2B.ID_SERVICO_B2B%TYPE,
+                                           V_CORREL_B2B         IN EXAMES_B2B.CORREL_B2B%TYPE,
+                                           V_SITUACAO_B2B       IN EXAMES_B2B.SITUACAO_B2B%TYPE,
+                                           V_DATA_B2B           IN EXAMES_B2B.DATA_B2B%TYPE,
+                                           V_USUARIO_B2B        IN EXAMES_B2B.USUARIO_B2B%TYPE,
+                                           V_ESTACAO_B2B        IN EXAMES_B2B.ESTACAO_B2B%TYPE,
+                                           V_LOTE_B2B           IN EXAMES_B2B.LOTE_B2B%TYPE,
+                                           V_FUNCAO             IN NUMBER) IS
+BEGIN                                                           
+  IF V_FUNCAO = 1 THEN                                          
+     SELECT SQ_EXAME_B2B.NEXTVAL INTO V_ID_EXAME_B2B FROM DUAL;
+     INSERT INTO EXAMES_B2B VALUES(V_ID_EXAME_B2B, V_POSTO, V_ATENDIMENTO, V_CORREL, V_AMOSTRA, V_POSTO_B2B, 
+                                   V_ID_SERVICO_B2B, V_CORREL_B2B, V_SITUACAO_B2B, V_DATA_B2B, 
+                                   V_USUARIO_B2B, V_ESTACAO_B2B, V_LOTE_B2B);
+
+  ELSIF V_FUNCAO = 2 THEN
+            UPDATE EXAMES_B2B SET POSTO            = V_POSTO,
+                                  ATENDIMENTO      = V_ATENDIMENTO,
+                                  CORREL           = V_CORREL,
+                                  AMOSTRA          = V_AMOSTRA,
+                                  POSTO_B2B        = V_POSTO_B2B,
+                                  ID_SERVICO_B2B   = V_ID_SERVICO_B2B,
+                                  CORREL_B2B       = V_CORREL_B2B,
+                                  SITUACAO_B2B     = V_SITUACAO_B2B,
+                                  DATA_B2B         = V_DATA_B2B,
+                                  USUARIO_B2B      = V_USUARIO_B2B,
+                                  ESTACAO_B2B      = V_ESTACAO_B2B
+                          WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+
+  ELSIF V_FUNCAO = 3 THEN
+            DELETE EXAMES_B2B WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+
+  END IF;
+
+  COMMIT WORK;
+END PRC_EXAMES_B2B;
+/
+
+ALTER TABLE EXAMES_B2B ADD CONSTRAINT EXAMES_B2B_PK 
+      PRIMARY KEY (ID_EXAME_B2B);
+
+ALTER TABLE EXAMES_B2B ADD CONSTRAINT EXAMES_B2B_EXAMES_FK 
+      FOREIGN KEY (POSTO,ATENDIMENTO, CORREL) REFERENCES EXAMES(POSTO,ATENDIMENTO,CORREL) 
+      ON DELETE CASCADE;
+
+ALTER TABLE EXAMES_B2B ADD CONSTRAINT EXAMES_B2B_SERVICOS_B2B_FK 
+      FOREIGN KEY (ID_SERVICO_B2B) REFERENCES SERVICOS_B2B(ID_SERVICO_B2B) 
+      ON DELETE CASCADE;
+
+CREATE INDEX EXAMES_B2B_POSTO_I    
+       ON EXAMES_B2B (POSTO, ATENDIMENTO, CORREL, AMOSTRA)
+       TABLESPACE LIS_INDX;
+
+ALTER TABLE EQUIPAMENTOS ADD(TIPO_COMUNICACAO VARCHAR2(1));
+UPDATE EQUIPAMENTOS SET TIPO_COMUNICACAO = 'S';
+
+ALTER TABLE EQUIPAMENTOS MODIFY TIPO_COMUNICACAO NOT NULL;
+
+ALTER TABLE EQUIPAMENTOS ADD(LOCAL_IN VARCHAR2(50));
+ALTER TABLE EQUIPAMENTOS ADD(LOCAL_OUT VARCHAR2(50));
+
+CREATE OR REPLACE PROCEDURE PRC_EQUIPAMENTOS(V_EQUIPAMENTO        IN OUT  EQUIPAMENTOS.EQUIPAMENTO%TYPE,
+                                             V_NOME               IN      EQUIPAMENTOS.NOME%TYPE,
+                                             V_MODELO_EQUIPAMENTO IN      EQUIPAMENTOS.MODELO_EQUIPAMENTO%TYPE,
+                                             V_STATUS             IN      EQUIPAMENTOS.STATUS%TYPE,
+                                             V_HOST               IN      EQUIPAMENTOS.HOST%TYPE,
+                                             V_PORTA              IN      EQUIPAMENTOS.PORTA%TYPE,
+                                             V_BITS_SEGUNDO       IN      EQUIPAMENTOS.BITS_SEGUNDO%TYPE,
+                                             V_BITS_DADOS         IN      EQUIPAMENTOS.BITS_DADOS%TYPE,
+                                             V_PARIDADE           IN      EQUIPAMENTOS.PARIDADE%TYPE,
+                                             V_BITS_PARADA        IN      EQUIPAMENTOS.BITS_PARADA%TYPE,
+                                             V_CONTROLE_FLUXO     IN      EQUIPAMENTOS.CONTROLE_FLUXO%TYPE,
+                                             V_MODO_OPERACAO      IN      EQUIPAMENTOS.MODO_OPERACAO%TYPE,
+                                             V_TIPO_COMUNICACAO   IN      EQUIPAMENTOS.TIPO_COMUNICACAO%TYPE,
+                                             V_LOCAL_IN           IN      EQUIPAMENTOS.LOCAL_IN%TYPE,
+                                             V_LOCAL_OUT          IN      EQUIPAMENTOS.LOCAL_OUT%TYPE,
+                                             V_FUNCAO             IN      NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_EQUIPAMENTO.NEXTVAL INTO V_EQUIPAMENTO FROM DUAL;
+     INSERT INTO EQUIPAMENTOS VALUES (V_EQUIPAMENTO, V_NOME, V_MODELO_EQUIPAMENTO, V_STATUS, V_HOST, V_PORTA, 
+                                      V_BITS_SEGUNDO, V_BITS_DADOS, V_PARIDADE, V_BITS_PARADA, V_CONTROLE_FLUXO, 
+                                      V_MODO_OPERACAO, V_TIPO_COMUNICACAO, V_LOCAL_IN, V_LOCAL_OUT
+                                          );
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE EQUIPAMENTOS SET NOME = V_NOME, MODELO_EQUIPAMENTO = V_MODELO_EQUIPAMENTO,
+                             STATUS = V_STATUS, HOST = V_HOST, PORTA = V_PORTA, 
+                             BITS_SEGUNDO = V_BITS_SEGUNDO, BITS_DADOS = V_BITS_DADOS, 
+                             PARIDADE = V_PARIDADE, BITS_PARADA = V_BITS_PARADA, 
+                             CONTROLE_FLUXO = V_CONTROLE_FLUXO, MODO_OPERACAO = V_MODO_OPERACAO,
+                             TIPO_COMUNICACAO = V_TIPO_COMUNICACAO, LOCAL_IN = V_LOCAL_IN,
+                             LOCAL_OUT = V_LOCAL_OUT
+                        WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE EQUIPAMENTOS WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_EQUIPAMENTOS;
+/
+
+
+CREATE TABLE MAP_B2B_MATERIAIS
+(ID_SERVICO_B2B    VARCHAR2(4) NOT NULL,
+ MATERIAL          NUMBER(3) NOT NULL,
+ MAP_MATERIAL      VARCHAR2(4),
+ NOME              VARCHAR2(40))
+TABLESPACE LIS_DATA;
+
+ALTER TABLE MAP_B2B_MATERIAIS ADD CONSTRAINT MAP_B2B_MATERIAIS_PK 
+      PRIMARY KEY (ID_SERVICO_B2B, MATERIAL);
+
+
+ALTER TABLE MAP_B2B_MATERIAIS ADD CONSTRAINT MAP_B2B_MATERIAIS_MAT_FK 
+      FOREIGN KEY (MATERIAL) REFERENCES MATERIAIS(MATERIAL)
+      ON DELETE CASCADE;
+
+ALTER TABLE MAP_B2B_MATERIAIS ADD CONSTRAINT MAP_B2B_MAT_SERV_B2B_FK 
+      FOREIGN KEY (ID_SERVICO_B2B) REFERENCES SERVICOS_B2B(ID_SERVICO_B2B)
+      ON DELETE CASCADE;
+
+CREATE OR REPLACE PROCEDURE PRC_MAP_B2B_MATERIAIS(V_ID_SERVICO_B2B  IN   MAP_B2B_MATERIAIS.ID_SERVICO_B2B%TYPE,
+                                                  V_MATERIAL        IN   MAP_B2B_MATERIAIS.MATERIAL%TYPE,
+                                                  V_MAP_MATERIAL    IN   MAP_B2B_MATERIAIS.MAP_MATERIAL%TYPE,
+                                                  V_NOME            IN   MAP_B2B_MATERIAIS.NOME%TYPE,
+                                                  V_FUNCAO          IN   NUMBER) IS                         
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO MAP_B2B_MATERIAIS VALUES (V_ID_SERVICO_B2B, V_MATERIAL, V_MAP_MATERIAL, V_NOME);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE MAP_B2B_MATERIAIS SET MAP_MATERIAL = V_MAP_MATERIAL, NOME = V_NOME WHERE ID_SERVICO_B2B = V_ID_SERVICO_B2B AND MATERIAL = V_MATERIAL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE MAP_B2B_MATERIAIS WHERE ID_SERVICO_B2B = V_ID_SERVICO_B2B AND MATERIAL = V_MATERIAL;
+     
+  END IF;             
+
+  COMMIT WORK;
+
+END PRC_MAP_B2B_MATERIAIS;
+/

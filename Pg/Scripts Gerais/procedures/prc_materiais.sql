@@ -1,0 +1,23 @@
+CREATE OR REPLACE FUNCTION PRC_MATERIAIS(V_MATERIAL     IN OUT MATERIAIS.MATERIAL%TYPE,
+                                          V_NOME         IN     MATERIAIS.NOME%TYPE,
+                                          V_SEXO         IN     MATERIAIS.SEXO%TYPE,
+                                          V_JEJUM        IN     MATERIAIS.JEJUM%TYPE,
+                                          V_FUNCAO       IN     INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_MATERIAL.NEXTVAL INTO V_MATERIAL FROM DUAL;
+     INSERT INTO MATERIAIS VALUES (V_MATERIAL, V_NOME, V_SEXO, V_JEJUM);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE MATERIAIS SET NOME = V_NOME, SEXO = V_SEXO, JEJUM = V_JEJUM
+                          WHERE MATERIAL = V_MATERIAL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE MATERIAIS WHERE MATERIAL = V_MATERIAL;
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_MATERIAIS;
+/

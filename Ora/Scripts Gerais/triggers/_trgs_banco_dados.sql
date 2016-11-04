@@ -1,0 +1,1 @@
+-- Triggers das tabelas do modulo Banco de Dados..

@@ -1,0 +1,216 @@
+.clearfix:before, .clearfix:after {
+	content:""; display:table
+}
+
+.clearfix:after {
+	clear:both
+}
+
+.clearfix {
+	zoom: 1
+}
+
+body {
+	background-color:#F7F7F7; 
+	font:normal 12px/20px Helvetica,Arial
+}
+
+body > p {
+	text-align:center
+}
+
+body > p a {
+	color:#505667
+}
+
+h1 {
+	color:#5d5d5d; 
+	font:50px museo-sans-1,sans-serif; 
+	margin:20px 0; 
+	text-align:center; 
+	text-shadow:0 1px 0 rgba(255, 255, 255, 0.5)
+}
+
+.box {
+	width:250px; 
+	background-color:#eee; 
+	margin:0 auto;
+	padding:5px; 
+	border-radius:3px
+}
+
+.box > ul {
+	margin:0; 
+	padding:0; 
+	list-style:none
+}
+
+.box > ul li {
+	margin:0 5px 0 0; 
+	border:1px solid #ccc; 
+	padding:5px 10px; 
+	background:#fff; 
+	float:left; 
+	border-radius:3px; 
+	cursor:pointer
+}
+
+.box > ul li.active {
+	background-color:#505667; 
+	color:#fff
+}
+
+.box .content {
+	float: left;
+	clear:left;
+	width:233px; 
+	margin:5px 0 0; 
+	background-color:#fff; 
+	border-radius: 3px; 
+	border:1px solid #ccc; 
+	padding:10px
+}
+
+.box .content > div {
+	display:none
+}
+
+.box .content > div img {
+	display:block; 
+	margin:10px auto
+}
+
+/*--------------------*/
+			
+fieldset
+{
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+			
+/*--------------------*/
+			
+			
+.login input
+{
+	background: #f1f1f1 url(../img/login-sprite.png) no-repeat;
+	padding: 8px 8px 8px 30px;
+	margin: 0 0 10px 8px;
+	width: 170px; /* 353 + 2 + 45 = 400 */
+	border: 1px solid #ccc;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	-moz-box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+	-webkit-box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+	box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+}
+
+.login select
+{
+	padding: 8px 8px 8px 8px;
+	margin: 0 0 10px 8px;
+	width: 170px; /* 353 + 2 + 45 = 400 */
+	border: 1px solid #ccc;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	-moz-box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+	-webkit-box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+	box-shadow: 0 1px 1px #ccc inset, 0 1px 0 #fff;
+}
+	
+			
+.idPaciente,.idPosto, .idCR, .cpf
+{
+    background-position: 8px -8px !important;
+}
+			
+.dataNas{
+	background-position: 8px -109px !important;
+}			
+			
+.chavePaciente, .chavePosto,.chaveMedico,.senha
+{
+	background-position: 8px -58px !important;
+}
+			
+.login input:focus,.login select:focus
+{
+	background-color: #fff;
+	border-color: #6d707a;
+	outline: none;
+	-moz-box-shadow: 0 0 0 1px #6d707a inset;
+	-webkit-box-shadow: 0 0 0 1px #6d707a inset;
+	box-shadow: 0 0 0 1px #6d707a inset;
+}
+			
+.submitPaciente,.submitPosto,.submitMedico{
+	background-color: #505667;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#6d707a));	
+	background-image: -webkit-linear-gradient(top, #f7f7f7, #6d707a);
+	background-image: -moz-linear-gradient(top, #f7f7f7, #6d707a);
+	background-image: -ms-linear-gradient(top, #f7f7f7, #6d707a);
+	background-image: -o-linear-gradient(top, #f7f7f7, #6d707a);
+	background-image: linear-gradient(top, #f7f7f7, #6d707a);
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	
+	-moz-box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+	-webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;    
+	border-width: 1px;
+	border-style: solid;
+	border-color: #ccc;
+	float: right;
+	height: 35px;
+	padding: 0;
+	width: 120px;
+	cursor: pointer;
+	font: bold 15px Arial, Helvetica;
+	color: #fff;
+	margin-right: 10px;
+}
+			
+.submitPaciente:hover,.submitPaciente:focus,.submitPosto:hover,.submitPosto:focus,.submitMedico:hover,.submitMedico:focus
+{		
+	background-color: #aeaeae;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#505667), to(#d8d8d8));
+	background-image: -webkit-linear-gradient(top, #505667, #d8d8d8);
+	background-image: -moz-linear-gradient(top, #505667, #d8d8d8);
+	background-image: -ms-linear-gradient(top, #505667, #d8d8d8);
+	background-image: -o-linear-gradient(top, #505667, #d8d8d8);
+	background-image: linear-gradient(top, #505667, #d8d8d8);
+}	
+			
+.submitPaciente:active,.submitPosto:active,.submitMedico:active
+{		
+	outline: none;
+	-moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;		
+}
+			
+.submitPaciente::-moz-focus-inner,.submitPosto::-moz-focus-inner,.submitMedico::-moz-focus-inner
+{
+	border: none;
+}
+
+#lbStatus{
+	float: left;
+	width: 100%;
+}
+
+#tipoCR{
+	float: left;
+	width: 100px !important;
+}
+
+#uf{
+	float: right;
+	margin-right: 14px;
+	width: 100px !important;
+}
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<fieldCONFIG>
+	<Define VersionConfig="1.0"/>
+	<Configs>
+		<Config ConfigName="MASK_MATRICULA" ConfigValue=""/>
+		<Config ConfigName="LINK_CANCELA_GUIA" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissCancelaGuia"/>
+		<Config ConfigName="LINK_COMUNICACAO_BENEFICIARIO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissComunicacaoBeneficiario"/>
+		<Config ConfigName="LINK_LOTE_ANEXO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissLoteAnexo"/>
+		<Config ConfigName="LINK_SOLICITACAO_PROCEDIMENTOS" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissSolicitacaoProcedimento"/>
+		<Config ConfigName="LINK_SOLICITA_STATUS_AUTORIZACAO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissSolicitacaoStatusAutorizacao"/>
+	</Configs>
+</fieldCONFIG>
+

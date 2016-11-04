@@ -1,0 +1,23 @@
+CREATE OR REPLACE FUNCTION PRC_FERIADOS(V_DATA_FERIADO  IN FERIADOS.DATA_FERIADO%TYPE,
+                                         V_FERIADO       IN FERIADOS.FERIADO%TYPE,
+                                         V_FIXO          IN FERIADOS.FIXO%TYPE,
+                                         V_FUNCAO        IN INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO FERIADOS VALUES (V_DATA_FERIADO, V_FERIADO, V_FIXO); 
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE FERIADOS SET FERIADO      = V_FERIADO,
+                               FIXO         = V_FIXO
+                          WHERE DATA_FERIADO = V_DATA_FERIADO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE FERIADOS WHERE DATA_FERIADO = V_DATA_FERIADO;
+
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_FERIADOS;
+/

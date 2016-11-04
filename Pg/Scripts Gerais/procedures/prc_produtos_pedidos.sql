@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION PRC_PRODUTOS_PEDIDOS(V_PEDIDO  	      IN PRODUTOS_PEDIDOS.PEDIDO%TYPE,
+                                         	 	 V_CORREL         IN PRODUTOS_PEDIDOS.CORREL%TYPE,
+                                         		 V_PRODUTO        IN PRODUTOS_PEDIDOS.PRODUTO%TYPE,
+                                        		 V_QTD_PEDIDO     IN PRODUTOS_PEDIDOS.QTD_PEDIDO%TYPE,
+                                        		 V_QTD_ENTREGUE   IN PRODUTOS_PEDIDOS.QTD_ENTREGUE%TYPE,
+                                        		 V_DATA_ENTREGA   IN PRODUTOS_PEDIDOS.DATA_ENTREGA%TYPE,
+                                        		 V_CONFIRMADO     IN PRODUTOS_PEDIDOS.CONFIRMADO%TYPE,
+                                        		 V_FUNCAO         IN INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PRODUTOS_PEDIDOS VALUES (V_PEDIDO,  V_CORREL, V_PRODUTO, V_QTD_PEDIDO, V_QTD_ENTREGUE,
+                                                V_DATA_ENTREGA, V_CONFIRMADO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PRODUTOS_PEDIDOS SET PRODUTO       = V_PRODUTO,      QTD_PEDIDO = V_QTD_PEDIDO,
+                                       QTD_ENTREGUE  = V_QTD_ENTREGUE, DATA_ENTREGA = V_DATA_ENTREGA,
+                                       CONFIRMADO    = V_CONFIRMADO
+                              WHERE PEDIDO = V_PEDIDO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PRODUTOS_PEDIDOS WHERE PEDIDO = V_PEDIDO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE PRODUTOS_PEDIDOS SET CONFIRMADO    = V_CONFIRMADO
+                              WHERE PEDIDO = V_PEDIDO AND CORREL = V_CORREL;
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_PRODUTOS_PEDIDOS;
+/

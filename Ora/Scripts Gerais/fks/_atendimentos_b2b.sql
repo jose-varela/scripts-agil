@@ -1,0 +1,3 @@
+
+@atendimentos_b2b_atendimentos_fk.sql
+@atendimentos_b2b_servicos_b2b_fk.sql

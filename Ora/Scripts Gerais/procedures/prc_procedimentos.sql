@@ -1,0 +1,89 @@
+CREATE OR REPLACE PROCEDURE PRC_PROCEDIMENTOS(V_PROCEDIMENTO           IN     PROCEDIMENTOS.PROCEDIMENTO%TYPE,
+                                              V_NOME                   IN     PROCEDIMENTOS.NOME%TYPE,
+                                              V_MNEMONICO              IN OUT PROCEDIMENTOS.MNEMONICO%TYPE,
+                                              V_SETOR                  IN     PROCEDIMENTOS.SETOR%TYPE,
+                                              V_MATERIAL               IN     PROCEDIMENTOS.MATERIAL%TYPE,
+                                              V_METODO                 IN     PROCEDIMENTOS.METODO%TYPE,
+                                              V_POSTO                  IN     PROCEDIMENTOS.POSTO%TYPE,
+                                              V_ENTREGA                IN     PROCEDIMENTOS.ENTREGA%TYPE,
+                                              V_TROCA_MATERIAL         IN     PROCEDIMENTOS.TROCA_MATERIAL%TYPE,
+                                              V_GRUPO_ETIQUETA         IN     PROCEDIMENTOS.GRUPO_ETIQUETA%TYPE,
+                                              V_PRIORIDADE_IMPRESSAO   IN     PROCEDIMENTOS.PRIORIDADE_IMPRESSAO%TYPE,
+                                              V_IMPRESSAO_EXCLUSIVA    IN     PROCEDIMENTOS.IMPRESSAO_EXCLUSIVA%TYPE,
+                                              V_QT_MAX_ATENDIMENTO     IN     PROCEDIMENTOS.QT_MAX_ATENDIMENTO%TYPE,
+                                              V_STATUS                 IN     PROCEDIMENTOS.STATUS%TYPE,
+                                              V_IMPRIME_MAPA           IN     PROCEDIMENTOS.IMPRIME_MAPA%TYPE,
+                                              V_TIPO_LIBERACAO         IN     PROCEDIMENTOS.TIPO_LIBERACAO%TYPE,
+                                              V_LAYOUT_INTERFACE       IN     PROCEDIMENTOS.LAYOUT_INTERFACE%TYPE,
+                                              V_COLUNAS_LAYOUT         IN     PROCEDIMENTOS.COLUNAS_LAYOUT%TYPE,
+                                              V_LINHAS_LAYOUT          IN     PROCEDIMENTOS.LINHAS_LAYOUT%TYPE,
+                                              V_ORIENTACAO_LAYOUT      IN     PROCEDIMENTOS.ORIENTACAO_LAYOUT%TYPE,
+                                              V_HISTORICO_LAYOUT       IN     PROCEDIMENTOS.HISTORICO_LAYOUT%TYPE,
+                                              V_HORA_COLE              IN     PROCEDIMENTOS.HORA_COLE%TYPE,
+                                              V_TROCA_POSTO            IN     PROCEDIMENTOS.TROCA_POSTO%TYPE,
+                                              V_DUM                    IN     PROCEDIMENTOS.DUM%TYPE,
+                                              V_TIPO_ENTREGA           IN     PROCEDIMENTOS.TIPO_ENTREGA%TYPE,
+                                              V_TIPO_COLETA            IN     PROCEDIMENTOS.TIPO_COLETA%TYPE,
+                                              V_SEPARA_VARIAVEIS_FICHA IN     PROCEDIMENTOS.SEPARA_VARIAVEIS_FICHA%TYPE,
+                                              V_SEM_VALOR              IN     PROCEDIMENTOS.SEM_VALOR%TYPE,
+                                              V_TEM_EVOLUCAO           IN     PROCEDIMENTOS.TEM_EVOLUCAO%TYPE,
+                                              V_QUEBRA_PAGINA          IN     PROCEDIMENTOS.QUEBRA_PAGINA%TYPE,
+                                              V_AVISO_ETIQUETA         IN     PROCEDIMENTOS.AVISO_ETIQUETA%TYPE,
+                                              V_TIPO_PROCEDIMENTO      IN     PROCEDIMENTOS.TIPO_PROCEDIMENTO%TYPE,
+                                              V_FUNCAO                 IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PROCEDIMENTOS VALUES (V_PROCEDIMENTO,   V_NOME,   V_MNEMONICO, V_SETOR,
+                                       V_MATERIAL,       V_METODO, V_POSTO,     V_ENTREGA, 
+                                       V_TROCA_MATERIAL, V_GRUPO_ETIQUETA, V_PRIORIDADE_IMPRESSAO,
+                                       V_IMPRESSAO_EXCLUSIVA, V_QT_MAX_ATENDIMENTO, V_STATUS, V_IMPRIME_MAPA,
+                                       V_TIPO_LIBERACAO, V_LAYOUT_INTERFACE, V_COLUNAS_LAYOUT, V_LINHAS_LAYOUT,
+                                       V_ORIENTACAO_LAYOUT, V_HISTORICO_LAYOUT, V_HORA_COLE, V_TROCA_POSTO, V_DUM,
+                                       V_TIPO_ENTREGA, V_TIPO_COLETA, V_SEPARA_VARIAVEIS_FICHA, V_SEM_VALOR, V_TEM_EVOLUCAO,
+                                       V_QUEBRA_PAGINA, V_AVISO_ETIQUETA, V_TIPO_PROCEDIMENTO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PROCEDIMENTOS SET PROCEDIMENTO           = V_PROCEDIMENTO,   NOME                 = V_NOME,   
+                              SETOR                  = V_SETOR,          MATERIAL             = V_MATERIAL,
+                              METODO                 = V_METODO,         POSTO                = V_POSTO,
+                              ENTREGA                = V_ENTREGA,        TROCA_MATERIAL       = V_TROCA_MATERIAL,
+                              GRUPO_ETIQUETA         = V_GRUPO_ETIQUETA, PRIORIDADE_IMPRESSAO = V_PRIORIDADE_IMPRESSAO,
+                              IMPRESSAO_EXCLUSIVA    = V_IMPRESSAO_EXCLUSIVA, 
+                              QT_MAX_ATENDIMENTO     = V_QT_MAX_ATENDIMENTO, DUM              = V_DUM,
+                              STATUS                 = V_STATUS,         IMPRIME_MAPA         = V_IMPRIME_MAPA,
+                              TIPO_LIBERACAO         = V_TIPO_LIBERACAO, LAYOUT_INTERFACE     = V_LAYOUT_INTERFACE,
+                              COLUNAS_LAYOUT         = V_COLUNAS_LAYOUT, LINHAS_LAYOUT        = V_LINHAS_LAYOUT,
+                              ORIENTACAO_LAYOUT      = V_ORIENTACAO_LAYOUT, HISTORICO_LAYOUT  = V_HISTORICO_LAYOUT,
+                              HORA_COLE              = V_HORA_COLE,      TROCA_POSTO          = V_TROCA_POSTO,
+                              TIPO_ENTREGA           = V_TIPO_ENTREGA,   TIPO_COLETA          = V_TIPO_COLETA,
+                              SEPARA_VARIAVEIS_FICHA = V_SEPARA_VARIAVEIS_FICHA,
+                              SEM_VALOR              = V_SEM_VALOR,      TEM_EVOLUCAO         = V_TEM_EVOLUCAO,
+                              QUEBRA_PAGINA          = V_QUEBRA_PAGINA,  AVISO_ETIQUETA       = V_AVISO_ETIQUETA,
+							  TIPO_PROCEDIMENTO    = V_TIPO_PROCEDIMENTO
+                        WHERE MNEMONICO              = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PROCEDIMENTOS WHERE MNEMONICO = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE PROCEDIMENTOS SET GRUPO_ETIQUETA = V_GRUPO_ETIQUETA
+                               WHERE MNEMONICO     = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE PROCEDIMENTOS SET PRIORIDADE_IMPRESSAO = V_PRIORIDADE_IMPRESSAO,
+                                    IMPRESSAO_EXCLUSIVA = V_IMPRESSAO_EXCLUSIVA
+                              WHERE MNEMONICO     = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 6 THEN
+     UPDATE PROCEDIMENTOS SET  TIPO_LIBERACAO = V_TIPO_LIBERACAO, LAYOUT_INTERFACE = V_LAYOUT_INTERFACE,
+                               COLUNAS_LAYOUT = V_COLUNAS_LAYOUT, LINHAS_LAYOUT    = V_LINHAS_LAYOUT,
+                               ORIENTACAO_LAYOUT = V_ORIENTACAO_LAYOUT, HISTORICO_LAYOUT = V_HISTORICO_LAYOUT,
+                               TEM_EVOLUCAO = V_TEM_EVOLUCAO, QUEBRA_PAGINA = V_QUEBRA_PAGINA
+                          WHERE MNEMONICO     = V_MNEMONICO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_PROCEDIMENTOS;
+/

@@ -1,0 +1,3 @@
+-- Criamos todos os indices de todas as tabelas do modulo CAIXA...
+@%CEDRO_HOME%\indexes\caixa_data_pag_conta_i.sql
+

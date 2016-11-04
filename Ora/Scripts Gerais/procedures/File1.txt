@@ -1,0 +1,23 @@
+create or replace procedure PRC_TST
+(V_PARAM1 IN VARCHAR2,
+ V_PARAM2 IN VARCHAR2) IS
+
+begin
+   DECLARE
+   V_TST1 VARCHAR2(2000);
+   V_TST2 VARCHAR2(2000);
+   V_TST3 VARCHAR2(2000);
+   V_TST4 VARCHAR2(2000);
+
+   BEGIN
+      V_TST1 := V_PARAM1;
+      V_TST2 := V_PARAM2;
+
+      INSERT INTO TST VALUES(V_TST1||V_TST2);
+   END;
+end PRC_TST;
+/
+
+
+
+

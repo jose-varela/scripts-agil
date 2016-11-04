@@ -1,0 +1,69 @@
+CREATE OR REPLACE FUNCTION PRC_VARIAVEIS(V_MNEMONICO           IN     CEDRO.TEXTOS.MNEMONICO%TYPE,
+                                          V_NUMERO              IN     CEDRO.TEXTOS.NUMERO%TYPE,
+                                          V_VARIAVEL            IN OUT CEDRO.VARIAVEIS.VARIAVEL%TYPE,
+                                          V_NOME                IN     CEDRO.VARIAVEIS.NOME%TYPE,
+                                          V_TIPO_VARIAVEL       IN     CEDRO.VARIAVEIS.TIPO_VARIAVEL%TYPE,
+                                          V_TIPO_DADO           IN     CEDRO.VARIAVEIS.TIPO_DADO%TYPE,
+                                          V_TAMANHO             IN     CEDRO.VARIAVEIS.TAMANHO%TYPE,
+                                          V_DECIMAIS            IN     CEDRO.VARIAVEIS.DECIMAIS%TYPE,
+                                          V_VALOR               IN     CEDRO.VARIAVEIS.VALOR%TYPE,
+                                          V_MASCARA             IN     CEDRO.VARIAVEIS.MASCARA%TYPE,
+                                          V_UNIDADE             IN     CEDRO.VARIAVEIS.UNIDADE%TYPE,
+                                          V_IMPRIME_NULO        IN     CEDRO.VARIAVEIS.IMPRIME_NULO%TYPE,
+                                          V_DISPLAY             IN     CEDRO.VARIAVEIS.DISPLAY%TYPE,
+                                          V_LINHAS              IN     CEDRO.VARIAVEIS.LINHAS%TYPE,
+                                          V_GRUPO               IN     CEDRO.VARIAVEIS.GRUPO%TYPE,
+                                          V_COLUNAS             IN     CEDRO.VARIAVEIS.COLUNAS%TYPE,
+                                          V_ORDEM_VISUALIZACAO  IN     CEDRO.VARIAVEIS.ORDEM_VISUALIZACAO%TYPE,
+                                          V_VISUALIZA_HISTORICO IN     CEDRO.VARIAVEIS.VISUALIZA_HISTORICO%TYPE,
+                                          V_ALTERACAO_MAX       IN     CEDRO.VARIAVEIS.ALTERACAO_MAX%TYPE,
+                                          V_ALTERACAO_MIN       IN     CEDRO.VARIAVEIS.ALTERACAO_MIN%TYPE,
+                                          V_FATOR_ALTERACAO     IN     CEDRO.VARIAVEIS.FATOR_ALTERACAO%TYPE,
+                                          V_MNEMONICO_VARIAVEL  IN     CEDRO.VARIAVEIS.MNEMONICO_VARIAVEL%TYPE,
+                                          V_FUNCAO              IN     INT) RETURNS VOID AS
+ DECLARE $$
+CURSOR CUR_CONDICOES IS
+  SELECT MNEMONICO, NUMERO, CORREL FROM CONDICOES_REFERENCIA WHERE MNEMONICO = V_MNEMONICO AND NUMERO = V_NUMERO;
+
+CURSOR CUR_TEXTOS_COMPARTILHADOS IS
+  SELECT MNEMONICO, NUMERO FROM TEXTOS_COMPARTILHADOS WHERE MNEM_COMPARTILHADO = V_MNEMONICO AND NUM_COMPARTILHADO = V_NUMERO AND
+                                                           (MNEMONICO <> V_MNEMONICO OR NUMERO <> V_NUMERO);
+BEGIN
+
+  IF V_FUNCAO = 1 THEN
+     SELECT CEDRO.SQ_VARIAVEL.NEXTVAL INTO V_VARIAVEL FROM DUAL;
+     INSERT INTO CEDRO.VARIAVEIS VALUES (V_VARIAVEL, V_NOME,  V_TIPO_VARIAVEL, V_TIPO_DADO, V_TAMANHO,
+                                         V_DECIMAIS, V_VALOR, V_MASCARA, V_UNIDADE, V_IMPRIME_NULO, 
+                                         V_DISPLAY, V_LINHAS, V_GRUPO, V_COLUNAS, V_ORDEM_VISUALIZACAO, V_VISUALIZA_HISTORICO,
+                                         V_ALTERACAO_MAX, V_ALTERACAO_MIN, V_FATOR_ALTERACAO, V_MNEMONICO_VARIAVEL); 
+      
+     FOR CONDICOES_CUR IN CUR_CONDICOES LOOP
+         INSERT INTO VALORES_REFERENCIA VALUES (V_MNEMONICO, V_NUMERO, CONDICOES_CUR.CORREL, V_VARIAVEL, '');
+     END LOOP;
+
+     INSERT INTO VARIAVEIS_TEXTOS VALUES (V_MNEMONICO, V_NUMERO, V_VARIAVEL, 'N');
+
+     FOR TEXTOS_COMPARTILHADOS_CUR IN CUR_TEXTOS_COMPARTILHADOS LOOP
+         INSERT INTO VARIAVEIS_TEXTOS VALUES (TEXTOS_COMPARTILHADOS_CUR.MNEMONICO, TEXTOS_COMPARTILHADOS_CUR.NUMERO, V_VARIAVEL, 'S');
+     END LOOP;
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CEDRO.VARIAVEIS SET NOME = V_NOME, TIPO_VARIAVEL = V_TIPO_VARIAVEL, TIPO_DADO = V_TIPO_DADO,
+                                TAMANHO = V_TAMANHO, DECIMAIS = V_DECIMAIS, VALOR = V_VALOR, MASCARA = V_MASCARA, UNIDADE = V_UNIDADE,
+                                IMPRIME_NULO = V_IMPRIME_NULO, DISPLAY = V_DISPLAY, LINHAS = V_LINHAS, GRUPO = V_GRUPO, COLUNAS = V_COLUNAS, 
+                                ORDEM_VISUALIZACAO = V_ORDEM_VISUALIZACAO, VISUALIZA_HISTORICO = V_VISUALIZA_HISTORICO,
+                                ALTERACAO_MAX = V_ALTERACAO_MAX, ALTERACAO_MIN = V_ALTERACAO_MIN, FATOR_ALTERACAO = V_FATOR_ALTERACAO,
+                                MNEMONICO_VARIAVEL = V_MNEMONICO_VARIAVEL
+                        WHERE VARIAVEL = V_VARIAVEL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CEDRO.VARIAVEIS WHERE VARIAVEL = V_VARIAVEL;
+
+
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_VARIAVEIS;
+/

@@ -1,0 +1,86 @@
+CREATE OR REPLACE PROCEDURE PRC_COMPLEMENTO_ATENDIMENTOS(V_POSTO                     IN     COMPLEMENTO_ATENDIMENTOS.POSTO%TYPE,
+                                                         V_ATENDIMENTO               IN     COMPLEMENTO_ATENDIMENTOS.ATENDIMENTO%TYPE,
+                                                         V_USUARIO                   IN     COMPLEMENTO_ATENDIMENTOS.USUARIO%TYPE,
+                                                         V_DATA_CAD                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_CAD%TYPE,
+                                                         V_COD_VALID                 IN     COMPLEMENTO_ATENDIMENTOS.COD_VALID%TYPE,
+                                                         V_DATA_INT                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_INT%TYPE,
+                                                         V_DATA_ALT                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_ALT%TYPE,
+                                                         V_LOTE                      IN     COMPLEMENTO_ATENDIMENTOS.LOTE%TYPE,
+                                                         V_ID_ORG_EMPRESA_CONVENIADA IN     COMPLEMENTO_ATENDIMENTOS.ID_ORG_EMPRESA_CONVENIADA%TYPE,
+                                                         V_CID                       IN     COMPLEMENTO_ATENDIMENTOS.CID%TYPE,
+                                                         V_GESTANTE                  IN     COMPLEMENTO_ATENDIMENTOS.GESTANTE%TYPE,
+                                                         V_DATA_UM                   IN     COMPLEMENTO_ATENDIMENTOS.DATA_UM%TYPE,
+                                                         V_ULTIMA_REFEICAO           IN     COMPLEMENTO_ATENDIMENTOS.ULTIMA_REFEICAO%TYPE,
+                                                         V_MEDICACAO                 IN     COMPLEMENTO_ATENDIMENTOS.MEDICACAO%TYPE,
+                                                         V_OBSERVACOES               IN     COMPLEMENTO_ATENDIMENTOS.OBSERVACOES%TYPE,
+                                                         V_PESO                      IN     COMPLEMENTO_ATENDIMENTOS.PESO%TYPE,
+                                                         V_ALTURA                    IN     COMPLEMENTO_ATENDIMENTOS.ALTURA%TYPE,
+                                                         V_VOL_URINA                 IN     COMPLEMENTO_ATENDIMENTOS.VOL_URINA%TYPE,
+                                                         V_CODIGO_EXTERNO            IN     COMPLEMENTO_ATENDIMENTOS.CODIGO_EXTERNO%TYPE,
+                                                         V_ID_ACOMODACAO             IN     COMPLEMENTO_ATENDIMENTOS.ID_ACOMODACAO%TYPE,
+                                                         V_LEITO                     IN     COMPLEMENTO_ATENDIMENTOS.LEITO%TYPE,
+                                                         V_FUNCAO                    IN     NUMBER) IS
+BEGIN
+     DECLARE
+            V_ACHEI  NUMBER(8);
+            
+            CURSOR CUR_PROCURA IS
+                   SELECT ATENDIMENTO FROM COMPLEMENTO_ATENDIMENTOS 
+                    WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+     BEGIN               
+          IF V_FUNCAO = 1 THEN
+             INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                          V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                          V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                          V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO);
+
+          ELSIF V_FUNCAO = 2 THEN
+                UPDATE COMPLEMENTO_ATENDIMENTOS SET USUARIO        = V_USUARIO,  DATA_CAD = V_DATA_CAD, COD_VALID = V_COD_VALID,
+                                                          DATA_INT       = V_DATA_INT, DATA_ALT = V_DATA_ALT, LOTE      = V_LOTE,
+                                                          ID_ORG_EMPRESA_CONVENIADA = V_ID_ORG_EMPRESA_CONVENIADA,  CID = V_CID, OBSERVACOES = V_OBSERVACOES,
+                                                          PESO           = V_PESO,     ALTURA   = V_ALTURA,   VOL_URINA = V_VOL_URINA,
+                                                          CODIGO_EXTERNO = V_CODIGO_EXTERNO, ID_ACOMODACAO = V_ID_ACOMODACAO,
+                                                          LEITO          = V_LEITO
+                 WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+          ELSIF V_FUNCAO = 3 THEN
+                DELETE COMPLEMENTO_ATENDIMENTOS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+          ELSIF V_FUNCAO = 4 THEN
+                OPEN CUR_PROCURA;
+                FETCH CUR_PROCURA INTO V_ACHEI;
+  
+                IF CUR_PROCURA%NOTFOUND THEN
+                   INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                                      V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                                      V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                                      V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO);
+                ELSE
+                    UPDATE COMPLEMENTO_ATENDIMENTOS SET GESTANTE = V_GESTANTE, DATA_UM = V_DATA_UM, ULTIMA_REFEICAO = V_ULTIMA_REFEICAO, MEDICACAO = V_MEDICACAO,
+                                                              OBSERVACOES = V_OBSERVACOES, PESO = V_PESO, ALTURA = V_ALTURA, VOL_URINA = V_VOL_URINA,
+                                                              CODIGO_EXTERNO = V_CODIGO_EXTERNO, ID_ACOMODACAO = V_ID_ACOMODACAO, CID = V_CID,
+                                                              LEITO = V_LEITO, ID_ORG_EMPRESA_CONVENIADA = V_ID_ORG_EMPRESA_CONVENIADA
+                     WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+                END IF;
+                CLOSE CUR_PROCURA;
+          
+          ELSIF V_FUNCAO = 5 THEN
+                OPEN CUR_PROCURA;
+                FETCH CUR_PROCURA INTO V_ACHEI;
+  
+                IF CUR_PROCURA%NOTFOUND THEN
+                   INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                                      V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                                      V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                                      V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO);
+                ELSE
+                    UPDATE COMPLEMENTO_ATENDIMENTOS SET CODIGO_EXTERNO = V_CODIGO_EXTERNO
+                     WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+                END IF;
+                CLOSE CUR_PROCURA;
+          END IF;                                                        
+     END;     
+     COMMIT WORK;
+END PRC_COMPLEMENTO_ATENDIMENTOS;
+/
+

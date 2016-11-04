@@ -1,0 +1,24 @@
+CREATE OR REPLACE FUNCTION GET_CATALOGO_TEMPO_ENTREGA(V_ID_ACOMODACAO IN INT) RETURN VARCHAR(4000) IS
+ DECLARE vNOME_TABELA VARCHAR(30);
+
+vSQL           VARCHAR(256);    BEGIN
+--string que recebe o comando SQL dinâmico
+
+
+     --PASSO 1: monta e executa SQL dinâmico para pegar o nro do catalogo de acordo com a acomodacao
+     vSQL := 'SELECT  NVL(ATE.ID_TEMPO_ENTREGA,1) ' ||
+             '  FROM ACOMODACOES AC, ACOMODACOES_TEMPOS_ENTREGA ATE ' ||
+             ' WHERE AC.ID_ACOMODACAO = ' || V_ID_ACOMODACAO ||
+             '   AND ATE.ID_ACOMODACAO(+) = AC.ID_ACOMODACAO';
+
+     EXECUTE IMMEDIATE vSQL INTO vNOME_TABELA;
+
+     --PASSO 2: monta o nome da tabela TEMPOS_ENTREGAx
+     vNOME_TABELA := 'TEMPOS_ENTREGA' || vNOME_TABELA;
+
+    RETURN(vNOME_TABELA);
+
+END GET_CATALOGO_TEMPO_ENTREGA;
+$$ LANGUAGE plpgsql;
+/
+

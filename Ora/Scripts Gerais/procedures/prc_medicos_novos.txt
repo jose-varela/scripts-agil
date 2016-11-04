@@ -1,0 +1,20 @@
+CREATE OR REPLACE PROCEDURE PRC_MEDICOS(V_CRM             IN OUT CEDRO.MEDICOS.CRM%TYPE,
+                                        V_NOME            IN     CEDRO.MEDICOS.NOME%TYPE,
+                                        V_CPF             IN     CEDRO.MEDICOS.CPF%TYPE,
+                                        V_TIPO            IN     CEDRO.MEDICOS.TIPO%TYPE,
+                                        V_STATUS          IN     CEDRO.MEDICOS.STATUS%TYPE,
+                                        V_CODIGO_CONSELHO IN     CEDRO.MEDICOS.CODIGO_CONSELHO%TYPE,
+                                        V_TIPO_CR         IN     CEDRO.MEDICOS.TIPO_CR%TYPE,
+                                        V_FUNCAO          IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO CEDRO.MEDICOS VALUES (V_CRM, V_NOME, V_CPF, V_TIPO, V_STATUS, V_CODIGO_CONSELHO, V_TIPO_CR);
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CEDRO.MEDICOS SET NOME = V_NOME, CPF = V_CPF, TIPO = V_TIPO, STATUS = V_STATUS,
+                            CODIGO_CONSELHO = V_CODIGO_CONSELHO, TIPO_CR = V_TIPO_CR
+      WHERE CRM = V_CRM;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CEDRO.MEDICOS WHERE CRM = V_CRM;
+  END IF;
+  COMMIT WORK;
+END PRC_MEDICOS;

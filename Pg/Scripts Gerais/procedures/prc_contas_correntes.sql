@@ -1,0 +1,29 @@
+CREATE OR REPLACE FUNCTION PRC_CONTAS_CORRENTES(V_CONTA   IN OUT CONTAS_CORRENTES.CONTA%TYPE,
+                                                 V_DIGITO  IN     CONTAS_CORRENTES.DIGITO%TYPE,
+                                                 V_BANCO   IN     CONTAS_CORRENTES.BANCO%TYPE,
+                                                 V_AGENCIA IN     CONTAS_CORRENTES.AGENCIA%TYPE,
+                                                 V_CAIXA   IN     CONTAS_CORRENTES.CAIXA%TYPE,
+                                                 V_SALDO   IN     CONTAS_CORRENTES.SALDO%TYPE,
+                                                 V_FUNCAO  IN     INT) RETURNS VOID AS $$
+
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO CONTAS_CORRENTES VALUES (V_CONTA, V_DIGITO, V_BANCO, V_AGENCIA, 
+                                                V_CAIXA, V_SALDO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CONTAS_CORRENTES SET BANCO = V_BANCO, AGENCIA = V_AGENCIA, CAIXA = V_CAIXA
+            WHERE CONTA = V_CONTA AND DIGITO = V_DIGITO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CONTAS_CORRENTES WHERE CONTA = V_CONTA AND DIGITO = V_DIGITO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE CONTAS_CORRENTES SET SALDO = V_SALDO
+            WHERE CONTA = V_CONTA AND DIGITO = V_DIGITO;
+  END IF;
+
+  /* COMMIT WORK; */
+END;
+$$ LANGUAGE plpgsql; PRC_CONTAS_CORRENTES;
+/

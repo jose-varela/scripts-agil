@@ -1,0 +1,4 @@
+-- CLIENTES
+CREATE INDEX CLIENTES_CPF_I
+       ON CLIENTES (CPF)   
+      ;

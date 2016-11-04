@@ -1,0 +1,23 @@
+-- Acressentamos as sequencias das tabelas do modulo de Banco de Dados.
+@%LIS_HOME%\sequences\sq_acomodacao.sql
+@%LIS_HOME%\sequences\sq_catalogo.sql
+@%LIS_HOME%\sequences\sq_convenio.sql
+@%LIS_HOME%\sequences\sq_conservante.sql
+@%LIS_HOME%\sequences\sq_material.sql
+@%LIS_HOME%\sequences\sq_metodos.sql
+@%LIS_HOME%\sequences\sq_medico.sql
+@%LIS_HOME%\sequences\sq_posto.sql
+@%LIS_HOME%\sequences\sq_servico.sql
+@%LIS_HOME%\sequences\sq_setor.sql
+@%LIS_HOME%\sequences\sq_usuarios.sql
+@%LIS_HOME%\sequences\sq_grupo_etiqueta.sql
+@%LIS_HOME%\sequences\sq_grupo_posto.sql
+@%LIS_HOME%\sequences\sq_grafico.sql
+@%LIS_HOME%\sequences\sq_entidade.sql
+@%LIS_HOME%\sequences\sq_orientacao.sql
+@%LIS_HOME%\sequences\sq_grafico.sql
+@%LIS_HOME%\sequences\sq_unidades.sql
+@%LIS_HOME%\sequences\sq_tempo_coleta.sql
+@%LIS_HOME%\sequences\sq_empresa_conveniada.sql
+@%LIS_HOME%\sequences\sq_layout.sql
+@%LIS_HOME%\sequences\sq_sinalizacoes_evolucao.sql

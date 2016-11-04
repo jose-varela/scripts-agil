@@ -1,0 +1,9 @@
+-- Criamos todos os indices de todas as tabelas do modulo EXAMES..
+@%CEDRO_HOME%\indexes\exames_data_cole_i.sql
+@%CEDRO_HOME%\indexes\exames_dcole_pend_sit_i.sql
+@%CEDRO_HOME%\indexes\exames_data_cad_usuario_i.sql
+@%CEDRO_HOME%\indexes\exames_data_cad_posto_i.sql
+@%CEDRO_HOME%\indexes\exames_dcole_posto_atendimento_i.sql
+@%CEDRO_HOME%\indexes\exames_posto_atend_etiqueta_i.sql
+@%CEDRO_HOME%\indexes\exames_posto_atendimento_i.sql
+@%CEDRO_HOME%\indexes\exames_dent_sit_i.sql

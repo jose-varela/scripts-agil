@@ -1,0 +1,33 @@
+CREATE TABLE SERVICOS_ADM
+(ID_SERVICO_ADM            SMALLINT NOT NULL,
+ MNEMO_SERVICO_ADM         VARCHAR(3) NOT NULL,
+ NOME                      VARCHAR(40) NOT NULL,
+ TIPO_SERVICO              VARCHAR(1) NOT NULL,
+ RAZAO_SOCIAL              VARCHAR(100) NOT NULL,
+ CPF_CGC                   VARCHAR(14),
+ DATA_HORA_ALT             VARCHAR(16) NOT NULL,
+ USUARIO_ALT               VARCHAR(10) NOT NULL,
+ STATUS                    VARCHAR(1) NOT NULL,
+ ENDERECO                  VARCHAR(100) NOT NULL,
+ LOGO                      BYTEA,
+ RESULTADOS_WEB            VARCHAR(1) NOT NULL,
+ CONEXAO_DB                VARCHAR(30) NOT NULL,
+ CIDADE                    VARCHAR(30) NOT NULL,
+ WEB_SITE                  VARCHAR(60),
+ DDD                       VARCHAR(3) NOT NULL,
+ IDADE_CLIENTE             VARCHAR(1) NOT NULL,
+ TEXTO_RECIBO              VARCHAR(500) NOT NULL,
+ PASTA_WEB_PDF             VARCHAR(50),
+ PASTA_WEB_XML             VARCHAR(50), 
+ WEB_PREPARO               VARCHAR(50),
+ WEB_LAUDO                 VARCHAR(50),
+ WEB_PORTA                 SMALLINT,
+ IMPRIME_RECIBO            VARCHAR(1),
+ IMPRIME_CARTAO_FIDELIDADE VARCHAR(1),
+ E_MAIL                    VARCHAR(50,
+ IMPRIME_INF_LIBERACAO     VARCHAR(1) NOT NULL,
+ UNICODE                   VARCHAR(1) NOT NULL)
+ K
+          NEXT 512 K
+        )
+

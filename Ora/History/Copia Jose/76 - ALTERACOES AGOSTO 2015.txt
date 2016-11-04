@@ -1,0 +1,53 @@
+ALTER TABLE POSTOS RENAME COLUMN FORMULARIO_LAUDO TO LAYOUT_PADRAO;
+UPDATE POSTOS SET LAYOUT_PADRAO = 'S';
+UPDATE POSTOS SET LAYOUT_PADRAO = 'N' WHERE LAYOUT_LAUDO IS NULL;
+ALTER TABLE POSTOS MODIFY LAYOUT_PADRAO VARCHAR2(1);
+ALTER TABLE POSTOS MODIFY LAYOUT_PADRAO NOT NULL;
+
+
+CREATE OR REPLACE PROCEDURE PRC_POSTOS(V_POSTO                     IN OUT POSTOS.POSTO%TYPE,
+                                       V_NOME                      IN     POSTOS.NOME%TYPE,
+                                       V_INFORMATIZADO             IN     POSTOS.INFORMATIZADO%TYPE,
+                                       V_HORA_ENT                  IN     POSTOS.HORA_ENT%TYPE,
+                                       V_INTERNO                   IN     POSTOS.INTERNO%TYPE,
+                                       V_DATA_CAD                  IN     POSTOS.DATA_CAD%TYPE,
+                                       V_REALIZA_EXAMES            IN     POSTOS.REALIZA_EXAMES%TYPE,
+                                       V_DIRECIONA_EXAMES          IN     POSTOS.DIRECIONA_EXAMES%TYPE,
+                                       V_STATUS                    IN     POSTOS.STATUS%TYPE,
+                                       V_COLETA_MATERIAL           IN     POSTOS.COLETA_MATERIAL%TYPE,
+                                       V_TIPO_POSTO                IN     POSTOS.TIPO_POSTO%TYPE,
+                                       V_PASS                      IN     POSTOS.PASS%TYPE,
+                                       V_ENDERECO                  IN     POSTOS.ENDERECO%TYPE,
+                                       V_MNEMONICO_POSTO           IN     POSTOS.MNEMONICO_POSTO%TYPE,
+                                       V_NOME_FICHA                IN     POSTOS.NOME_FICHA%TYPE,
+                                       V_LAYOUT_LAUDO              IN     POSTOS.LAYOUT_LAUDO%TYPE,
+                                       V_LAYOUT_PADRAO             IN     POSTOS.LAYOUT_PADRAO%TYPE,
+									   V_IMPRIME_PARCIAL_DIGITADOS IN     POSTOS.IMPRIME_PARCIAL_DIGITADOS %TYPE,
+                                       V_FUNCAO                    IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_POSTO.NEXTVAL INTO V_POSTO FROM DUAL;
+     INSERT INTO POSTOS VALUES (V_POSTO, V_NOME, V_INFORMATIZADO, V_HORA_ENT, V_INTERNO, V_DATA_CAD,
+                                V_REALIZA_EXAMES, V_DIRECIONA_EXAMES, V_STATUS, V_COLETA_MATERIAL, 
+                                V_TIPO_POSTO, V_PASS, V_ENDERECO, V_MNEMONICO_POSTO, V_NOME_FICHA, EMPTY_BLOB, V_LAYOUT_PADRAO,
+								V_IMPRIME_PARCIAL_DIGITADOS);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE POSTOS SET NOME = V_NOME,     INFORMATIZADO = V_INFORMATIZADO, 
+                             HORA_ENT = V_HORA_ENT, INTERNO = V_INTERNO, DATA_CAD = V_DATA_CAD,
+                             REALIZA_EXAMES = V_REALIZA_EXAMES, DIRECIONA_EXAMES = V_DIRECIONA_EXAMES,
+                             STATUS = V_STATUS, COLETA_MATERIAL = V_COLETA_MATERIAL, TIPO_POSTO = V_TIPO_POSTO, PASS = V_PASS,
+                             ENDERECO = V_ENDERECO, MNEMONICO_POSTO = V_MNEMONICO_POSTO, NOME_FICHA = V_NOME_FICHA, LAYOUT_PADRAO = V_LAYOUT_PADRAO,
+							 IMPRIME_PARCIAL_DIGITADOS = V_IMPRIME_PARCIAL_DIGITADOS
+                        WHERE POSTO = V_POSTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE POSTOS WHERE POSTO = V_POSTO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_POSTOS;
+/
+

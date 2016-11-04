@@ -1,0 +1,3 @@
+-- Criamos todos os indices de todas as tabelas do modulo MEDICOS...
+@%CEDRO_HOME%\indexes\medicos_nome_i.sql
+

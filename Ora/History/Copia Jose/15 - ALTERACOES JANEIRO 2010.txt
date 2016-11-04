@@ -1,0 +1,94 @@
+ALTER TABLE SERVICOS_ADM ADD(IMPRIME_RECIBO VARCHAR2(1));
+ALTER TABLE SERVICOS_ADM ADD(IMPRIME_CARTAO_FIDELIDADE VARCHAR2(1));
+
+UPDATE SERVICOS_ADM SET IMPRIME_RECIBO = 'N';
+ALTER TABLE SERVICOS_ADM MODIFY IMPRIME_RECIBO NOT NULL;
+
+UPDATE SERVICOS_ADM SET IMPRIME_CARTAO_FIDELIDADE = 'N';
+ALTER TABLE SERVICOS_ADM MODIFY IMPRIME_CARTAO_FIDELIDADE NOT NULL;
+
+
+CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                             V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                             V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                             V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                             V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                             V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                             V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                             V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                             V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                             V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                             V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                             V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                             V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                             V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                             V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                             V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                             V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                             V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                             V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                             V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                             V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                             V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                             V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                             V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                             V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                             V_FUNCAO             IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+     INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, V_RAZAO_SOCIAL, 
+                                      V_CPF_CGC, V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                      V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF, 
+                                      V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO,
+                             RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, DATA_HORA_ALT = V_DATA_HORA_ALT, 
+                             USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                             CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                             TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                             WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO,
+                             IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE
+                       WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_SERVICOS_ADM;
+/
+
+ALTER TABLE SERVICOS_B2B MODIFY ID_SERVICO_B2B VARCHAR2(6);
+ALTER TABLE EXAMES_B2B MODIFY ID_SERVICO_B2B VARCHAR2(6);
+ALTER TABLE MAP_B2B_PROCEDIMENTOS MODIFY ID_SERVICO_B2B VARCHAR2(6);
+ALTER TABLE MAP_B2B_MATERIAIS MODIFY ID_SERVICO_B2B VARCHAR2(6);
+ALTER TABLE MAP_B2B_VARIAVEIS MODIFY ID_SERVICO_B2B VARCHAR2(6);
+ALTER TABLE POSTOS_SERVICOS_B2B MODIFY ID_SERVICO_B2B VARCHAR2(6);
+
+ALTER TABLE SERVICOS_B2B ADD(PASTA_DESTINO VARCHAR2(50));
+
+
+CREATE OR REPLACE PROCEDURE PRC_SERVICOS_B2B(V_ID_SERVICO_B2B  IN OUT SERVICOS_B2B.ID_SERVICO_B2B%TYPE,
+                                             V_NOME            IN     SERVICOS_B2B.NOME%TYPE,
+                                             V_PASTA_DESTINO   IN     SERVICOS_B2B.PASTA_DESTINO%TYPE,
+                                             V_FUNCAO          IN     NUMBER) IS                         
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO SERVICOS_B2B VALUES (V_ID_SERVICO_B2B, V_NOME, V_PASTA_DESTINO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE SERVICOS_B2B SET NOME = V_NOME, PASTA_DESTINO = V_PASTA_DESTINO WHERE ID_SERVICO_B2B = V_ID_SERVICO_B2B;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE SERVICOS_B2B WHERE ID_SERVICO_B2B = V_ID_SERVICO_B2B;
+     
+  END IF;             
+
+  COMMIT WORK;
+
+END PRC_SERVICOS_B2B;
+/

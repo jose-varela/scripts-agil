@@ -1,0 +1,36 @@
+CREATE OR REPLACE FUNCTION PRC_AMOSTRAS(V_POSTO        IN AMOSTRAS.POSTO%TYPE,
+                                         V_ATENDIMENTO  IN AMOSTRAS.ATENDIMENTO%TYPE,
+                                         V_CORREL       IN AMOSTRAS.CORREL%TYPE,
+                                         V_MNEMONICO    IN AMOSTRAS.MNEMONICO%TYPE,
+                                         V_AMOSTRA      IN AMOSTRAS.AMOSTRA%TYPE,
+                                         V_USUARIO      IN AMOSTRAS.USUARIO%TYPE,
+                                         V_USUARIO_COLE IN AMOSTRAS.USUARIO_COLE%TYPE,
+                                         V_DATA_CAD     IN AMOSTRAS.DATA_CAD%TYPE,
+                                         V_DATA_COLE    IN AMOSTRAS.DATA_COLE%TYPE,
+                                         V_OBSERVACOES  IN AMOSTRAS.OBSERVACOES%TYPE,
+                                         V_IMPRIME_OBS  IN AMOSTRAS.IMPRIME_OBS%TYPE,
+                                         V_FUNCAO       IN INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO AMOSTRAS VALUES (V_POSTO, V_ATENDIMENTO, V_CORREL, V_MNEMONICO,
+                                        V_AMOSTRA, V_USUARIO, V_USUARIO_COLE, V_DATA_CAD,
+                                        V_DATA_COLE, V_OBSERVACOES, V_IMPRIME_OBS);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE AMOSTRAS SET USUARIO_COLE = V_USUARIO_COLE, DATA_COLE = V_DATA_COLE
+            WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL AND AMOSTRA = V_AMOSTRA;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE AMOSTRAS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO 
+                             AND CORREL = V_CORREL AND AMOSTRA = V_AMOSTRA;
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE AMOSTRAS SET OBSERVACOES = V_OBSERVACOES, IMPRIME_OBS = V_IMPRIME_OBS
+            WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL AND AMOSTRA = V_AMOSTRA;
+
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_AMOSTRAS;
+/

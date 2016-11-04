@@ -1,0 +1,3 @@
+-- Criamos todos os indices de todas as tabelas do modulo PRODUTOS...
+@%CEDRO_HOME%\indexes\produtos_nome_ui.sql
+

@@ -1,0 +1,164 @@
+-- CONVENIO 
+ALTER TABLE CONVENIOS ADD(FATURA_POR_PLANO VARCHAR2(1))
+UPDATE CONVENIOS SET FATURA_POR_PLANO = 'N';
+ALTER TABLE CONVENIOS MODIFY FATURA_POR_PLANO NOT NULL;
+
+CREATE OR REPLACE PROCEDURE PRC_CONVENIOS(V_CONVENIO            IN OUT CONVENIOS.CONVENIO%TYPE,
+                                          V_NOME                IN     CONVENIOS.NOME%TYPE,
+                                          V_NOME_FICHA          IN     CONVENIOS.NOME_FICHA%TYPE,
+                                          V_CATALOGO            IN     CONVENIOS.CATALOGO%TYPE,
+                                          V_DESCONTO            IN     CONVENIOS.DESCONTO%TYPE,
+                                          V_STATUS              IN     CONVENIOS.STATUS%TYPE,
+                                          V_PAG_ATO             IN     CONVENIOS.PAG_ATO%TYPE,
+                                          V_DATA_INI            IN     CONVENIOS.DATA_INI%TYPE,
+                                          V_DATA_FIN            IN     CONVENIOS.DATA_FIN%TYPE,
+                                          V_LOTE                IN     CONVENIOS.LOTE%TYPE,
+                                          V_INTERNACAO          IN     CONVENIOS.INTERNACAO%TYPE,
+                                          V_EMPRESA             IN     CONVENIOS.EMPRESA%TYPE,
+                                          V_VALIDADE            IN     CONVENIOS.VALIDADE%TYPE,
+                                          V_CID                 IN     CONVENIOS.CID%TYPE,
+                                          V_SENHA               IN     CONVENIOS.SENHA%TYPE,
+                                          V_MASK_MATRICULA      IN     CONVENIOS.MASK_MATRICULA%TYPE,
+                                          V_CHK_MATRICULA       IN     CONVENIOS.CHK_MATRICULA%TYPE,
+                                          V_CONTA               IN     CONVENIOS.CONTA%TYPE,
+                                          V_DESCONTO_ESPECIAL   IN     CONVENIOS.DESCONTO_ESPECIAL%TYPE,
+                                          V_HONORARIOS          IN     CONVENIOS.HONORARIOS%TYPE,
+                                          V_FILME               IN     CONVENIOS.FILME%TYPE,
+                                          V_GERA_DISK           IN     CONVENIOS.GERA_DISK%TYPE,
+                                          V_REGISTRO_ANS        IN     CONVENIOS.REGISTRO_ANS%TYPE,
+                                          V_ENDERECO_ENVIO      IN     CONVENIOS.ENDERECO_ENVIO%TYPE,
+                                          V_PORTA_ENVIO         IN     CONVENIOS.PORTA_ENVIO%TYPE,
+                                          V_NRO_LOTE            IN     CONVENIOS.NRO_LOTE%TYPE,
+                                          V_AUTORIZADOR         IN     CONVENIOS.AUTORIZADOR%TYPE,
+                                          V_CODIGO_NA_OPERADORA IN     CONVENIOS.CODIGO_NA_OPERADORA%TYPE,
+                                          V_NRO_GUIA_ATUAL      IN     CONVENIOS.NRO_GUIA_ATUAL%TYPE,
+                                          V_NRO_GUIA_MAX        IN     CONVENIOS.NRO_GUIA_MAX%TYPE,
+                                          V_VERSAO_TISS         IN     CONVENIOS.VERSAO_TISS%TYPE,
+                                          V_GUIAS_LOTE          IN     CONVENIOS.GUIAS_LOTE%TYPE,
+                                          V_LOGIN_AUTORIZADOR   IN     CONVENIOS.LOGIN_AUTORIZADOR%TYPE,
+                                          V_PASS_AUTORIZADOR    IN     CONVENIOS.PASS_AUTORIZADOR%TYPE,
+                                          V_FATURA_POR_PLANO    IN     CONVENIOS.FATURA_POR_PLANO%TYPE,
+                                          V_FUNCAO              IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CONVENIOS.NEXTVAL INTO V_CONVENIO FROM DUAL;
+     INSERT INTO CONVENIOS VALUES (V_CONVENIO, V_NOME, V_NOME_FICHA, 
+                                         V_CATALOGO, V_DESCONTO, V_STATUS, V_PAG_ATO, 
+                                         V_DATA_INI, V_DATA_FIN, V_LOTE, V_INTERNACAO,
+                                         V_EMPRESA, V_VALIDADE, V_CID, V_SENHA, V_MASK_MATRICULA, 
+                                         V_CHK_MATRICULA, V_CONTA, V_DESCONTO_ESPECIAL, V_HONORARIOS,
+                                         V_FILME, V_GERA_DISK,V_REGISTRO_ANS,V_ENDERECO_ENVIO,V_PORTA_ENVIO,
+                                         V_NRO_LOTE, V_AUTORIZADOR, V_CODIGO_NA_OPERADORA, V_NRO_GUIA_ATUAL, 
+                                         V_NRO_GUIA_MAX, V_VERSAO_TISS, V_GUIAS_LOTE, V_LOGIN_AUTORIZADOR,
+                                         V_PASS_AUTORIZADOR, V_FATURA_POR_PLANO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CONVENIOS SET  NOME           = V_NOME,           NOME_FICHA        = V_NOME_FICHA, 
+                           CATALOGO       = V_CATALOGO,       DESCONTO          = V_DESCONTO, 
+                           STATUS         = V_STATUS,         PAG_ATO           = V_PAG_ATO,
+                           DATA_INI       = V_DATA_INI,       DATA_FIN          = V_DATA_FIN,
+                           LOTE           = V_LOTE,           INTERNACAO        = V_INTERNACAO,
+                           EMPRESA        = V_EMPRESA,        VALIDADE          = V_VALIDADE,
+                           CID            = V_CID,            SENHA             = V_SENHA,
+                           MASK_MATRICULA = V_MASK_MATRICULA, CHK_MATRICULA     = V_CHK_MATRICULA,
+                           CONTA          = V_CONTA,          DESCONTO_ESPECIAL = V_DESCONTO_ESPECIAL,
+                           HONORARIOS     = V_HONORARIOS,     FILME             = V_FILME,
+                           GERA_DISK      = V_GERA_DISK,      REGISTRO_ANS      = V_REGISTRO_ANS,
+                           ENDERECO_ENVIO = V_ENDERECO_ENVIO, PORTA_ENVIO       = V_PORTA_ENVIO,
+                           NRO_LOTE       = V_NRO_LOTE,       AUTORIZADOR       = V_AUTORIZADOR,
+                           CODIGO_NA_OPERADORA = V_CODIGO_NA_OPERADORA,
+                           NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX      = V_NRO_GUIA_MAX,
+                           VERSAO_TISS    = V_VERSAO_TISS,    GUIAS_LOTE        = V_GUIAS_LOTE,
+                           LOGIN_AUTORIZADOR = V_LOGIN_AUTORIZADOR, PASS_AUTORIZADOR = V_PASS_AUTORIZADOR,
+                           FATURA_POR_PLANO  = V_FATURA_POR_PLANO
+                     WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CONVENIOS WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE CONVENIOS SET  NRO_LOTE = V_NRO_LOTE
+                           WHERE CONVENIO = V_CONVENIO;
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CONVENIOS SET  NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX    = V_NRO_GUIA_MAX
+                           WHERE CONVENIO = V_CONVENIO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CONVENIOS;
+/
+
+
+
+-- FATURAS
+
+ALTER TABLE FATURAS ADD(CODIGO_PLANO NUMBER(3));
+
+CREATE OR REPLACE PROCEDURE PRC_FATURAS(V_CONVENIO     IN FATURAS.CONVENIO%TYPE,
+                                        V_DATA_DESDE   IN FATURAS.DATA_DESDE%TYPE,
+                                        V_DATA_ATE     IN FATURAS.DATA_ATE%TYPE,
+                                        V_FECHADA      IN FATURAS.FECHADA%TYPE,
+                                        V_DISKETE      IN FATURAS.DISKETE%TYPE,
+                                        V_STATUS       IN FATURAS.STATUS%TYPE,
+                                        V_USUARIO      IN FATURAS.USUARIO%TYPE,
+                                        V_DATA_CAD     IN FATURAS.DATA_CAD%TYPE,
+                                        V_VALOR_FAT    IN FATURAS.VALOR_FAT%TYPE,
+                                        V_VALOR_PAG    IN FATURAS.VALOR_PAG%TYPE,
+                                        V_VALOR_GLO    IN FATURAS.VALOR_GLO%TYPE,
+                                        V_ID_FATURA    IN OUT FATURAS.ID_FATURA%TYPE,
+                                        V_CODIGO_PLANO IN FATURAS.CODIGO_PLANO%TYPE,
+                                        V_FUNCAO       IN NUMBER) IS
+BEGIN
+
+  IF (V_ID_FATURA = 0) THEN
+     SELECT SQ_FATURA.NEXTVAL INTO V_ID_FATURA FROM DUAL;
+  END IF;
+
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO FATURAS VALUES (V_CONVENIO,  V_DATA_DESDE, V_DATA_ATE, V_FECHADA,
+                                 V_DISKETE,   V_STATUS,     V_USUARIO,  V_DATA_CAD,
+                                 V_VALOR_FAT, V_VALOR_PAG,  V_VALOR_GLO, V_ID_FATURA, V_CODIGO_PLANO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE FATURAS SET VALOR_FAT = V_VALOR_FAT, VALOR_PAG = V_VALOR_PAG, VALOR_GLO = V_VALOR_GLO,
+                              USUARIO   = V_USUARIO,   DATA_CAD  = V_DATA_CAD
+                      WHERE CONVENIO = V_CONVENIO AND DATA_DESDE = V_DATA_DESDE;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE FATURAS WHERE CONVENIO = V_CONVENIO AND DATA_DESDE = V_DATA_DESDE;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE FATURAS SET DATA_ATE = V_DATA_ATE, USUARIO = V_USUARIO, DATA_CAD = V_DATA_CAD
+                      WHERE CONVENIO = V_CONVENIO AND DATA_DESDE = V_DATA_DESDE;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE FATURAS SET FECHADA = V_FECHADA, STATUS = V_STATUS,
+                              USUARIO = V_USUARIO, DATA_CAD  = V_DATA_CAD
+                      WHERE CONVENIO = V_CONVENIO AND DATA_DESDE = V_DATA_DESDE;
+  END IF;
+
+  COMMIT WORK;
+END PRC_FATURAS;
+/
+
+
+-- SOMENTE PARA NOVAS INSTALACOES
+
+ALTER TABLE FATURAS ADD CONSTRAINT FATURAS_PK 
+      PRIMARY KEY (ID_FATURA);
+
+-- ATE AQUI NOVAS INSTALACOES
+
+
+CREATE INDEX FATURAS_CONVENIO_I
+       ON FATURAS (CONVENIO)   
+       TABLESPACE LIS_INDX;
+
+CREATE INDEX FATURAS_CONVENIO_PLANO_I
+       ON FATURAS (CONVENIO, CODIGO_PLANO)   
+       TABLESPACE LIS_INDX;
+
+
+

@@ -1,0 +1,7 @@
+CREATE TABLE ESTILOS
+(ID_ESTILO           SMALLINT      NOT NULL,
+ NOME                VARCHAR(50)   NOT NULL,
+ TAG_MARCACAO        VARCHAR(30)   NOT NULL,
+ ESTILO              VARCHAR(200),
+ PADRAO              VARCHAR(1)    NOT NULL)
+;

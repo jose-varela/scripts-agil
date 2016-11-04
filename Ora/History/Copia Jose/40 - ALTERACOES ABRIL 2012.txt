@@ -1,0 +1,293 @@
+-------------------------------------------------------------
+-- Criacao da tabela CBO
+-------------------------------------------------------------
+
+IMP LIS/147258@LIS_LOCAL
+IMPORTAR CBO
+
+
+-------------------------------------------------------------
+-- Alteracao da tabela MEDICOS
+-------------------------------------------------------------
+
+ALTER TABLE MEDICOS RENAME COLUMN CODIGO_CONSELHO TO UF_CONSELHO;
+UPDATE MEDICOS SET UF_CONSELHO ='MA' WHERE UF_CONSELHO = '12';
+SELECT UF_CONSELHO, COUNT(1) FROM MEDICOS WHERE UF_CONSELHO <> 'MA' GROUP BY UF_CONSELHO;
+
+ALTER TABLE MEDICOS ADD(ID_CBO VARCHAR2(10));
+ALTER TABLE MEDICOS ADD(ESPECIALIZACAO VARCHAR2(30));
+ALTER TABLE MEDICOS ADD(CNS VARCHAR2(15));
+
+CREATE OR REPLACE PROCEDURE PRC_MEDICOS(V_CRM             IN OUT MEDICOS.CRM%TYPE,
+                                        V_NOME            IN     MEDICOS.NOME%TYPE,
+                                        V_CPF             IN     MEDICOS.CPF%TYPE,
+                                        V_TIPO            IN     MEDICOS.TIPO%TYPE,
+                                        V_STATUS          IN     MEDICOS.STATUS%TYPE,
+                                        V_UF_CONSELHO     IN     MEDICOS.UF_CONSELHO%TYPE,
+                                        V_TIPO_CR         IN     MEDICOS.TIPO_CR%TYPE,
+                                        V_TELEFONE        IN     MEDICOS.TELEFONE%TYPE,
+                                        V_TELEFONE2       IN     MEDICOS.TELEFONE2%TYPE,
+                                        V_EMAIL           IN     MEDICOS.EMAIL%TYPE,
+                                        V_PASS            IN     MEDICOS.PASS%TYPE,
+                                        V_ID_MEDICO       IN OUT MEDICOS.ID_MEDICO%TYPE,
+                                        V_DATA_NAS        IN     MEDICOS.DATA_NAS%TYPE,
+                                        V_PREFIXO_NOME    IN     MEDICOS.PREFIXO_NOME%TYPE,
+                                        V_CODIGO_UNIMED   IN     MEDICOS.CODIGO_UNIMED%TYPE,
+                                        V_ID_CBO          IN     MEDICOS.ID_CBO%TYPE,
+                                        V_ESPECIALIZACAO  IN     MEDICOS.ESPECIALIZACAO%TYPE,
+                                        V_CNS             IN     MEDICOS.CNS%TYPE,
+                                        V_FUNCAO          IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_MEDICOS.NEXTVAL INTO V_ID_MEDICO FROM DUAL;
+
+     INSERT INTO MEDICOS VALUES (V_CRM, V_NOME, V_CPF, V_TIPO, V_STATUS, V_UF_CONSELHO, V_TIPO_CR, V_TELEFONE, V_TELEFONE2, V_EMAIL, V_PASS, V_ID_MEDICO, V_DATA_NAS, V_PREFIXO_NOME, V_CODIGO_UNIMED, V_ID_CBO, V_ESPECIALIZACAO, V_CNS);
+  
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE MEDICOS SET NOME = V_NOME, CPF = V_CPF, TIPO = V_TIPO, STATUS = V_STATUS,
+                              UF_CONSELHO = V_UF_CONSELHO, TIPO_CR = V_TIPO_CR,
+                              TELEFONE = V_TELEFONE, TELEFONE2 = V_TELEFONE2, EMAIL = V_EMAIL, 
+                              PASS = V_PASS, DATA_NAS = V_DATA_NAS, PREFIXO_NOME = V_PREFIXO_NOME, 
+                              CODIGO_UNIMED = V_CODIGO_UNIMED, ID_CBO = V_ID_CBO, ESPECIALIZACAO = V_ESPECIALIZACAO,
+                              CNS= V_CNS 
+      WHERE CRM = V_CRM;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE MEDICOS WHERE CRM = V_CRM;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_MEDICOS;
+/
+
+
+
+
+
+-------------------------------------------------------------
+-- Alteracao da tabela USUARIOS
+-------------------------------------------------------------
+
+ALTER TABLE USUARIOS ADD(ID_MEDICO NUMBER(6));
+UPDATE USUARIOS U SET U.ID_MEDICO = (SELECT M.ID_MEDICO FROM MEDICOS M WHERE M.CRM = U.CRM);
+
+ALTER TABLE USUARIOS DROP COLUMN TIPO_CR;
+ALTER TABLE USUARIOS DROP COLUMN CRM;
+
+
+CREATE OR REPLACE PROCEDURE PRC_USUARIOS(V_USER_CODIGO    IN OUT USUARIOS.USER_CODIGO%TYPE,
+                                         V_USER_TIPO      IN     USUARIOS.USER_TIPO%TYPE,
+                                         V_USER_NOME      IN     USUARIOS.USER_NOME%TYPE,
+                                         V_USER_ID        IN     USUARIOS.USER_ID%TYPE,
+                                         V_SENHA          IN     USUARIOS.SENHA%TYPE,
+                                         V_GRUPO          IN     USUARIOS.GRUPO%TYPE,
+                                         V_DATA_CAD       IN     USUARIOS.DATA_CAD%TYPE,
+                                         V_DATA_VALIDADE  IN     USUARIOS.DATA_VALIDADE%TYPE,
+                                         V_VALIDADE       IN     USUARIOS.VALIDADE%TYPE,
+                                         V_ATIVO          IN     USUARIOS.ATIVO%TYPE,
+                                         V_FECHA_APP      IN     USUARIOS.FECHA_APP%TYPE,
+                                         V_ID_MEDICO      IN     USUARIOS.ID_MEDICO%TYPE,
+                                         V_FUNCAO         IN     NUMBER) IS
+
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_USUARIOS.NEXTVAL INTO V_USER_CODIGO FROM DUAL;
+     INSERT INTO USUARIOS VALUES (V_USER_CODIGO, V_USER_TIPO, V_USER_NOME, V_USER_ID,
+                                        V_SENHA,       V_GRUPO,     V_DATA_CAD,  V_DATA_VALIDADE,
+                                        V_VALIDADE,    V_ATIVO,     V_FECHA_APP, EMPTY_BLOB(),
+                                        V_ID_MEDICO); 
+
+   ELSIF V_FUNCAO = 2 THEN
+     UPDATE USUARIOS SET USER_NOME  = V_USER_NOME, SENHA = V_SENHA, GRUPO = V_GRUPO, 
+                               DATA_CAD   = V_DATA_CAD,  DATA_VALIDADE = V_DATA_VALIDADE,
+                               VALIDADE   = V_VALIDADE,  ATIVO = V_ATIVO, FECHA_APP = V_FECHA_APP,
+                               ID_MEDICO  = V_ID_MEDICO
+                            WHERE USER_CODIGO = V_USER_CODIGO;
+                         
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE USUARIOS WHERE USER_CODIGO = V_USER_CODIGO;
+
+   ELSIF V_FUNCAO = 4 THEN
+     UPDATE USUARIOS SET SENHA = V_SENHA
+                            WHERE USER_CODIGO = V_USER_CODIGO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_USUARIOS;
+/
+
+
+
+-------------------------------------------------------------
+-- Alteracao do tamanho do REGISTRO nas tabelas CLIENTES, CLIENTES_B2B, DEVEDORES, CAIXA, COMPLEMENTO_CLIENTES
+-------------------------------------------------------------
+ALTER TABLE ATENDIMENTOS          MODIFY(REGISTRO NUMBER(7));
+ALTER TABLE CLIENTES              MODIFY(REGISTRO NUMBER(7));
+ALTER TABLE CLIENTES_B2B          MODIFY(REGISTRO NUMBER(7));
+ALTER TABLE DEVEDORES             MODIFY(REGISTRO NUMBER(7));
+ALTER TABLE CAIXA                 MODIFY(REGISTRO NUMBER(7));
+ALTER TABLE COMPLEMENTO_CLIENTES  MODIFY(REGISTRO NUMBER(7));
+
+
+
+
+
+ATE AQUI NO MARCIO HENRIQUE
+
+
+-------------------------------------------------------------
+-- Alteracao da tabela COMPLEMENTO_CLIENTES
+-------------------------------------------------------------
+ALTER TABLE COMPLEMENTO_CLIENTES  RENAME COLUMN LUPUS TO NOME_RESPONSAVEL;
+ALTER TABLE COMPLEMENTO_CLIENTES  MODIFY NOME_RESPONSAVEL VARCHAR2(60);
+ALTER TABLE COMPLEMENTO_CLIENTES  ADD(PARENTESCO_RESPONSAVEL VARCHAR2(10));
+ALTER TABLE COMPLEMENTO_CLIENTES  ADD(FOTO BLOB);
+
+ALTER TABLE COMPLEMENTO_CLIENTES DROP CONSTRAINT "COMPLEMENTO_CLIENTES_LUPUS_CK";
+ALTER TABLE COMPLEMENTO_CLIENTES MODIFY NOME_RESPONSAVEL NULL;
+
+CREATE OR REPLACE PROCEDURE PRC_COMPLEMENTO_CLIENTES(V_REGISTRO               IN     COMPLEMENTO_CLIENTES.REGISTRO%TYPE,
+                                                     V_TIPAGEM_SANGUINEA      IN     COMPLEMENTO_CLIENTES.TIPAGEM_SANGUINEA%TYPE,
+                                                     V_NOME_RESPONSAVEL       IN     COMPLEMENTO_CLIENTES.NOME_RESPONSAVEL%TYPE,
+                                                     V_PARENTESCO_RESPONSAVEL IN     COMPLEMENTO_CLIENTES.PARENTESCO_RESPONSAVEL%TYPE,
+                                                     V_FOTO                   IN     COMPLEMENTO_CLIENTES.FOTO%TYPE,
+                                                     V_FUNCAO                 IN     NUMBER) IS
+BEGIN
+     DECLARE
+            V_ACHEI  NUMBER(8);
+            
+            CURSOR CUR_PROCURA IS
+                   SELECT REGISTRO FROM COMPLEMENTO_CLIENTES 
+                    WHERE REGISTRO = V_REGISTRO;
+
+     BEGIN
+          IF V_FUNCAO = 1 THEN
+             INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, EMPTY_BLOB());
+
+          ELSIF V_FUNCAO = 2 THEN
+             UPDATE COMPLEMENTO_CLIENTES SET TIPAGEM_SANGUINEA  = V_TIPAGEM_SANGUINEA,  
+                                             NOME_RESPONSAVEL = V_NOME_RESPONSAVEL,
+                                             PARENTESCO_RESPONSAVEL = V_PARENTESCO_RESPONSAVEL
+              WHERE REGISTRO = V_REGISTRO;
+
+          ELSIF V_FUNCAO = 3 THEN
+              DELETE COMPLEMENTO_CLIENTES WHERE REGISTRO = V_REGISTRO;
+
+
+          ELSIF V_FUNCAO = 4 THEN
+                OPEN CUR_PROCURA;
+                FETCH CUR_PROCURA INTO V_ACHEI;
+  
+                IF CUR_PROCURA%NOTFOUND THEN
+                   INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, EMPTY_BLOB());
+                ELSE
+                   UPDATE COMPLEMENTO_CLIENTES SET TIPAGEM_SANGUINEA  = V_TIPAGEM_SANGUINEA,  
+                                                   NOME_RESPONSAVEL = V_NOME_RESPONSAVEL,
+                                                   PARENTESCO_RESPONSAVEL = V_PARENTESCO_RESPONSAVEL
+                    WHERE REGISTRO = V_REGISTRO;
+                END IF;
+                CLOSE CUR_PROCURA;
+          END IF;
+
+     END;
+     COMMIT WORK;
+END PRC_COMPLEMENTO_CLIENTES;
+/
+
+
+-------------------------------------------------------------
+-- Alteracao da tabela CONVENIOS
+-------------------------------------------------------------
+UPDATE CONVENIOS SET LOTE = '';
+ALTER TABLE CONVENIOS  RENAME COLUMN LOTE TO DESCONTO_MAX;
+ALTER TABLE CONVENIOS  MODIFY DESCONTO_MAX NUMBER(7,2);
+
+CREATE OR REPLACE PROCEDURE PRC_CONVENIOS(V_CONVENIO            IN OUT CONVENIOS.CONVENIO%TYPE,
+                                          V_NOME                IN     CONVENIOS.NOME%TYPE,
+                                          V_NOME_FICHA          IN     CONVENIOS.NOME_FICHA%TYPE,
+                                          V_CATALOGO            IN     CONVENIOS.CATALOGO%TYPE,
+                                          V_DESCONTO            IN     CONVENIOS.DESCONTO%TYPE,
+                                          V_STATUS              IN     CONVENIOS.STATUS%TYPE,
+                                          V_PAG_ATO             IN     CONVENIOS.PAG_ATO%TYPE,
+                                          V_DATA_INI            IN     CONVENIOS.DATA_INI%TYPE,
+                                          V_DATA_FIN            IN     CONVENIOS.DATA_FIN%TYPE,
+                                          V_DESCONTO_MAX        IN     CONVENIOS.DESCONTO_MAX%TYPE,
+                                          V_INTERNACAO          IN     CONVENIOS.INTERNACAO%TYPE,
+                                          V_EMPRESA             IN     CONVENIOS.EMPRESA%TYPE,
+                                          V_VALIDADE            IN     CONVENIOS.VALIDADE%TYPE,
+                                          V_CID                 IN     CONVENIOS.CID%TYPE,
+                                          V_SENHA               IN     CONVENIOS.SENHA%TYPE,
+                                          V_MASK_MATRICULA      IN     CONVENIOS.MASK_MATRICULA%TYPE,
+                                          V_CHK_MATRICULA       IN     CONVENIOS.CHK_MATRICULA%TYPE,
+                                          V_CONTA               IN     CONVENIOS.CONTA%TYPE,
+                                          V_DESCONTO_ESPECIAL   IN     CONVENIOS.DESCONTO_ESPECIAL%TYPE,
+                                          V_HONORARIOS          IN     CONVENIOS.HONORARIOS%TYPE,
+                                          V_FILME               IN     CONVENIOS.FILME%TYPE,
+                                          V_GERA_DISK           IN     CONVENIOS.GERA_DISK%TYPE,
+                                          V_REGISTRO_ANS        IN     CONVENIOS.REGISTRO_ANS%TYPE,
+                                          V_ENDERECO_ENVIO      IN     CONVENIOS.ENDERECO_ENVIO%TYPE,
+                                          V_PORTA_ENVIO         IN     CONVENIOS.PORTA_ENVIO%TYPE,
+                                          V_NRO_LOTE            IN     CONVENIOS.NRO_LOTE%TYPE,
+                                          V_AUTORIZADOR         IN     CONVENIOS.AUTORIZADOR%TYPE,
+                                          V_CODIGO_NA_OPERADORA IN     CONVENIOS.CODIGO_NA_OPERADORA%TYPE,
+                                          V_NRO_GUIA_ATUAL      IN     CONVENIOS.NRO_GUIA_ATUAL%TYPE,
+                                          V_NRO_GUIA_MAX        IN     CONVENIOS.NRO_GUIA_MAX%TYPE,
+                                          V_VERSAO_TISS         IN     CONVENIOS.VERSAO_TISS%TYPE,
+                                          V_GUIAS_LOTE          IN     CONVENIOS.GUIAS_LOTE%TYPE,
+                                          V_LOGIN_AUTORIZADOR   IN     CONVENIOS.LOGIN_AUTORIZADOR%TYPE,
+                                          V_PASS_AUTORIZADOR    IN     CONVENIOS.PASS_AUTORIZADOR%TYPE,
+                                          V_FATURA_POR_PLANO    IN     CONVENIOS.FATURA_POR_PLANO%TYPE,
+                                          V_FUNCAO              IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CONVENIOS.NEXTVAL INTO V_CONVENIO FROM DUAL;
+     INSERT INTO CONVENIOS VALUES (V_CONVENIO, V_NOME, V_NOME_FICHA, 
+                                         V_CATALOGO, V_DESCONTO, V_STATUS, V_PAG_ATO, 
+                                         V_DATA_INI, V_DATA_FIN, V_DESCONTO_MAX, V_INTERNACAO,
+                                         V_EMPRESA, V_VALIDADE, V_CID, V_SENHA, V_MASK_MATRICULA, 
+                                         V_CHK_MATRICULA, V_CONTA, V_DESCONTO_ESPECIAL, V_HONORARIOS,
+                                         V_FILME, V_GERA_DISK,V_REGISTRO_ANS,V_ENDERECO_ENVIO,V_PORTA_ENVIO,
+                                         V_NRO_LOTE, V_AUTORIZADOR, V_CODIGO_NA_OPERADORA, V_NRO_GUIA_ATUAL, 
+                                         V_NRO_GUIA_MAX, V_VERSAO_TISS, V_GUIAS_LOTE, V_LOGIN_AUTORIZADOR,
+                                         V_PASS_AUTORIZADOR, V_FATURA_POR_PLANO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CONVENIOS SET  NOME           = V_NOME,           NOME_FICHA        = V_NOME_FICHA, 
+                           CATALOGO       = V_CATALOGO,       DESCONTO          = V_DESCONTO, 
+                           STATUS         = V_STATUS,         PAG_ATO           = V_PAG_ATO,
+                           DATA_INI       = V_DATA_INI,       DATA_FIN          = V_DATA_FIN,
+                           DESCONTO_MAX   = V_DESCONTO_MAX,   INTERNACAO        = V_INTERNACAO,
+                           EMPRESA        = V_EMPRESA,        VALIDADE          = V_VALIDADE,
+                           CID            = V_CID,            SENHA             = V_SENHA,
+                           MASK_MATRICULA = V_MASK_MATRICULA, CHK_MATRICULA     = V_CHK_MATRICULA,
+                           CONTA          = V_CONTA,          DESCONTO_ESPECIAL = V_DESCONTO_ESPECIAL,
+                           HONORARIOS     = V_HONORARIOS,     FILME             = V_FILME,
+                           GERA_DISK      = V_GERA_DISK,      REGISTRO_ANS      = V_REGISTRO_ANS,
+                           ENDERECO_ENVIO = V_ENDERECO_ENVIO, PORTA_ENVIO       = V_PORTA_ENVIO,
+                           NRO_LOTE       = V_NRO_LOTE,       AUTORIZADOR       = V_AUTORIZADOR,
+                           CODIGO_NA_OPERADORA = V_CODIGO_NA_OPERADORA,
+                           NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX      = V_NRO_GUIA_MAX,
+                           VERSAO_TISS    = V_VERSAO_TISS,    GUIAS_LOTE        = V_GUIAS_LOTE,
+                           LOGIN_AUTORIZADOR = V_LOGIN_AUTORIZADOR, PASS_AUTORIZADOR = V_PASS_AUTORIZADOR,
+                           FATURA_POR_PLANO  = V_FATURA_POR_PLANO
+      WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CONVENIOS WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE CONVENIOS SET  NRO_LOTE = V_NRO_LOTE
+                           WHERE CONVENIO = V_CONVENIO;
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CONVENIOS SET  NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX    = V_NRO_GUIA_MAX
+                           WHERE CONVENIO = V_CONVENIO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CONVENIOS;
+/

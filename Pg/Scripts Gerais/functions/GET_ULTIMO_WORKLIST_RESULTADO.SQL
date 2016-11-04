@@ -1,0 +1,16 @@
+CREATE OR REPLACE FUNCTION GET_ULTIMO_WORKLIST_RESULTADO(V_POSTO       IN INT,
+                                                         V_ATENDIMENTO IN INT,
+                                                         V_CORREL      IN INT,
+                                                         V_EQUIPAMENTO IN INT) RETURN TIMESTAMP(0) IS
+ DECLARE RESULT TIMESTAMP(0);
+BEGIN
+
+     SELECT MAX(WR.DATA_RESULTADO) INTO RESULT FROM WORKLIST_RESULTADOS WR
+      WHERE WR.POSTO = V_POSTO
+        AND WR.ATENDIMENTO = V_ATENDIMENTO
+        AND WR.CORREL = V_CORREL
+        AND WR.EQUIPAMENTO = V_EQUIPAMENTO;
+    RETURN(RESULT);
+END GET_ULTIMO_WORKLIST_RESULTADO;
+$$ LANGUAGE plpgsql;
+/

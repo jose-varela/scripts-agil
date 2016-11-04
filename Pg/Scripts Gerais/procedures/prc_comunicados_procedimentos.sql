@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION PRC_COMUNICADOS_PROCEDIMENTOS(V_MNEMONICO  IN OUT COMUNICADOS_PROCEDIMENTOS.MNEMONICO%TYPE,
+                                                          V_CORREL     IN  COMUNICADOS_PROCEDIMENTOS.CORREL%TYPE,
+                                                          V_CONVENIO   IN  COMUNICADOS_PROCEDIMENTOS.CONVENIO%TYPE,
+                                                          V_COMUNICADO IN  COMUNICADOS_PROCEDIMENTOS.COMUNICADO%TYPE,
+                                                          V_TIPO       IN  COMUNICADOS_PROCEDIMENTOS.TIPO%TYPE,
+                                                          V_DATA_CAD   IN  COMUNICADOS_PROCEDIMENTOS.DATA_CAD%TYPE,
+                                                          V_USUARIO    IN  COMUNICADOS_PROCEDIMENTOS.USUARIO%TYPE,
+                                                          V_FUNCAO     IN  INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO COMUNICADOS_PROCEDIMENTOS VALUES (V_MNEMONICO, V_CORREL, V_CONVENIO, V_COMUNICADO, V_TIPO, V_DATA_CAD, V_USUARIO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE COMUNICADOS_PROCEDIMENTOS SET CONVENIO   = V_CONVENIO,
+                                          COMUNICADO = V_COMUNICADO, TIPO = V_TIPO,
+                                          DATA_CAD   = V_DATA_CAD,   USUARIO = V_USUARIO
+                                    WHERE MNEMONICO = V_MNEMONICO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE COMUNICADOS_PROCEDIMENTOS WHERE MNEMONICO = V_MNEMONICO AND CORREL = V_CORREL;
+
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_COMUNICADOS_PROCEDIMENTOS;
+/

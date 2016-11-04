@@ -1,0 +1,24 @@
+create or replace function PRC_TST
+(V_PARAM1 IN VARCHAR(4000),
+ V_PARAM2 IN VARCHAR(4000)) returns void AS $$
+
+   DECLARE
+   V_TST1 VARCHAR(2000);
+   V_TST2 VARCHAR(2000);
+   V_TST3 VARCHAR(2000);
+   V_TST4 VARCHAR(2000);
+
+   begin
+BEGIN
+      V_TST1 := V_PARAM1;
+      V_TST2 := V_PARAM2;
+
+      INSERT INTO TST VALUES(V_TST1||V_TST2);
+   END;
+end;
+$$ language plpgsql; PRC_TST;
+/
+
+
+
+

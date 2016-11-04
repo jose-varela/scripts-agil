@@ -1,0 +1,43 @@
+create or replace FUNCTION GET_DATA_WORKLIST_RESULTADOS(V_POSTO       IN NUMBER,
+                                                       V_ATENDIMENTO IN NUMBER,
+                                                       V_CORREL      IN NUMBER) RETURN DATE IS RESULT DATE;
+BEGIN
+     SELECT MAX(WR.DATA_RESULTADO) INTO RESULT FROM WORKLIST_RESULTADOS WR
+      WHERE WR.POSTO = V_POSTO
+        AND WR.ATENDIMENTO = V_ATENDIMENTO
+        AND WR.CORREL = V_CORREL;
+    RETURN(RESULT);
+END GET_DATA_WORKLIST_RESULTADOS;
+
+ALTER TABLE RESULTADOS_HISTORICO MODIFY USUARIO_AUTO VARCHAR2(20);
+ALTER TABLE RESULTADOS_ATUAL MODIFY USUARIO_AUTO VARCHAR2(20);
+
+
+alter table AMOSTRAS modify atendimento number(9);                      
+alter table ATENDIMENTOS modify atendimento number(9);                  
+alter table ATENDIMENTOS_B2B modify atendimento number(9);              
+alter table COBRANCA_ATENDIMENTOS modify atendimento number(9);         
+alter table COMPLEMENTO_ATENDIMENTOS modify atendimento number(9);      
+alter table CONFERENCIA_GUIAS modify atendimento number(9);             
+alter table CONTAS_ATENDIMENTOS modify atendimento number(9);           
+alter table EVOLUCAO_RESULTADOS modify atendimento number(9);           
+alter table EXAMES modify atendimento number(9);                        
+alter table EXAMES_AUTORIZACOES modify atendimento number(9);           
+alter table EXAMES_B2B modify atendimento number(9);                    
+alter table EXAMES_CORRELACIONADOS modify atendimento number(9);        
+alter table PENDENCIAS modify atendimento number(9);                    
+alter table RASTROS_AMOSTRAS modify atendimento number(9);              
+alter table RESULTADOS_ATUAL modify atendimento number(9);              
+alter table RESULTADOS_DIGITALIZADOS modify atendimento number(9);      
+alter table RESULTADOS_HISTORICO modify atendimento number(9);          
+alter table RESULTADOS_STREAMS modify atendimento number(9);            
+alter table RESULTADOS_TEXTOS modify atendimento number(9);             
+alter table TRANSACOES_TES modify atendimento number(9);                
+alter table WORKLIST_RESULTADOS modify atendimento number(9);           
+alter table WORKLIST_STREAMS modify atendimento number(9);              
+
+ALTER TABLE CAIXA MODIFY CONTA_HOSP NUMBER(7);
+ALTER TABLE CONTAS_ATENDIMENTOS MODIFY CONTA_HOSP NUMBER(7);
+ALTER TABLE DEVEDORES MODIFY CONTA_HOSP NUMBER(7);
+ALTER TABLE AUXILIAR MODIFY MAX_CONTA_HOSP NUMBER(7);
+

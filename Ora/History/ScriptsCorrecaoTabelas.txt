@@ -1,0 +1,95 @@
+-- elimina tabelas que nao existem no catalogo
+SELECT 'delete tabela' || CATALOGO || ' t where t.mnemonico not in (select p.mnemonico from procedimentos p where p.mnemonico = t.mnemonico);'
+  FROM CATALOGO;
+
+
+-- insere os procedimentos que faltam em cada tabela
+Select 'insert into tabela' || CATALOGO || ' t select p.mnemonico,0,0,''TAB'' from procedimentos p where p.mnemonico not in (select t.mnemonico from tabela' || CATALOGO || ' t where t.mnemonico = p.mnemonico);' from CATALOGO
+
+
+
+--
+-- AJUSTA CONTAS_ATENDIMENTOS
+--
+DELETE CONTAS_ATENDIMENTOS CA WHERE (CA.POSTO, CA.ATENDIMENTO) NOT IN (SELECT A.POSTO, A.ATENDIMENTO
+                                                                           FROM ATENDIMENTOS A
+                                                                          WHERE A.POSTO = CA.POSTO
+                                                                            AND A.ATENDIMENTO = CA.ATENDIMENTO);
+
+--
+-- AJUSTA EXAMES
+--
+DELETE EXAMES E WHERE (E.POSTO, E.ATENDIMENTO) NOT IN (SELECT A.POSTO, A.ATENDIMENTO
+                                                                           FROM ATENDIMENTOS A
+                                                                          WHERE A.POSTO = E.POSTO
+                                                                            AND A.ATENDIMENTO = E.ATENDIMENTO);
+--
+-- AJUSTA EXAMES_B2B
+--
+DELETE EXAMES_B2B E2 WHERE (E2.POSTO, E2.ATENDIMENTO, E2.CORREL) NOT IN (SELECT E.POSTO, E.ATENDIMENTO, E.CORREL
+                                                                           FROM EXAMES E
+                                                                          WHERE E.POSTO = E2.POSTO
+                                                                            AND E.ATENDIMENTO = E2.ATENDIMENTO
+                                                                            AND E.CORREL = E2.CORREL);
+--
+-- AJUSTA MATERIAIS_PROCEDIMENTOS
+--
+DELETE MATERIAIS_PROCEDIMENTOS MP WHERE (MP.MATERIAL) NOT IN (SELECT M.MATERIAL
+                                                                FROM MATERIAIS M
+                                                               WHERE M.MATERIAL = MP.MATERIAL);
+--
+-- AJUSTA ENTIDADES_MEDICOS
+--
+DELETE ENTIDADES_MEDICOS EM WHERE (EM.CRM) NOT IN (SELECT M.CRM
+                                                     FROM MEDICOS M
+                                                    WHERE M.CRM = EM.CRM);
+--
+-- AJUSTA TEXTOS
+--
+DELETE TEXTOS T WHERE (T.MNEMONICO) NOT IN (SELECT P.MNEMONICO
+                                              FROM PROCEDIMENTOS P
+                                             WHERE P.MNEMONICO = T.MNEMONICO);
+--
+-- AJUSTA EQUIPAMENTOS_TEXTOS
+--
+DELETE EQUIPAMENTOS_TEXTOS ET WHERE (ET.MNEMONICO, ET.NUMERO) NOT IN (SELECT T.MNEMONICO, T.NUMERO
+                                                                        FROM TEXTOS T
+                                                                       WHERE ET.MNEMONICO = T.MNEMONICO
+                                                                         AND ET.NUMERO = T.NUMERO);
+--
+-- AJUSTA BIOQUIMICOS_SETORES
+--
+DELETE BIOQUIMICOS_SETORES BS WHERE (BS.USER_CODIGO) NOT IN (SELECT U.USER_CODIGO
+                                                               FROM USUARIOS U
+                                                              WHERE U.USER_CODIGO = BS.USER_CODIGO);
+--
+-- AJUSTA MAP_B2B_VARIAVEIS
+--
+DELETE MAP_B2B_VARIAVEIS M2V WHERE (M2V.ID_SERVICO_B2B) NOT IN (SELECT S2.ID_SERVICO_B2B
+                                                                  FROM SERVICOS_B2B S2
+                                                                 WHERE S2.ID_SERVICO_B2B = M2V.ID_SERVICO_B2B);
+--
+-- AJUSTA PROCEDIMENTOS_FRASES
+--
+DELETE PROCEDIMENTOS_FRASES PF WHERE (PF.CODIGO) NOT IN (SELECT F.CODIGO
+                                                           FROM FRASES F
+                                                          WHERE F.CODIGO = PF.CODIGO);
+                                                            
+
+-- HABILITA AS CONSTRAINTS
+SELECT 'ALTER TABLE ' || 'LIS.' || TABLE_NAME || ' ENABLE CONSTRAINT ' || CONSTRAINT_NAME ||';'
+FROM user_constraints
+WHERE CONSTRAINT_TYPE = 'R';
+
+
+SELECT constraint_name
+FROM user_constraints
+WHERE CONSTRAINT_TYPE = 'R' AND VALIDATED = 'NOT VALIDATED';
+
+
+
+
+-- ELIMINA O PROBLEMA DA EXPORTACAO DAS TABELAS VACIAS
+SELECT 'ALTER TABLE ' || TABLE_NAME || ' ALLOCATE EXTENT;'
+  FROM USER_TABLES
+ ORDER BY TABLE_NAME

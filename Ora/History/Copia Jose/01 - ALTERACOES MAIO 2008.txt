@@ -1,0 +1,14 @@
+alter table medicos add(telefone varchar2(15));
+alter table medicos add(telefone2 varchar2(15));
+alter table medicos add(email varchar2(60));
+alter table medicos add(pass varchar2(20));
+alter table medicos add(ID_MEDICO NUMBER(6));
+alter table medicos add(DATA_NAS DATE);
+alter table medicos add(PREFIXO_NOME VARCHAR2(5));
+alter table medicos add(CODIGO_UNIMED VARCHAR2(10));
+
+
+alter table medicos modify tipo_cr varchar2(7);
+update medicos set codigo_conselho = '12' WHERE CODIGO_CONSELHO = 'MA';
+
+@%CEDRO_HOME%\procedures\prc_medicos.sql

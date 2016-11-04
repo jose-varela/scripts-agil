@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION PRC_PRODUTOS_DEVOLVIDOS(V_DEVOLUCAO      IN PRODUTOS_DEVOLVIDOS.DEVOLUCAO%TYPE,
+                                         	 	    V_CORREL         IN PRODUTOS_DEVOLVIDOS.CORREL%TYPE,
+                                         		    V_PRODUTO        IN PRODUTOS_DEVOLVIDOS.PRODUTO%TYPE,
+                                        		    V_QUANTIDADE     IN PRODUTOS_DEVOLVIDOS.QUANTIDADE%TYPE,
+                                        		    V_USUARIO        IN PRODUTOS_DEVOLVIDOS.USUARIO%TYPE,
+                                        		    V_DATA_CAD       IN PRODUTOS_DEVOLVIDOS.DATA_CAD%TYPE,
+                                        		    V_CONFIRMADO     IN PRODUTOS_DEVOLVIDOS.CONFIRMADO%TYPE,
+                                        		    V_FUNCAO         IN INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PRODUTOS_DEVOLVIDOS VALUES (V_DEVOLUCAO, V_CORREL,   V_PRODUTO, V_QUANTIDADE, 
+                                                   V_USUARIO,   V_DATA_CAD, V_CONFIRMADO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PRODUTOS_DEVOLVIDOS SET PRODUTO    = V_PRODUTO,  QUANTIDADE = V_QUANTIDADE,
+                                          USUARIO    = V_USUARIO,  DATA_CAD   = V_DATA_CAD,
+                                          CONFIRMADO = V_CONFIRMADO
+                              WHERE DEVOLUCAO = V_DEVOLUCAO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PRODUTOS_DEVOLVIDOS WHERE DEVOLUCAO = V_DEVOLUCAO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE PRODUTOS_DEVOLVIDOS SET CONFIRMADO = V_CONFIRMADO
+                              WHERE DEVOLUCAO = V_DEVOLUCAO AND CORREL = V_CORREL;
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_PRODUTOS_DEVOLVIDOS;
+/

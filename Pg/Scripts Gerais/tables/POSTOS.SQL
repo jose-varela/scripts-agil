@@ -1,0 +1,20 @@
+CREATE TABLE POSTOS
+(POSTO                     SMALLINT,
+ NOME                      VARCHAR(40) NOT NULL,
+ INFORMATIZADO             VARCHAR(1)  NOT NULL,
+ HORA_ENT                  VARCHAR(5)  NOT NULL,
+ INTERNO                   VARCHAR(1)  NOT NULL,
+ DATA_CAD                  TIMESTAMP(0)         NOT NULL,
+ REALIZA_EXAMES            VARCHAR(1)  NOT NULL,
+ DIRECIONA_EXAMES          VARCHAR(1)  NOT NULL,
+ STATUS                    VARCHAR(1)  NOT NULL,
+ COLETA_MATERIAL           VARCHAR(1)  NOT NULL,
+ TIPO_POSTO                VARCHAR(1)  NOT NULL,
+ PASS                      VARCHAR(30),
+ ENDERECO                  VARCHAR(100),
+ MNEMONICO_POSTO           VARCHAR(10),
+ NOME_FICHA                VARCHAR(40),  
+ LAYOUT_LAUDO           BYTEA,
+ FORMULARIO_LAUDO          VARCHAR(30),
+ IMPRIME_PARCIAL_DIGITADOS VARCHAR(1))
+;

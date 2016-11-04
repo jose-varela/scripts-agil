@@ -1,0 +1,25 @@
+CREATE OR REPLACE PROCEDURE PRC_PRODUTOS(V_PRODUTO        IN OUT PRODUTOS.PRODUTO%TYPE,
+                                         V_NOME           IN     PRODUTOS.NOME%TYPE,
+                                         V_UNIDADE        IN     PRODUTOS.UNIDADE%TYPE,
+                                         V_CATEGORIA      IN     PRODUTOS.CATEGORIA%TYPE,
+                                         V_OBSERVACAO     IN     PRODUTOS.OBSERVACAO%TYPE,
+                                         V_QTD_ATUAL      IN     PRODUTOS.QTD_ATUAL%TYPE,
+                                         V_FUNCAO         IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_PRODUTO.NEXTVAL INTO V_PRODUTO FROM DUAL;
+     INSERT INTO PRODUTOS VALUES (V_PRODUTO, V_NOME, V_UNIDADE, V_CATEGORIA, V_OBSERVACAO, V_QTD_ATUAL);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PRODUTOS SET NOME = V_NOME, UNIDADE = V_UNIDADE, CATEGORIA = V_CATEGORIA,
+                               OBSERVACAO = V_OBSERVACAO, QTD_ATUAL = V_QTD_ATUAL
+     WHERE PRODUTO = V_PRODUTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PRODUTOS WHERE PRODUTO = V_PRODUTO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_PRODUTOS;
+/

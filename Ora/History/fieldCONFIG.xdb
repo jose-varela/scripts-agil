@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xdb="http://www.borland.com/schemas/delphi/10.0/XMLDataBinding">
+  <element xmlns="http://www.w3.org/2001/XMLSchema" name="fieldCONFIG" type="fieldCONFIGType"/>
+  <complexType xmlns="http://www.w3.org/2001/XMLSchema" name="fieldCONFIGType"><annotation>
+      <appinfo xdb:docElement="fieldCONFIG"/>
+    </annotation>
+    <sequence>
+      <element name="Define" type="DefineType" minOccurs="0"/>
+      <element name="Configs" type="ConfigsType"/>
+      <element name="fieldCONFIG" type="fieldCONFIGType"/>
+    </sequence>
+  </complexType>
+  <complexType xmlns="http://www.w3.org/2001/XMLSchema" name="DefineType">
+    <attribute name="VersionConfig" type="xs:string"/>
+  </complexType>
+  <complexType xmlns="http://www.w3.org/2001/XMLSchema" name="ConfigsType">
+    <sequence>
+      <element name="Config" type="ConfigType" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+  <complexType xmlns="http://www.w3.org/2001/XMLSchema" name="ConfigType">
+    <attribute name="ConfigName" type="xs:string"/>
+    <attribute name="ConfigValue" type="xs:string"/>
+  </complexType>
+</xs:schema>

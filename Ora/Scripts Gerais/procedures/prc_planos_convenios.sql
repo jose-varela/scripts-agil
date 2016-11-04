@@ -1,0 +1,25 @@
+CREATE OR REPLACE PROCEDURE PRC_PLANOS_CONVENIOS(V_CONVENIO     IN  PLANOS_CONVENIOS.CONVENIO%TYPE,
+                                                 V_CODIGO_PLANO IN  PLANOS_CONVENIOS.CODIGO_PLANO%TYPE,
+                                                 V_PLANO        IN  PLANOS_CONVENIOS.PLANO%TYPE,
+                                                 V_STATUS       IN  PLANOS_CONVENIOS.STATUS%TYPE,
+                                                 V_DATA_CAD     IN  PLANOS_CONVENIOS.DATA_CAD%TYPE,
+                                                 V_USUARIO      IN  PLANOS_CONVENIOS.USUARIO%TYPE,
+                                                 V_FUNCAO       IN  NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PLANOS_CONVENIOS VALUES (V_CONVENIO, V_CODIGO_PLANO, V_PLANO, V_STATUS, V_DATA_CAD, V_USUARIO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PLANOS_CONVENIOS SET PLANO = V_PLANO, STATUS = V_STATUS,
+                                     DATA_CAD = V_DATA_CAD,   USUARIO = V_USUARIO
+                               WHERE CONVENIO = V_CONVENIO AND CODIGO_PLANO = V_CODIGO_PLANO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PLANOS_CONVENIOS WHERE CONVENIO = V_CONVENIO AND CODIGO_PLANO = V_CODIGO_PLANO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_PLANOS_CONVENIOS;
+/

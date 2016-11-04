@@ -1,0 +1,145 @@
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM              = 'H|\^&|||2^2.00|||||||P|1.00|',
+     SEPARA_EXAMES_ASTM       = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM = 'N',
+     FINAL_LINEA_ASTM         = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaSTA'));
+							  
+                  
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||||||N81|||P|1|',
+     SEPARA_EXAMES_ASTM         = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaImmulite'));
+
+							  
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||Liaison|||||||P|1|',
+     SEPARA_EXAMES_ASTM         = 'S',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaLiaison'));
+                            
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||IMMAGE||||||||1|',
+     SEPARA_EXAMES_ASTM         = 'S',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'S',
+     FINAL_LINEA_ASTM           = 'ETX'   
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaImage'));
+   
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||NG_LIS|||||||P|1|',
+     SEPARA_EXAMES_ASTM         = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaCentaur'));
+   
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||ACCP1|||||||P|1|',
+     SEPARA_EXAMES_ASTM         = 'N',             
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaAdviaCP'));
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||5001^103366^5.20^5003|||||||P^N00|1|',
+     SEPARA_EXAMES_ASTM         = 'N',             
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaClinitek'));
+   
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||HOST|||||||||',
+     SEPARA_EXAMES_ASTM         = 'N',             
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('Quimifast'));
+   
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||2^2.00|||||||P|1.00|',
+     SEPARA_EXAMES_ASTM         = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaHoriba'));
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||Roche^OMNI-C^1.60^1^1000||||||PQ|P|1394-97|',
+     SEPARA_EXAMES_ASTM         = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaCobas_ASTM'));
+   
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||ABX|||||||P|1394-97|',
+     SEPARA_EXAMES_ASTM         = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaHoriba_ASTM'));
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&||||||||||P||',
+     SEPARA_EXAMES_ASTM         = 'S',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaVariant'));
+
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                = 'H|\^&|||HOST LIS|||||ACCESS^ACCESS - REV.B||P|1|',
+     SEPARA_EXAMES_ASTM         = 'S',
+     DIFERENCIA_PRIMEIRO_ASTM   = 'N',
+     FINAL_LINEA_ASTM           = 'ETX'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaAccess'));
+   
+
+UPDATE EQUIPAMENTOS SET 
+     HEADER_ASTM                 = 'H|\^&|||HOST^P_1|||||Prestige24i^SYSTEM1||P|1|',
+     SEPARA_EXAMES_ASTM          = 'N',
+     DIFERENCIA_PRIMEIRO_ASTM    = 'N',
+     FINAL_LINEA_ASTM            = 'ETB'
+WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+                               FROM MODELOS_EQUIPAMENTOS ME
+							  WHERE ME.ENVIA = UPPER('EnviaLabMax'));
+   
+
+--UPDATE EQUIPAMENTOS SET 
+--      if sVersao = 'BioLis' then
+--     HEADER_ASTM                 = 'H|\^&|||HOST^P_1|||||BiOLiS NEO^SYSTEM1||P|1|',
+--     SEPARA_EXAMES_ASTM          = 'N',
+--     DIFERENCIA_PRIMEIRO_ASTM    = 'N',
+--     FINAL_LINEA_ASTM            = 'ETB'
+--WHERE MODELO_EQUIPAMENTO IN (SELECT ME.MODELO_EQUIPAMENTO
+--                               FROM MODELOS_EQUIPAMENTOS ME
+--							  WHERE ME.ENVIA = UPPER('Envia'));
+   
+	 

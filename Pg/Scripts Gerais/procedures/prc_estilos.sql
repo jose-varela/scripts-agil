@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION PRC_ESTILOS(V_ID_ESTILO      IN OUT ESTILOS.ID_ESTILO%TYPE,
+                                        V_NOME           IN     ESTILOS.NOME%TYPE,
+                                        V_TAG_MARCACAO   IN     ESTILOS.TAG_MARCACAO%TYPE,
+                                        V_ESTILO         IN     ESTILOS.ESTILO%TYPE,
+                         				V_PADRAO         IN     ESTILOS.PADRAO%TYPE,
+                                        V_FUNCAO         IN     INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_ESTILO.NEXTVAL INTO V_ID_ESTILO FROM DUAL;
+     INSERT INTO ESTILOS VALUES (V_ID_ESTILO, V_NOME, V_TAG_MARCACAO, V_ESTILO, V_PADRAO);
+     
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE ESTILOS SET NOME = V_NOME, TAG_MARCACAO = V_TAG_MARCACAO, ESTILO = V_ESTILO, PADRAO = V_PADRAO
+                           WHERE ID_ESTILO = V_ID_ESTILO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE ESTILOS WHERE ID_ESTILO = V_ID_ESTILO;
+	 
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE ESTILOS SET PADRAO = 'N';
+                     
+     UPDATE ESTILOS SET PADRAO = 'S'
+                     WHERE ID_ESTILO = V_ID_ESTILO;
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_ESTILOS;
+/
+

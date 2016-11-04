@@ -1,0 +1,27 @@
+CREATE OR REPLACE FUNCTION PRC_WORKLIST_ENVIOS(V_POSTO          IN WORKLIST_ENVIOS.POSTO%TYPE,
+                                                V_ATENDIMENTO    IN WORKLIST_ENVIOS.ATENDIMENTO%TYPE,
+                                                V_ETIQUETA       IN WORKLIST_ENVIOS.ETIQUETA%TYPE,
+                                                V_EQUIPAMENTO    IN WORKLIST_ENVIOS.EQUIPAMENTO%TYPE,
+                                                V_DATA_CAD       IN WORKLIST_ENVIOS.DATA_CAD%TYPE,
+                                                V_USUARIO        IN WORKLIST_ENVIOS.USUARIO%TYPE,
+                                                V_SITUACAO_ENVIO IN WORKLIST_ENVIOS.SITUACAO_ENVIO%TYPE,
+                                                V_FUNCAO         IN INT) RETURNS VOID AS $$
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO WORKLIST_ENVIOS VALUES (V_POSTO, V_ATENDIMENTO, V_ETIQUETA, V_EQUIPAMENTO, V_DATA_CAD, V_USUARIO, V_SITUACAO_ENVIO); 
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE WORKLIST_ENVIOS SET SITUACAO_ENVIO = V_SITUACAO_ENVIO, DATA_CAD = V_DATA_CAD, USUARIO = V_USUARIO
+                                      WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND
+                                            ETIQUETA = V_ETIQUETA AND EQUIPAMENTO = V_EQUIPAMENTO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE WORKLIST_ENVIOS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND
+                                            ETIQUETA = V_ETIQUETA AND EQUIPAMENTO = V_EQUIPAMENTO;
+  END IF;
+
+  /* COMMIT WORK; */
+
+END;
+$$ LANGUAGE plpgsql; PRC_WORKLIST_ENVIOS;
+/
