@@ -1,0 +1,243 @@
+------------------------------------------------------------------------------------------------------------------
+-- ALTERACAO TABELA CONVENIOS (ADD - CERTIFICADO, PASS_CERTIFICADO)
+------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE CONVENIOS ADD CERTIFICADO BLOB;
+-- fim bloco
+ALTER TABLE CONVENIOS ADD PASS_CERTIFICADO VARCHAR2(50);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD KEY_CERTIFICADO VARCHAR2(50);
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_CONVENIOS(V_CONVENIO                   IN OUT CONVENIOS.CONVENIO%TYPE,
+                                          V_NOME                       IN     CONVENIOS.NOME%TYPE,
+                                          V_NOME_FICHA                 IN     CONVENIOS.NOME_FICHA%TYPE,
+                                          V_CATALOGO                   IN     CONVENIOS.CATALOGO%TYPE,
+                                          V_DESCONTO                   IN     CONVENIOS.DESCONTO%TYPE,
+                                          V_STATUS                     IN     CONVENIOS.STATUS%TYPE,
+                                          V_PAG_ATO                    IN     CONVENIOS.PAG_ATO%TYPE,
+                                          V_DATA_INI                   IN     CONVENIOS.DATA_INI%TYPE,
+                                          V_DATA_FIN                   IN     CONVENIOS.DATA_FIN%TYPE,
+                                          V_DESCONTO_MAX               IN     CONVENIOS.DESCONTO_MAX%TYPE,
+                                          V_INTERNACAO                 IN     CONVENIOS.INTERNACAO%TYPE,
+                                          V_EMPRESA                    IN     CONVENIOS.EMPRESA%TYPE,
+                                          V_VALIDADE                   IN     CONVENIOS.VALIDADE%TYPE,
+                                          V_CID                        IN     CONVENIOS.CID%TYPE,
+                                          V_SENHA                      IN     CONVENIOS.SENHA%TYPE,
+                                          V_MASK_MATRICULA             IN     CONVENIOS.MASK_MATRICULA%TYPE,
+                                          V_CHK_MATRICULA              IN     CONVENIOS.CHK_MATRICULA%TYPE,
+                                          V_CONTA                      IN     CONVENIOS.CONTA%TYPE,
+                                          V_DESCONTO_ESPECIAL          IN     CONVENIOS.DESCONTO_ESPECIAL%TYPE,
+                                          V_HONORARIOS                 IN     CONVENIOS.HONORARIOS%TYPE,
+                                          V_FILME                      IN     CONVENIOS.FILME%TYPE,
+                                          V_GERA_DISK                  IN     CONVENIOS.GERA_DISK%TYPE,
+                                          V_REGISTRO_ANS               IN     CONVENIOS.REGISTRO_ANS%TYPE,
+                                          V_ENDERECO_ENVIO             IN     CONVENIOS.ENDERECO_ENVIO%TYPE,
+                                          V_PORTA_ENVIO                IN     CONVENIOS.PORTA_ENVIO%TYPE,
+                                          V_NRO_LOTE                   IN     CONVENIOS.NRO_LOTE%TYPE,
+                                          V_AUTORIZADOR                IN     CONVENIOS.AUTORIZADOR%TYPE,
+                                          V_CODIGO_NA_OPERADORA        IN     CONVENIOS.CODIGO_NA_OPERADORA%TYPE,
+                                          V_NRO_GUIA_ATUAL             IN     CONVENIOS.NRO_GUIA_ATUAL%TYPE,
+                                          V_NRO_GUIA_MAX               IN     CONVENIOS.NRO_GUIA_MAX%TYPE,
+                                          V_VERSAO_TISS                IN     CONVENIOS.VERSAO_TISS%TYPE,
+                                          V_GUIAS_LOTE                 IN     CONVENIOS.GUIAS_LOTE%TYPE,
+                                          V_LOGIN_AUTORIZADOR          IN     CONVENIOS.LOGIN_AUTORIZADOR%TYPE,
+                                          V_PASS_AUTORIZADOR           IN     CONVENIOS.PASS_AUTORIZADOR%TYPE,
+                                          V_FATURA_POR_PLANO           IN     CONVENIOS.FATURA_POR_PLANO%TYPE,
+                                          V_NRO_TRANSACAO              IN     CONVENIOS.NRO_TRANSACAO%TYPE,
+                                          V_LOGO_GUIA                  IN     CONVENIOS.LOGO_GUIA%TYPE,
+                                          V_PROCEDIMENTOS_GUIA         IN     CONVENIOS.PROCEDIMENTOS_GUIA%TYPE,
+                                          V_CONFIGURACAO               IN     CONVENIOS.CONFIGURACAO%TYPE,
+                                          V_DESCONTO_HONORARIOS        IN     CONVENIOS.DESCONTO_HONORARIOS%TYPE,
+                                          V_DESCONTO_CUSTO_OPERACIONAL IN     CONVENIOS.DESCONTO_CUSTO_OPERACIONAL%TYPE,
+                                          V_TIPO_DTO_HONORARIOS        IN     CONVENIOS.TIPO_DTO_HONORARIOS%TYPE,
+                                          V_TIPO_DTO_CUSTO_OPERACIONAL IN     CONVENIOS.TIPO_DTO_CUSTO_OPERACIONAL%TYPE,
+                                          V_COEF_HONORARIOS            IN     CONVENIOS.COEF_HONORARIOS%TYPE,
+                                          V_COEF_CUSTO_OPERACIONAL     IN     CONVENIOS.COEF_CUSTO_OPERACIONAL%TYPE,
+                                          V_ID_TABELA_PORTE_MEDICO     IN     CONVENIOS.ID_TABELA_PORTE_MEDICO%TYPE,
+                                          V_CERTIFICADO                IN     CONVENIOS.CERTIFICADO%TYPE,
+                                          V_PASS_CERTIFICADO           IN     CONVENIOS.PASS_CERTIFICADO%TYPE,
+                                          V_KEY_CERTIFICADO            IN     CONVENIOS.KEY_CERTIFICADO%TYPE,
+                                          V_FUNCAO                     IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CONVENIOS.NEXTVAL INTO V_CONVENIO FROM DUAL;
+     INSERT INTO CONVENIOS VALUES (V_CONVENIO, V_NOME, V_NOME_FICHA, 
+                                   V_CATALOGO, V_DESCONTO, V_STATUS, V_PAG_ATO, 
+                                   V_DATA_INI, V_DATA_FIN, V_DESCONTO_MAX, V_INTERNACAO,
+                                   V_EMPRESA, V_VALIDADE, V_CID, V_SENHA, V_MASK_MATRICULA, 
+                                   V_CHK_MATRICULA, V_CONTA, V_DESCONTO_ESPECIAL, V_HONORARIOS,
+                                   V_FILME, V_GERA_DISK,V_REGISTRO_ANS,V_ENDERECO_ENVIO,V_PORTA_ENVIO,
+                                   V_NRO_LOTE, V_AUTORIZADOR, V_CODIGO_NA_OPERADORA, V_NRO_GUIA_ATUAL, 
+                                   V_NRO_GUIA_MAX, V_VERSAO_TISS, V_GUIAS_LOTE, V_LOGIN_AUTORIZADOR,
+                                   V_PASS_AUTORIZADOR, V_FATURA_POR_PLANO, V_NRO_TRANSACAO, EMPTY_BLOB(),
+                                   V_PROCEDIMENTOS_GUIA, EMPTY_BLOB(), V_DESCONTO_HONORARIOS, V_DESCONTO_CUSTO_OPERACIONAL, 
+								   V_TIPO_DTO_HONORARIOS, V_TIPO_DTO_CUSTO_OPERACIONAL, V_COEF_HONORARIOS, V_COEF_CUSTO_OPERACIONAL,
+								   V_ID_TABELA_PORTE_MEDICO, EMPTY_BLOB, V_PASS_CERTIFICADO, V_KEY_CERTIFICADO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CONVENIOS SET  NOME           = V_NOME,           NOME_FICHA        = V_NOME_FICHA, 
+                           CATALOGO       = V_CATALOGO,       DESCONTO          = V_DESCONTO, 
+                           STATUS         = V_STATUS,         PAG_ATO           = V_PAG_ATO,
+                           DATA_INI       = V_DATA_INI,       DATA_FIN          = V_DATA_FIN,
+                           DESCONTO_MAX   = V_DESCONTO_MAX,   INTERNACAO        = V_INTERNACAO,
+                           EMPRESA        = V_EMPRESA,        VALIDADE          = V_VALIDADE,
+                           CID            = V_CID,            SENHA             = V_SENHA,
+                           MASK_MATRICULA = V_MASK_MATRICULA, CHK_MATRICULA     = V_CHK_MATRICULA,
+                           CONTA          = V_CONTA,          DESCONTO_ESPECIAL = V_DESCONTO_ESPECIAL,
+                           HONORARIOS     = V_HONORARIOS,     FILME             = V_FILME,
+                           GERA_DISK      = V_GERA_DISK,      REGISTRO_ANS      = V_REGISTRO_ANS,
+                           ENDERECO_ENVIO = V_ENDERECO_ENVIO, PORTA_ENVIO       = V_PORTA_ENVIO,
+                           NRO_LOTE       = V_NRO_LOTE,       AUTORIZADOR       = V_AUTORIZADOR,
+                           CODIGO_NA_OPERADORA = V_CODIGO_NA_OPERADORA,
+                           NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX      = V_NRO_GUIA_MAX,
+                           VERSAO_TISS    = V_VERSAO_TISS,    GUIAS_LOTE        = V_GUIAS_LOTE,
+                           LOGIN_AUTORIZADOR = V_LOGIN_AUTORIZADOR, PASS_AUTORIZADOR = V_PASS_AUTORIZADOR,
+                           FATURA_POR_PLANO  = V_FATURA_POR_PLANO, NRO_TRANSACAO = V_NRO_TRANSACAO,
+			               PROCEDIMENTOS_GUIA = V_PROCEDIMENTOS_GUIA, CONFIGURACAO = V_CONFIGURACAO,
+						   DESCONTO_HONORARIOS  = V_DESCONTO_HONORARIOS,
+			               DESCONTO_CUSTO_OPERACIONAL = V_DESCONTO_CUSTO_OPERACIONAL, 
+                           TIPO_DTO_HONORARIOS = V_TIPO_DTO_HONORARIOS, 
+			               TIPO_DTO_CUSTO_OPERACIONAL = V_TIPO_DTO_CUSTO_OPERACIONAL,
+                           COEF_HONORARIOS = V_COEF_HONORARIOS,
+                           COEF_CUSTO_OPERACIONAL = V_COEF_CUSTO_OPERACIONAL, ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO,
+						   PASS_CERTIFICADO = V_PASS_CERTIFICADO, KEY_CERTIFICADO = V_KEY_CERTIFICADO
+      WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CONVENIOS WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE CONVENIOS SET  NRO_LOTE = V_NRO_LOTE
+                           WHERE CONVENIO = V_CONVENIO;
+						   
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CONVENIOS SET  NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX    = V_NRO_GUIA_MAX
+                           WHERE CONVENIO = V_CONVENIO;
+						   
+  ELSIF V_FUNCAO = 6 THEN
+     UPDATE CONVENIOS SET  NRO_TRANSACAO = NRO_TRANSACAO+1
+                           WHERE CONVENIO = V_CONVENIO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CONVENIOS;
+
+-- fim bloco
+
+
+
+ALTER TABLE SERVICOS_ADM ADD(PROXY VARCHAR2(50));
+-- fim bloco
+ALTER TABLE SERVICOS_ADM ADD(LOGIN_PROXY VARCHAR2(30));
+-- fim bloco
+ALTER TABLE SERVICOS_ADM ADD(PASS_PROXY VARCHAR2(30));
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                             V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                             V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                             V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                             V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                             V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                             V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                             V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                             V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                             V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                             V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                             V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                             V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                             V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                             V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                             V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                             V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                             V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                             V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                             V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                             V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                             V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                             V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                             V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                             V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                             V_E_MAIL                    IN SERVICOS_ADM.E_MAIL%TYPE,
+                                             V_IMPRIME_INF_LIBERACAO     IN SERVICOS_ADM.IMPRIME_INF_LIBERACAO%TYPE,
+                                             V_UNICODE                   IN SERVICOS_ADM.UNICODE%TYPE,
+                                             V_LARGURA_FORMULARIO        IN SERVICOS_ADM.LARGURA_FORMULARIO%TYPE,
+                                             V_ALTURA_FORMULARIO         IN SERVICOS_ADM.ALTURA_FORMULARIO%TYPE,
+                                             V_LARGURA_LAUDO             IN SERVICOS_ADM.LARGURA_LAUDO%TYPE,
+                                             V_POSICAO_ESQUERDA_LAUDO    IN SERVICOS_ADM.POSICAO_ESQUERDA_LAUDO%TYPE,
+					                         V_FIXA_ASSINATURA_RODAPE    IN SERVICOS_ADM.FIXA_ASSINATURA_RODAPE%TYPE,
+					                         V_REVISAO_RESULTADOS        IN SERVICOS_ADM.REVISAO_RESULTADOS%TYPE,
+				                             V_TEMPO_PUBLICACAO_WEB      IN SERVICOS_ADM.TEMPO_PUBLICACAO_WEB%TYPE,
+					                         V_TEMPO_PUBLICACAO_INTERNA  IN SERVICOS_ADM.TEMPO_PUBLICACAO_INTERNA%TYPE,
+                                             V_LARGURA_ETIQUETA          IN SERVICOS_ADM.LARGURA_ETIQUETA%TYPE,
+                                             V_ALTURA_ETIQUETA           IN SERVICOS_ADM.ALTURA_ETIQUETA%TYPE,
+                                             V_CONFERE_GUIAS             IN SERVICOS_ADM.CONFERE_GUIAS%TYPE,
+                                             V_FORMULARIO_LAUDO          IN SERVICOS_ADM.FORMULARIO_LAUDO%TYPE,
+                                             V_CNES                      IN SERVICOS_ADM.CNES%TYPE,
+                                             V_LAYOUT_LAUDO              IN SERVICOS_ADM.LAYOUT_LAUDO%TYPE,
+                                             V_ID_MEDICO_RESPONSAVEL     IN SERVICOS_ADM.ID_MEDICO_RESPONSAVEL%TYPE,
+                                             V_PROXY                     IN SERVICOS_ADM.PROXY%TYPE,
+                                             V_LOGIN_PROXY               IN SERVICOS_ADM.LOGIN_PROXY%TYPE,
+                                             V_PASS_PROXY                IN SERVICOS_ADM.PASS_PROXY%TYPE,
+                                             V_FUNCAO                    IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+     INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, V_RAZAO_SOCIAL,
+                                      V_CPF_CGC, V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                      V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF, 
+                                      V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE,
+                                      V_E_MAIL, V_IMPRIME_INF_LIBERACAO, V_UNICODE, V_LARGURA_FORMULARIO, V_ALTURA_FORMULARIO, V_LARGURA_LAUDO,
+                                      V_POSICAO_ESQUERDA_LAUDO, V_FIXA_ASSINATURA_RODAPE, V_REVISAO_RESULTADOS, V_TEMPO_PUBLICACAO_WEB,
+	    			                  V_TEMPO_PUBLICACAO_INTERNA, V_LARGURA_ETIQUETA, V_ALTURA_ETIQUETA, V_CONFERE_GUIAS, V_FORMULARIO_LAUDO, 
+									  V_CNES, EMPTY_BLOB, V_ID_MEDICO_RESPONSAVEL, V_PROXY, V_LOGIN_PROXY, V_PASS_PROXY);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO,
+                             RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, DATA_HORA_ALT = V_DATA_HORA_ALT, 
+                             USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                             CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                             TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                             WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO, 
+                             IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE, RESULTADOS_WEB = V_RESULTADOS_WEB, E_MAIL = V_E_MAIL,
+                             IMPRIME_INF_LIBERACAO = V_IMPRIME_INF_LIBERACAO, UNICODE = V_UNICODE, LARGURA_FORMULARIO = V_LARGURA_FORMULARIO,
+                             ALTURA_FORMULARIO = V_ALTURA_FORMULARIO, LARGURA_LAUDO = V_LARGURA_LAUDO, POSICAO_ESQUERDA_LAUDO = V_POSICAO_ESQUERDA_LAUDO,
+			                 FIXA_ASSINATURA_RODAPE = V_FIXA_ASSINATURA_RODAPE, REVISAO_RESULTADOS = V_REVISAO_RESULTADOS, TEMPO_PUBLICACAO_WEB = V_TEMPO_PUBLICACAO_WEB,
+			                 TEMPO_PUBLICACAO_INTERNA = V_TEMPO_PUBLICACAO_INTERNA, LARGURA_ETIQUETA = V_LARGURA_ETIQUETA, ALTURA_ETIQUETA = V_ALTURA_ETIQUETA,
+							 CONFERE_GUIAS = V_CONFERE_GUIAS, FORMULARIO_LAUDO = V_FORMULARIO_LAUDO, CNES = V_CNES, ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL,
+							 PROXY = V_PROXY, LOGIN_PROXY = V_LOGIN_PROXY, PASS_PROXY = V_PASS_PROXY
+                       WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_SERVICOS_ADM;
+
+-- fim bloco
+
+UPDATE CONVENIOS SET CONFIGURACAO = '<?xml version="1.0" encoding="iso-8859-1"?>
+<fieldCONFIG>
+	<Define VersionConfig="1.0"/>
+	<fieldCONFIG>
+		<Configs>
+			<Config ConfigName="MASK_MATRICULA" ConfigValue=""/>
+			<Config ConfigName="LINK_CANCELA_GUIA" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissCancelaGuia?wsdl"/>
+			<Config ConfigName="LINK_COMUNICACAO_BENEFICIARIO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissComunicacaoBeneficiario?wsdl"/>
+			<Config ConfigName="LINK_LOTE_ANEXO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissLoteAnexo?wsdl"/>
+			<Config ConfigName="LINK_SOLICITACAO_PROCEDIMENTOS" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissSolicitacaoProcedimento?wsdl"/>
+			<Config ConfigName="LINK_SOLICITA_STATUS_AUTORIZACAO" ConfigValue="https://wsp.orizonbrasil.com.br:6214/tiss/v30200/tissSolicitacaoStatusAutorizacao?wsdl"/>
+		</Configs>
+	</fieldCONFIG>
+</fieldCONFIG>
+' WHERE AUTORIZADOR = 'TISS ORIZON';
+-- fim bloco
+commit;
+
+-- fim bloco

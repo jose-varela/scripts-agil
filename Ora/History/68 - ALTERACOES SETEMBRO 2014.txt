@@ -1,0 +1,417 @@
+------------------------------------------------------------------------------------------------------------------
+-- ALTERACAO TABELA CONVENIOS (ADD - CONFIGURACAO, DESCONTO_HONORARIOS, DESCONTO_CUSTO_OPERACIONAL, TIPO_DTO_HONORARIOS, TIPO_DTO_CUSTO_OPERACIONAL)
+------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE CONVENIOS ADD CONFIGURACAO BLOB;
+-- fim bloco
+
+ALTER TABLE CONVENIOS ADD DESCONTO_HONORARIOS NUMBER(7,3);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD DESCONTO_CUSTO_OPERACIONAL NUMBER(7,3);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD TIPO_DTO_HONORARIOS VARCHAR2(1);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD TIPO_DTO_CUSTO_OPERACIONAL VARCHAR2(1);
+-- fim bloco
+UPDATE CONVENIOS SET TIPO_DTO_HONORARIOS='T', TIPO_DTO_CUSTO_OPERACIONAL='T';
+-- fim bloco
+ALTER TABLE CONVENIOS MODIFY(TIPO_DTO_HONORARIOS NOT NULL);
+-- fim bloco
+ALTER TABLE CONVENIOS MODIFY(TIPO_DTO_CUSTO_OPERACIONAL NOT NULL);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD COEF_HONORARIOS NUMBER(12,5);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD COEF_CUSTO_OPERACIONAL NUMBER(12,5);
+-- fim bloco
+ALTER TABLE CONVENIOS ADD ID_TABELA_PORTE_MEDICO NUMBER(3);
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_CONVENIOS(V_CONVENIO            IN OUT CONVENIOS.CONVENIO%TYPE,
+                                          V_NOME                IN     CONVENIOS.NOME%TYPE,
+                                          V_NOME_FICHA          IN     CONVENIOS.NOME_FICHA%TYPE,
+                                          V_CATALOGO            IN     CONVENIOS.CATALOGO%TYPE,
+                                          V_DESCONTO            IN     CONVENIOS.DESCONTO%TYPE,
+                                          V_STATUS              IN     CONVENIOS.STATUS%TYPE,
+                                          V_PAG_ATO             IN     CONVENIOS.PAG_ATO%TYPE,
+                                          V_DATA_INI            IN     CONVENIOS.DATA_INI%TYPE,
+                                          V_DATA_FIN            IN     CONVENIOS.DATA_FIN%TYPE,
+                                          V_DESCONTO_MAX        IN     CONVENIOS.DESCONTO_MAX%TYPE,
+                                          V_INTERNACAO          IN     CONVENIOS.INTERNACAO%TYPE,
+                                          V_EMPRESA             IN     CONVENIOS.EMPRESA%TYPE,
+                                          V_VALIDADE            IN     CONVENIOS.VALIDADE%TYPE,
+                                          V_CID                 IN     CONVENIOS.CID%TYPE,
+                                          V_SENHA               IN     CONVENIOS.SENHA%TYPE,
+                                          V_MASK_MATRICULA      IN     CONVENIOS.MASK_MATRICULA%TYPE,
+                                          V_CHK_MATRICULA       IN     CONVENIOS.CHK_MATRICULA%TYPE,
+                                          V_CONTA               IN     CONVENIOS.CONTA%TYPE,
+                                          V_DESCONTO_ESPECIAL   IN     CONVENIOS.DESCONTO_ESPECIAL%TYPE,
+                                          V_HONORARIOS          IN     CONVENIOS.HONORARIOS%TYPE,
+                                          V_FILME               IN     CONVENIOS.FILME%TYPE,
+                                          V_GERA_DISK           IN     CONVENIOS.GERA_DISK%TYPE,
+                                          V_REGISTRO_ANS        IN     CONVENIOS.REGISTRO_ANS%TYPE,
+                                          V_ENDERECO_ENVIO      IN     CONVENIOS.ENDERECO_ENVIO%TYPE,
+                                          V_PORTA_ENVIO         IN     CONVENIOS.PORTA_ENVIO%TYPE,
+                                          V_NRO_LOTE            IN     CONVENIOS.NRO_LOTE%TYPE,
+                                          V_AUTORIZADOR         IN     CONVENIOS.AUTORIZADOR%TYPE,
+                                          V_CODIGO_NA_OPERADORA IN     CONVENIOS.CODIGO_NA_OPERADORA%TYPE,
+                                          V_NRO_GUIA_ATUAL      IN     CONVENIOS.NRO_GUIA_ATUAL%TYPE,
+                                          V_NRO_GUIA_MAX        IN     CONVENIOS.NRO_GUIA_MAX%TYPE,
+                                          V_VERSAO_TISS         IN     CONVENIOS.VERSAO_TISS%TYPE,
+                                          V_GUIAS_LOTE          IN     CONVENIOS.GUIAS_LOTE%TYPE,
+                                          V_LOGIN_AUTORIZADOR   IN     CONVENIOS.LOGIN_AUTORIZADOR%TYPE,
+                                          V_PASS_AUTORIZADOR    IN     CONVENIOS.PASS_AUTORIZADOR%TYPE,
+                                          V_FATURA_POR_PLANO    IN     CONVENIOS.FATURA_POR_PLANO%TYPE,
+                                          V_NRO_TRANSACAO       IN     CONVENIOS.NRO_TRANSACAO%TYPE,
+                                          V_LOGO_GUIA           IN     CONVENIOS.LOGO_GUIA%TYPE,
+                                          V_PROCEDIMENTOS_GUIA  IN     CONVENIOS.PROCEDIMENTOS_GUIA%TYPE,
+                                          V_CONFIGURACAO        IN     CONVENIOS.CONFIGURACAO%TYPE,
+                                          V_DESCONTO_HONORARIOS IN     CONVENIOS.DESCONTO_HONORARIOS%TYPE,
+                                          V_DESCONTO_CUSTO_OPERACIONAL IN     CONVENIOS.DESCONTO_CUSTO_OPERACIONAL%TYPE,
+                                          V_TIPO_DTO_HONORARIOS        IN     CONVENIOS.TIPO_DTO_HONORARIOS%TYPE,
+                                          V_TIPO_DTO_CUSTO_OPERACIONAL IN     CONVENIOS.TIPO_DTO_CUSTO_OPERACIONAL%TYPE,
+                                          V_COEF_HONORARIOS            IN     CONVENIOS.COEF_HONORARIOS%TYPE,
+                                          V_COEF_CUSTO_OPERACIONAL     IN     CONVENIOS.COEF_CUSTO_OPERACIONAL%TYPE,
+                                          V_ID_TABELA_PORTE_MEDICO     IN     CONVENIOS.ID_TABELA_PORTE_MEDICO%TYPE,
+                                          V_FUNCAO              IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CONVENIOS.NEXTVAL INTO V_CONVENIO FROM DUAL;
+     INSERT INTO CONVENIOS VALUES (V_CONVENIO, V_NOME, V_NOME_FICHA, 
+                                   V_CATALOGO, V_DESCONTO, V_STATUS, V_PAG_ATO, 
+                                   V_DATA_INI, V_DATA_FIN, V_DESCONTO_MAX, V_INTERNACAO,
+                                   V_EMPRESA, V_VALIDADE, V_CID, V_SENHA, V_MASK_MATRICULA, 
+                                   V_CHK_MATRICULA, V_CONTA, V_DESCONTO_ESPECIAL, V_HONORARIOS,
+                                   V_FILME, V_GERA_DISK,V_REGISTRO_ANS,V_ENDERECO_ENVIO,V_PORTA_ENVIO,
+                                   V_NRO_LOTE, V_AUTORIZADOR, V_CODIGO_NA_OPERADORA, V_NRO_GUIA_ATUAL, 
+                                   V_NRO_GUIA_MAX, V_VERSAO_TISS, V_GUIAS_LOTE, V_LOGIN_AUTORIZADOR,
+                                   V_PASS_AUTORIZADOR, V_FATURA_POR_PLANO, V_NRO_TRANSACAO, EMPTY_BLOB(),
+                                   V_PROCEDIMENTOS_GUIA, EMPTY_BLOB(), V_DESCONTO_HONORARIOS, V_DESCONTO_CUSTO_OPERACIONAL, 
+								   V_TIPO_DTO_HONORARIOS, V_TIPO_DTO_CUSTO_OPERACIONAL, V_COEF_HONORARIOS, V_COEF_CUSTO_OPERACIONAL,
+								   V_ID_TABELA_PORTE_MEDICO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CONVENIOS SET  NOME           = V_NOME,           NOME_FICHA        = V_NOME_FICHA, 
+                           CATALOGO       = V_CATALOGO,       DESCONTO          = V_DESCONTO, 
+                           STATUS         = V_STATUS,         PAG_ATO           = V_PAG_ATO,
+                           DATA_INI       = V_DATA_INI,       DATA_FIN          = V_DATA_FIN,
+                           DESCONTO_MAX   = V_DESCONTO_MAX,   INTERNACAO        = V_INTERNACAO,
+                           EMPRESA        = V_EMPRESA,        VALIDADE          = V_VALIDADE,
+                           CID            = V_CID,            SENHA             = V_SENHA,
+                           MASK_MATRICULA = V_MASK_MATRICULA, CHK_MATRICULA     = V_CHK_MATRICULA,
+                           CONTA          = V_CONTA,          DESCONTO_ESPECIAL = V_DESCONTO_ESPECIAL,
+                           HONORARIOS     = V_HONORARIOS,     FILME             = V_FILME,
+                           GERA_DISK      = V_GERA_DISK,      REGISTRO_ANS      = V_REGISTRO_ANS,
+                           ENDERECO_ENVIO = V_ENDERECO_ENVIO, PORTA_ENVIO       = V_PORTA_ENVIO,
+                           NRO_LOTE       = V_NRO_LOTE,       AUTORIZADOR       = V_AUTORIZADOR,
+                           CODIGO_NA_OPERADORA = V_CODIGO_NA_OPERADORA,
+                           NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX      = V_NRO_GUIA_MAX,
+                           VERSAO_TISS    = V_VERSAO_TISS,    GUIAS_LOTE        = V_GUIAS_LOTE,
+                           LOGIN_AUTORIZADOR = V_LOGIN_AUTORIZADOR, PASS_AUTORIZADOR = V_PASS_AUTORIZADOR,
+                           FATURA_POR_PLANO  = V_FATURA_POR_PLANO, NRO_TRANSACAO = V_NRO_TRANSACAO,
+			               PROCEDIMENTOS_GUIA = V_PROCEDIMENTOS_GUIA, DESCONTO_HONORARIOS  = V_DESCONTO_HONORARIOS,
+			               DESCONTO_CUSTO_OPERACIONAL = V_DESCONTO_CUSTO_OPERACIONAL, 
+                           TIPO_DTO_HONORARIOS = V_TIPO_DTO_HONORARIOS, 
+			               TIPO_DTO_CUSTO_OPERACIONAL = V_TIPO_DTO_CUSTO_OPERACIONAL,
+                           COEF_HONORARIOS = V_COEF_HONORARIOS,
+                           COEF_CUSTO_OPERACIONAL = V_COEF_CUSTO_OPERACIONAL, ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO
+      WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CONVENIOS WHERE CONVENIO = V_CONVENIO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE CONVENIOS SET  NRO_LOTE = V_NRO_LOTE
+                           WHERE CONVENIO = V_CONVENIO;
+						   
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CONVENIOS SET  NRO_GUIA_ATUAL = V_NRO_GUIA_ATUAL, NRO_GUIA_MAX    = V_NRO_GUIA_MAX
+                           WHERE CONVENIO = V_CONVENIO;
+						   
+  ELSIF V_FUNCAO = 6 THEN
+     UPDATE CONVENIOS SET  NRO_TRANSACAO = NRO_TRANSACAO+1
+                           WHERE CONVENIO = V_CONVENIO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CONVENIOS;
+
+-- fim bloco
+
+------------------------------------------------------------------------------------------------------------------
+-- ALTERACAO TABELA CATALOGO (ADD - 
+------------------------------------------------------------------------------------------------------------------
+ALTER TABLE CATALOGO ADD PORTE_MED VARCHAR2(1);
+-- fim bloco
+ALTER TABLE CATALOGO ADD CUSTO_OPERACIONAL VARCHAR2(1);
+-- fim bloco
+ALTER TABLE CATALOGO ADD CH VARCHAR2(1);
+-- fim bloco
+ALTER TABLE CATALOGO ADD MATERIAL  VARCHAR2(1);
+-- fim bloco
+
+UPDATE CATALOGO SET PORTE_MED  = 'N', CUSTO_OPERACIONAL = 'N', CH = 'N', MATERIAL = 'S';
+-- fim bloco
+ALTER TABLE CATALOGO MODIFY(PORTE_MED NOT NULL, CUSTO_OPERACIONAL NOT NULL, CH NOT NULL, MATERIAL NOT NULL);
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_CATALOGO(V_CATALOGO            IN OUT CATALOGO.CATALOGO%TYPE,
+                                         V_NOME                IN     CATALOGO.NOME%TYPE,
+                                         V_TABELA_PADRAO       IN     CATALOGO.TABELA_PADRAO%TYPE,
+                                         V_CATALOGO_TISS       IN     CATALOGO.CATALOGO_TISS%TYPE,
+                                         V_PORTE_MED           IN     CATALOGO.CUSTO_OPERACIONAL%TYPE,
+                                         V_CUSTO_OPERACIONAL   IN     CATALOGO.PORTE_MED%TYPE,
+                                         V_CH                  IN     CATALOGO.CH%TYPE,
+                                         V_MATERIAL            IN     CATALOGO.MATERIAL%TYPE,
+                                         V_FUNCAO              IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CATALOGO.NEXTVAL INTO V_CATALOGO FROM DUAL;
+     INSERT INTO CATALOGO VALUES (V_CATALOGO, V_NOME, V_TABELA_PADRAO, V_CATALOGO_TISS, V_PORTE_MED, V_CUSTO_OPERACIONAL, V_CH, V_MATERIAL);
+     
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CATALOGO SET NOME = V_NOME, TABELA_PADRAO = V_TABELA_PADRAO, CATALOGO_TISS = V_CATALOGO_TISS,
+                         PORTE_MED = V_PORTE_MED, CUSTO_OPERACIONAL = V_CUSTO_OPERACIONAL, CH = V_CH, 
+                         MATERIAL = V_MATERIAL
+                     WHERE CATALOGO = V_CATALOGO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CATALOGO WHERE CATALOGO = V_CATALOGO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CATALOGO;
+
+-- fim bloco
+
+------------------------------------------------------------------------------------------------------------------
+-- CRIACAO CATALOGO_PORTES_MEDICOS
+------------------------------------------------------------------------------------------------------------------
+CREATE TABLE CATALOGO_PORTES_MEDICOS
+(ID_TABELA_PORTE_MEDICO NUMBER(3)  NOT NULL, 
+ NOME                   VARCHAR2(20) NOT NULL)
+TABLESPACE LIS_DATA; 
+-- fim bloco
+
+CREATE SEQUENCE SQ_CATALOGO_PORTES_MEDICOS
+MINVALUE 1
+MAXVALUE 999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+-- fim bloco
+
+ALTER TABLE CATALOGO_PORTES_MEDICOS ADD CONSTRAINT CATALOGO_PORTES_MEDICOS_PK 
+      PRIMARY KEY (ID_TABELA_PORTE_MEDICO)
+USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco	  
+
+INSERT INTO CATALOGO_PORTES_MEDICOS VALUES (0,'SEM PORTE');
+-- fim bloco
+
+ALTER TABLE CONVENIOS ADD CONSTRAINT CONVENIOS_PORTES_MEDICOS_FK 
+      FOREIGN KEY (ID_TABELA_PORTE_MEDICO) REFERENCES CATALOGO_PORTES_MEDICOS(ID_TABELA_PORTE_MEDICO)
+	  ON DELETE CASCADE;
+-- fim bloco
+
+UPDATE CONVENIOS SET ID_TABELA_PORTE_MEDICO = 0;	
+-- fim bloco  
+ALTER TABLE CONVENIOS MODIFY ID_TABELA_PORTE_MEDICO NOT NULL;
+-- fim bloco
+ 
+CREATE OR REPLACE PROCEDURE PRC_CATALOGO_PORTES_MEDICOS(V_ID_TABELA_PORTE_MEDICO IN OUT CATALOGO_PORTES_MEDICOS.ID_TABELA_PORTE_MEDICO%TYPE,
+                                                        V_NOME                   IN     CATALOGO_PORTES_MEDICOS.NOME%TYPE,
+                                                        V_FUNCAO                 IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_CATALOGO_PORTES_MEDICOS.NEXTVAL INTO V_ID_TABELA_PORTE_MEDICO FROM DUAL;
+     INSERT INTO CATALOGO_PORTES_MEDICOS VALUES (V_ID_TABELA_PORTE_MEDICO, V_NOME);
+
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CATALOGO_PORTES_MEDICOS SET NOME = V_NOME
+                           WHERE ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE CATALOGO_PORTES_MEDICOS WHERE ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_CATALOGO_PORTES_MEDICOS;
+-- fim bloco
+
+------------------------------------------------------------------------------------------------------------------
+-- CRIACAO PORTES_MEDICOS
+------------------------------------------------------------------------------------------------------------------
+CREATE TABLE PORTES_MEDICOS
+(ID_TABELA_PORTE_MEDICO   NUMBER(3)   NOT NULL, 
+ ID_PORTE_MEDICO          VARCHAR2(4) NOT NULL, 
+ VALOR_PORTE              NUMBER(12,2) NOT NULL)
+TABLESPACE LIS_DATA; 
+-- fim bloco
+
+ALTER TABLE PORTES_MEDICOS ADD CONSTRAINT PORTES_MEDICOS_PK 
+      PRIMARY KEY (ID_TABELA_PORTE_MEDICO, ID_PORTE_MEDICO)
+USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco	  
+
+ALTER TABLE PORTES_MEDICOS ADD CONSTRAINT PORTES_MEDICOS_CATALOGO_FK 
+      FOREIGN KEY (ID_TABELA_PORTE_MEDICO) REFERENCES CATALOGO_PORTES_MEDICOS(ID_TABELA_PORTE_MEDICO)
+	  ON DELETE CASCADE;
+-- fim bloco
+
+CREATE INDEX PORTES_MEDICOS_I ON PORTES_MEDICOS (ID_PORTE_MEDICO) 
+  TABLESPACE "LIS_INDX";
+-- fim bloco
+  
+CREATE OR REPLACE PROCEDURE PRC_PORTES_MEDICOS(V_ID_TABELA_PORTE_MEDICO IN     PORTES_MEDICOS.ID_TABELA_PORTE_MEDICO%TYPE,
+                                               V_ID_PORTE_MEDICO        IN     PORTES_MEDICOS.ID_PORTE_MEDICO%TYPE,
+                                               V_VALOR_PORTE            IN     PORTES_MEDICOS.VALOR_PORTE%TYPE,
+                                               V_FUNCAO                 IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PORTES_MEDICOS VALUES (V_ID_TABELA_PORTE_MEDICO, V_ID_PORTE_MEDICO, V_VALOR_PORTE);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PORTES_MEDICOS SET VALOR_PORTE = V_VALOR_PORTE
+                               WHERE ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO
+                                 AND ID_PORTE_MEDICO = V_ID_PORTE_MEDICO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PORTES_MEDICOS WHERE ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO
+                                 AND ID_PORTE_MEDICO = V_ID_PORTE_MEDICO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     DELETE PORTES_MEDICOS WHERE ID_TABELA_PORTE_MEDICO = V_ID_TABELA_PORTE_MEDICO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_PORTES_MEDICOS; 
+-- fim bloco 
+ 
+
+------------------------------------------------------------------------------------------------------------------
+-- CRIACAO TIPO_COLETORES 
+------------------------------------------------------------------------------------------------------------------
+CREATE TABLE TIPO_COLETORES
+(ID_TIPO_COLETOR     NUMBER(3)      NOT NULL,
+ NOME                VARCHAR2(50)   NOT NULL,
+ STATUS              VARCHAR2(1)   NOT NULL)
+TABLESPACE LIS_DATA;
+-- fim bloco
+
+CREATE SEQUENCE SQ_TIPO_COLETOR
+MINVALUE 1
+MAXVALUE 999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+-- fim bloco
+
+ALTER TABLE TIPO_COLETORES ADD CONSTRAINT TIPO_COLETORES_PK 
+      PRIMARY KEY (ID_TIPO_COLETOR)
+USING INDEX TABLESPACE LIS_INDX;	
+-- fim bloco  
+
+CREATE OR REPLACE PROCEDURE PRC_TIPO_COLETORES(V_ID_TIPO_COLETOR  IN OUT TIPO_COLETORES.ID_TIPO_COLETOR%TYPE,
+                                               V_NOME             IN     TIPO_COLETORES.NOME%TYPE,
+                                               V_STATUS           IN     TIPO_COLETORES.STATUS%TYPE,
+                                               V_FUNCAO           IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_TIPO_COLETOR.NEXTVAL INTO V_ID_TIPO_COLETOR FROM DUAL;
+     INSERT INTO TIPO_COLETORES VALUES (V_ID_TIPO_COLETOR, V_NOME, V_STATUS);
+     
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE TIPO_COLETORES SET NOME = V_NOME, STATUS = V_STATUS
+                           WHERE ID_TIPO_COLETOR = V_ID_TIPO_COLETOR;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE TIPO_COLETORES WHERE ID_TIPO_COLETOR = V_ID_TIPO_COLETOR;
+	 
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_TIPO_COLETORES;
+
+-- fim bloco
+
+INSERT INTO TIPO_COLETORES VALUES (0,'NAO DEFINIDO','A');
+-- fim bloco
+
+
+------------------------------------------------------------------------------------------------------------------
+-- CRIACAO GRUPOS_ETIQUETAS_TIPO_COLETORES 
+------------------------------------------------------------------------------------------------------------------
+CREATE TABLE GR_ETIQUETAS_TIPO_COLETORES
+(GRUPO_ETIQUETA      NUMBER(6)      NOT NULL,
+ ID_TIPO_COLETOR     NUMBER(3)      NOT NULL)
+TABLESPACE LIS_DATA;
+-- fim bloco
+
+ALTER TABLE GR_ETIQUETAS_TIPO_COLETORES ADD CONSTRAINT GR_ETIQUETAS_TIPO_COLETORES_PK 
+      PRIMARY KEY (GRUPO_ETIQUETA, ID_TIPO_COLETOR) 
+USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco	  
+
+ALTER TABLE GR_ETIQUETAS_TIPO_COLETORES ADD CONSTRAINT GR_ETI_TIP_COLE_COL_FK 
+      FOREIGN KEY (ID_TIPO_COLETOR) REFERENCES TIPO_COLETORES(ID_TIPO_COLETOR);
+-- fim bloco
+
+ALTER TABLE GR_ETIQUETAS_TIPO_COLETORES ADD CONSTRAINT GR_ETI_TIP_COLE_GR_ETI_FK 
+      FOREIGN KEY (GRUPO_ETIQUETA) REFERENCES GRUPOS_ETIQUETAS(GRUPO_ETIQUETA);
+-- fim bloco
+	  
+CREATE OR REPLACE PROCEDURE PRC_GR_ETIQUETAS_TIP_COLETORES(V_GRUPO_ETIQUETA   IN  GR_ETIQUETAS_TIPO_COLETORES.GRUPO_ETIQUETA%TYPE,
+															V_ID_TIPO_COLETOR  IN  GR_ETIQUETAS_TIPO_COLETORES.ID_TIPO_COLETOR%TYPE,
+                                                            V_FUNCAO           IN  NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO GR_ETIQUETAS_TIPO_COLETORES VALUES (V_GRUPO_ETIQUETA, V_ID_TIPO_COLETOR);
+     
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE GR_ETIQUETAS_TIPO_COLETORES WHERE GRUPO_ETIQUETA = V_GRUPO_ETIQUETA AND ID_TIPO_COLETOR = V_ID_TIPO_COLETOR;
+	 
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_GR_ETIQUETAS_TIP_COLETORES;
+
+-- fim bloco
+
+ALTER TABLE CBO MODIFY ID_CBO VARCHAR2(10);
+-- fim bloco
+INSERT INTO CBO VALUES('225125', 'MÉDICO CLÍNICO');
+-- fim bloco
+UPDATE MEDICOS SET id_cbo = '225125';
+-- fim bloco
+
+ALTER TABLE PLANOS_CONVENIOS MODIFY CODIGO_PLANO NUMBER(10);
+-- fim bloco
+ALTER TABLE PLANOS_CONVENIOS MODIFY PLANO VARCHAR2(50);
+-- fim bloco
+
+ALTER TABLE ATENDIMENTOS MODIFY CODIGO_PLANO NUMBER(10);
+-- fim bloco
+ALTER TABLE FATURAS MODIFY CODIGO_PLANO NUMBER(10);
+-- fim bloco
+
+
+ALTER TABLE CONVENIOS MODIFY(ENDERECO_ENVIO VARCHAR2(100));
+-- fim bloco
+UPDATE CATALOGO_TISS SET NOME = 'TABELA PROPRIA DAS OPERADORAS' WHERE CATALOGO_TISS = '00';
+-- fim bloco
+INSERT INTO CATALOGO_TISS VALUES ('22','PROCEDIMENTOS E EVENTOS EM SAUDE');
+-- fim bloco
+UPDATE CATALOGO SET CATALOGO_TISS = '00';
+-- fim bloco
+
