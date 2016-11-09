@@ -1,0 +1,165 @@
+-------------------------------------------------------------------------------
+--LICENCA
+-------------------------------------------------------------------------------
+ CREATE TABLE LICENCAS 
+ (ID_LICENCA  NUMBER(6) NOT NULL, 
+  IP          VARCHAR2(15) NOT NULL, 
+  MAC         VARCHAR2(20), 
+  NOME_PC     VARCHAR2(30), 
+  SERIAL_HD   VARCHAR2(50), 
+  DATA_ACESSO DATE NOT NULL, 
+  VENCIMENTO  VARCHAR2(10), 
+  SO          VARCHAR2(50), 
+  RESOLUCAO   VARCHAR2(20), 
+  TIPO_ACESSO VARCHAR2(1)) 
+ TABLESPACE LIS_DATA;
+-- fim bloco
+ 
+ALTER TABLE LICENCAS ADD CONSTRAINT LICENCAS_PK 
+      PRIMARY KEY (ID_LICENCA)
+	  USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco
+
+CREATE SEQUENCE  SQ_LICENCA  
+ MINVALUE 0 
+ MAXVALUE 999999 
+ INCREMENT BY 1 
+ START WITH 1 
+ NOCACHE  
+ NOORDER  
+ NOCYCLE;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_LICENCAS              ( V_ID_LICENCA              IN OUT  LICENCAS.ID_LICENCA%TYPE,
+                                                        V_IP                      IN      LICENCAS.IP%TYPE,
+                                                        V_MAC                     IN      LICENCAS.MAC%TYPE,
+                                                        V_NOME_PC                 IN      LICENCAS.NOME_PC%TYPE,
+                                                        V_SERIAL_HD               IN      LICENCAS.SERIAL_HD%TYPE,
+                                                        V_DATA_ACESSO             IN      LICENCAS.DATA_ACESSO%TYPE,
+                                                        V_VENCIMENTO              IN      LICENCAS.VENCIMENTO%TYPE,
+                                                        V_SO                      IN      LICENCAS.SO%TYPE,
+                                                        V_RESOLUCAO               IN      LICENCAS.RESOLUCAO%TYPE,
+                                                        V_TIPO_ACESSO             IN      LICENCAS.TIPO_ACESSO%TYPE,
+                                                        V_FUNCAO                  IN      NUMBER) IS
+
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_LICENCA.NEXTVAL INTO V_ID_LICENCA FROM DUAL;
+     INSERT INTO LICENCAS VALUES (V_ID_LICENCA, V_IP, V_MAC, V_NOME_PC, V_SERIAL_HD, V_DATA_ACESSO, V_VENCIMENTO, V_SO, V_RESOLUCAO, V_TIPO_ACESSO);
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE LICENCAS
+         SET IP = V_IP, MAC = V_MAC, NOME_PC = V_NOME_PC, SERIAL_HD = V_SERIAL_HD, DATA_ACESSO = V_DATA_ACESSO, VENCIMENTO = V_VENCIMENTO,
+             SO = V_SO, RESOLUCAO = V_RESOLUCAO, TIPO_ACESSO = V_TIPO_ACESSO  
+      WHERE ID_LICENCA = V_ID_LICENCA;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE LICENCAS WHERE ID_LICENCA = V_ID_LICENCA;
+  END IF;
+  COMMIT WORK;
+END PRC_LICENCAS; 
+-- fim bloco
+
+-------------------------------------------------------------------------------
+--LICENCA_HORAS
+-------------------------------------------------------------------------------
+
+CREATE TABLE LICENCAS_HORAS 
+(ID_LICENCA NUMBER(6,0) NOT NULL, 
+ DIA        DATE NOT NULL , 
+ MODULO     VARCHAR2(20) NOT NULL, 
+ QTD_HORAS  NUMBER(10,2), 
+ VERSION    VARCHAR2(10))
+TABLESPACE LIS_DATA; 
+-- fim bloco
+
+ALTER TABLE LICENCAS_HORAS ADD CONSTRAINT LICENCAS_HORAS_PK 
+      PRIMARY KEY (ID_LICENCA, DIA, MODULO)
+	  USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco
+
+ALTER TABLE LICENCAS_HORAS ADD CONSTRAINT LICENCAS_HORAS_LICENCAS_FK 
+      FOREIGN KEY (ID_LICENCA) REFERENCES LICENCAS(ID_LICENCA); 
+--      ON DELETE CASCADE;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_LICENCAS_HORAS          (V_ID_LICENCA         IN LICENCAS_HORAS.ID_LICENCA%TYPE,
+                                                         V_DIA                IN LICENCAS_HORAS.DIA%TYPE,
+                                                         V_MODULO             IN LICENCAS_HORAS.MODULO%TYPE,
+							 V_QTD_HORAS          IN OUT LICENCAS_HORAS.QTD_HORAS%TYPE,
+                                                         V_VERSION            IN OUT LICENCAS_HORAS.VERSION%TYPE,
+ 							 V_FUNCAO             IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+    INSERT INTO LICENCAS_HORAS VALUES (V_ID_LICENCA, V_DIA, V_MODULO, V_QTD_HORAS, V_VERSION);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE LICENCAS_HORAS SET  QTD_HORAS = V_QTD_HORAS, VERSION = V_VERSION
+                    WHERE ID_LICENCA   = V_ID_LICENCA   AND DIA = V_DIA AND MODULO = V_MODULO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE LICENCAS_HORAS  WHERE ID_LICENCA = V_ID_LICENCA AND DIA = V_DIA AND MODULO = V_MODULO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     SELECT SUM(QTD_HORAS + V_QTD_HORAS) INTO V_QTD_HORAS FROM LICENCAS_HORAS WHERE ID_LICENCA = V_ID_LICENCA AND DIA = V_DIA AND MODULO = V_MODULO;
+     UPDATE LICENCAS_HORAS SET  QTD_HORAS = V_QTD_HORAS, VERSION = V_VERSION
+                    WHERE ID_LICENCA = V_ID_LICENCA AND DIA = V_DIA AND MODULO = V_MODULO; 
+     
+
+  END IF;
+
+  COMMIT WORK;
+END PRC_LICENCAS_HORAS;
+-- fim bloco
+
+-------------------------------------------------------------------------------
+--LICENCA_HORAS_TEMP
+-------------------------------------------------------------------------------
+
+CREATE TABLE LICENCAS_HORAS_TEMP
+(ID_LICENCA    NUMBER(6,0) NOT NULL, 
+ HANDLE        NUMBER(10,0) NOT NULL, 
+ MODULO        VARCHAR2(20) NOT NULL, 
+ DATA_EXECUCAO DATE NOT NULL, 
+ QTD_HORAS     NUMBER(10,2), 
+ FECHADO       VARCHAR2(1),
+ HORA_ALT      DATE)
+TABLESPACE LIS_DATA;
+-- fim bloco
+
+ALTER TABLE LICENCAS_HORAS_TEMP ADD CONSTRAINT LICENCAS_HORAS_TEMP_PK 
+      PRIMARY KEY (ID_LICENCA, HANDLE, DATA_EXECUCAO)
+	  USING INDEX TABLESPACE LIS_INDX;
+-- fim bloco
+
+ALTER TABLE LICENCAS_HORAS_TEMP ADD CONSTRAINT LICENCAS_TEMP_LICENCAS_FK 
+      FOREIGN KEY (ID_LICENCA) REFERENCES LICENCAS(ID_LICENCA); 
+--      ON DELETE CASCADE;
+-- fim bloco
+	
+
+CREATE OR REPLACE PROCEDURE PRC_LICENCAS_HORAS_TEMP     (V_ID_LICENCA     IN LICENCAS_HORAS_TEMP.ID_LICENCA%TYPE,
+							 V_HANDLE         IN LICENCAS_HORAS_TEMP.HANDLE%TYPE,
+                                                         V_MODULO         IN LICENCAS_HORAS_TEMP.MODULO%TYPE,
+                                                         V_DATA_EXECUCAO  IN LICENCAS_HORAS_TEMP.DATA_EXECUCAO%TYPE,    
+                                                         V_QTD_HORAS      IN OUT LICENCAS_HORAS_TEMP.QTD_HORAS%TYPE,
+                                                         V_FECHADO        IN LICENCAS_HORAS_TEMP.FECHADO%TYPE,
+							 V_HORA_ALT       IN LICENCAS_HORAS_TEMP.HORA_ALT%TYPE,
+                                                         V_FUNCAO         IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+    INSERT INTO LICENCAS_HORAS_TEMP VALUES (V_ID_LICENCA, V_HANDLE, V_MODULO, V_DATA_EXECUCAO, V_QTD_HORAS, V_FECHADO, V_HORA_ALT);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE LICENCAS_HORAS_TEMP SET  QTD_HORAS = V_QTD_HORAS, FECHADO = V_FECHADO, MODULO = V_MODULO, DATA_EXECUCAO = V_DATA_EXECUCAO, HORA_ALT = V_HORA_ALT
+                    WHERE ID_LICENCA = V_ID_LICENCA AND HANDLE  = V_HANDLE;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE LICENCAS_HORAS_TEMP  WHERE ID_LICENCA = V_ID_LICENCA AND HANDLE = V_HANDLE;
+
+  ELSIF V_FUNCAO = 4 THEN
+     DELETE LICENCAS_HORAS_TEMP  WHERE ID_LICENCA = V_ID_LICENCA AND MODULO = V_MODULO AND DATA_EXECUCAO = V_DATA_EXECUCAO;
+  
+  END IF;
+
+  COMMIT WORK;
+END PRC_LICENCAS_HORAS_TEMP;
+-- fim bloco
