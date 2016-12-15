@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
  CREATE TABLE LICENCAS 
  (ID_LICENCA  NUMBER(6) NOT NULL, 
-  IP          VARCHAR2(13) NOT NULL, 
+  IP          VARCHAR2(15) NOT NULL, 
   MAC         VARCHAR2(20), 
   NOME_PC     VARCHAR2(30), 
   SERIAL_HD   VARCHAR2(50), 
