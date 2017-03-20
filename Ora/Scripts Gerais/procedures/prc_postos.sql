@@ -15,7 +15,7 @@ CREATE OR REPLACE PROCEDURE PRC_POSTOS(V_POSTO                     IN OUT POSTOS
                                        V_NOME_FICHA                IN     POSTOS.NOME_FICHA%TYPE,
                                        V_LAYOUT_LAUDO              IN     POSTOS.LAYOUT_LAUDO%TYPE,
                                        V_LAYOUT_PADRAO             IN     POSTOS.LAYOUT_PADRAO%TYPE,
-									   V_IMPRIME_PARCIAL_DIGITADOS IN     POSTOS.IMPRIME_PARCIAL_DIGITADOS %TYPE,
+									   V_IMPRIME_PARCIAL_DIGITADOS IN     POSTOS.IMPRIME_PARCIAL_DIGITADOS%TYPE,
                                        V_FUNCAO                    IN     NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 THEN

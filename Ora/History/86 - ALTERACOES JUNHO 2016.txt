@@ -410,14 +410,14 @@ ALTER TABLE CLIENTES_B2B ADD CONSTRAINT CLIENTES_B2B_PK
 
 create or replace
 PROCEDURE PRC_CLIENTES_B2B(V_REGISTRO           IN CLIENTES_B2B.REGISTRO%TYPE,
-                                             V_EQUIPAMENTO     IN CLIENTES_B2B.EQUIPAMENTO%TYPE,
-                                             V_CODIGO_EXTERNO     IN CLIENTES_B2B.CODIGO_EXTERNO%TYPE,
-                                             V_NOME_EXTERNO       IN CLIENTES_B2B.NOME_EXTERNO%TYPE,
-                                             V_DATA_NAS_EXTERNO   IN CLIENTES_B2B.DATA_NAS_EXTERNO%TYPE,
-                                             V_SEXO_EXTERNO       IN CLIENTES_B2B.SEXO_EXTERNO%TYPE,
-                                             V_IDENTIDADE_EXTERNO IN CLIENTES_B2B.IDENTIDADE_EXTERNO%TYPE,
-                                             V_CPF_EXTERNO        IN CLIENTES_B2B.CPF_EXTERNO%TYPE,
-                                             V_FUNCAO             IN NUMBER) IS
+                           V_EQUIPAMENTO        IN CLIENTES_B2B.EQUIPAMENTO%TYPE,
+                           V_CODIGO_EXTERNO     IN CLIENTES_B2B.CODIGO_EXTERNO%TYPE,
+                           V_NOME_EXTERNO       IN CLIENTES_B2B.NOME_EXTERNO%TYPE,
+                           V_DATA_NAS_EXTERNO   IN CLIENTES_B2B.DATA_NAS_EXTERNO%TYPE,
+                           V_SEXO_EXTERNO       IN CLIENTES_B2B.SEXO_EXTERNO%TYPE,
+                           V_IDENTIDADE_EXTERNO IN CLIENTES_B2B.IDENTIDADE_EXTERNO%TYPE,
+                           V_CPF_EXTERNO        IN CLIENTES_B2B.CPF_EXTERNO%TYPE,
+                           V_FUNCAO             IN NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 THEN
      INSERT INTO CLIENTES_B2B VALUES (V_REGISTRO, V_EQUIPAMENTO, V_CODIGO_EXTERNO, V_NOME_EXTERNO, V_DATA_NAS_EXTERNO, V_SEXO_EXTERNO, V_IDENTIDADE_EXTERNO, V_CPF_EXTERNO);

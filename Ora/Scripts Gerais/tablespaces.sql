@@ -1,0 +1,25 @@
+-- tablespace DATA
+CREATE TABLESPACE LIS_DATA
+  DATAFILE '/app/oradata/codemed/LIS_DATA01' SIZE 2G,
+           '/app/oradata/codemed/LIS_DATA02' SIZE 2G,
+           '/app/oradata/codemed/LIS_DATA02' SIZE 2G
+  AUTOEXTEND OFF;
+		   
+-- tablespace INDEX		   
+CREATE TABLESPACE LIS_INDX
+  DATAFILE '/app/oradata/codemed/LIS_INDX01' SIZE 2G,
+           '/app/oradata/codemed/LIS_INDX02' SIZE 2G
+  AUTOEXTEND OFF;
+
+-- tablespace INDEX
+CREATE TEMPORARY TABLESPACE LIS_TEMP
+  DATAFILE '/app/oradata/codemed/LIS_DATA01' SIZE 2G;
+
+-- usuario LIS  
+CREATE USER LIS 
+IDENTIFIED BY 147258
+DEFAULT TABLESPACE LIS_DATA
+TEMPORARY TABLESPACE LIS_TEMP
+ACCOUNT UNLOCK ;
+
+ALTER USER LIS DEFAULT ROLE "DBA";
