@@ -1,0 +1,24 @@
+CREATE OR REPLACE PROCEDURE PRC_BANCOS(V_ID_BANCO  IN OUT BANCOS.ID_BANCO%TYPE,
+                                       V_NOME      IN BANCOS.NOME%TYPE,
+                                       V_ALIAS     IN BANCOS.ALIAS%TYPE,
+                                       V_CODIGO    IN BANCOS.CODIGO%TYPE,
+                                       V_FUNCAO    IN NUMBER) IS      
+BEGIN
+  IF V_FUNCAO = 1 THEN
+	  SELECT SQ_BANCOS.NEXTVAL INTO V_ID_BANCO FROM DUAL;
+	 
+    INSERT INTO BANCOS VALUES (V_ID_BANCO, V_NOME, V_ALIAS, V_CODIGO);           
+  
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE BANCOS SET NOME = V_NOME, ALIAS = V_ALIAS, CODIGO = V_CODIGO
+                      WHERE ID_BANCO = V_ID_BANCO;	
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE BANCOS WHERE ID_BANCO = V_ID_BANCO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_BANCOS;
+/
