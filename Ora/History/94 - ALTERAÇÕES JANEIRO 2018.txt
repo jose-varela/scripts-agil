@@ -1,0 +1,88 @@
+ALTER TABLE EQUIPAMENTOS RENAME COLUMN MODO_OPERACAO TO MODO_LISTA_TRABALHO;
+UPDATE EQUIPAMENTOS SET MODO_LISTA_TRABALHO = 'M';
+ALTER TABLE EQUIPAMENTOS ADD CENTRO_RASTREIO_WORKLIST NUMBER(2);
+
+
+create or replace PROCEDURE PRC_EQUIPAMENTOS(V_EQUIPAMENTO               IN OUT  EQUIPAMENTOS.EQUIPAMENTO%TYPE,
+                                             V_NOME                      IN      EQUIPAMENTOS.NOME%TYPE,
+                                             V_MODELO_EQUIPAMENTO        IN      EQUIPAMENTOS.MODELO_EQUIPAMENTO%TYPE,
+                                             V_STATUS                    IN      EQUIPAMENTOS.STATUS%TYPE,
+                                             V_HOST                      IN      EQUIPAMENTOS.HOST%TYPE,
+                                             V_PORTA                     IN      EQUIPAMENTOS.PORTA%TYPE,
+                                             V_BITS_SEGUNDO              IN      EQUIPAMENTOS.BITS_SEGUNDO%TYPE,
+                                             V_BITS_DADOS                IN      EQUIPAMENTOS.BITS_DADOS%TYPE,
+                                             V_PARIDADE                  IN      EQUIPAMENTOS.PARIDADE%TYPE,
+                                             V_BITS_PARADA               IN      EQUIPAMENTOS.BITS_PARADA%TYPE,
+                                             V_CONTROLE_FLUXO            IN      EQUIPAMENTOS.CONTROLE_FLUXO%TYPE,
+                                             V_MODO_LISTA_TRABALHO       IN      EQUIPAMENTOS.MODO_LISTA_TRABALHO%TYPE,
+                                             V_TIPO_COMUNICACAO          IN      EQUIPAMENTOS.TIPO_COMUNICACAO%TYPE,
+                                             V_LOCAL_IN                  IN      EQUIPAMENTOS.LOCAL_IN%TYPE,
+                                             V_LOCAL_OUT                 IN      EQUIPAMENTOS.LOCAL_OUT%TYPE,
+                                             V_ENDERECO_IP               IN      EQUIPAMENTOS.ENDERECO_IP%TYPE,
+                                             V_ALIAS                     IN      EQUIPAMENTOS.ALIAS%TYPE,
+                                             V_FORMATO_INTERFACE         IN      EQUIPAMENTOS.FORMATO_INTERFACE%TYPE,
+                                             V_HEADER_ASTM               IN      EQUIPAMENTOS.HEADER_ASTM%TYPE,
+                                             V_SEPARA_EXAMES_ASTM        IN      EQUIPAMENTOS.SEPARA_EXAMES_ASTM%TYPE,
+                                             V_DIFERENCIA_PRIMEIRO_ASTM  IN      EQUIPAMENTOS.DIFERENCIA_PRIMEIRO_ASTM%TYPE,
+                                             V_FINAL_LINEA_ASTM          IN      EQUIPAMENTOS.FINAL_LINEA_ASTM%TYPE,
+                                             V_SEPARA_LOGS               IN      EQUIPAMENTOS.SEPARA_LOGS%TYPE,
+                                             V_TERMINATION_CODE_ASTM     IN      EQUIPAMENTOS.TERMINATION_CODE_ASTM%TYPE,
+                                             V_LAYOUT_INTERFACE          IN      EQUIPAMENTOS.LAYOUT_INTERFACE%TYPE,
+                                             V_ACTION_CODE_ASTM          IN      EQUIPAMENTOS.ACTION_CODE_ASTM%TYPE,
+                                             V_REPORT_TYPE_ASTM          IN      EQUIPAMENTOS.REPORT_TYPE_ASTM%TYPE,
+                                             V_SEPARA_BLOCOS_ENVIO       IN      EQUIPAMENTOS.SEPARA_BLOCOS_ENVIO%TYPE,
+                                             V_TIPO_INTERFACE            IN      EQUIPAMENTOS.TIPO_INTERFACE%TYPE,
+                                             V_EXTENSAO_DESTINO          IN      EQUIPAMENTOS.EXTENSAO_DESTINO%TYPE,
+                                             V_EXTENSAO_ORIGEM           IN      EQUIPAMENTOS.EXTENSAO_ORIGEM%TYPE,
+                                             V_INTERVALO_MONITOR         IN      EQUIPAMENTOS.INTERVALO_MONITOR%TYPE,
+                                             V_UTILIZA_NUMERACAO_EXTERNO IN      EQUIPAMENTOS.UTILIZA_NUMERACAO_EXTERNO%TYPE,
+                                             V_TIPO_DB                   IN      EQUIPAMENTOS.TIPO_DB%TYPE,
+                                             V_USER_DB                   IN      EQUIPAMENTOS.USER_DB%TYPE,
+                                             V_PASSWORD_DB               IN      EQUIPAMENTOS.PASSWORD_DB%TYPE,
+                                             V_NOME_DB                   IN      EQUIPAMENTOS.NOME_DB%TYPE,
+											 V_PORTA_DB                  IN      EQUIPAMENTOS.PORTA_DB%TYPE,
+											 V_HOST_DB                   IN      EQUIPAMENTOS.HOST_DB%TYPE,
+											 V_VERIFICA_COMUNICACAO      IN      EQUIPAMENTOS.VERIFICA_COMUNICACAO%TYPE,
+											 V_FREQUENCIA_VERIFICACAO    IN      EQUIPAMENTOS.FREQUENCIA_VERIFICACAO%TYPE,
+											 V_SEQUENCIA_VERIFICACAO     IN      EQUIPAMENTOS.SEQUENCIA_VERIFICACAO%TYPE,
+											 V_CENTRO_RASTREIO_WORKLIST  IN      EQUIPAMENTOS.CENTRO_RASTREIO_WORKLIST%TYPE,
+                                             V_FUNCAO                    IN      NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_EQUIPAMENTO.NEXTVAL INTO V_EQUIPAMENTO FROM DUAL;
+     INSERT INTO EQUIPAMENTOS VALUES (V_EQUIPAMENTO, V_NOME, V_MODELO_EQUIPAMENTO, V_STATUS, V_HOST, V_PORTA, 
+                                      V_BITS_SEGUNDO, V_BITS_DADOS, V_PARIDADE, V_BITS_PARADA, V_CONTROLE_FLUXO, 
+                                      V_MODO_LISTA_TRABALHO, V_TIPO_COMUNICACAO, V_LOCAL_IN, V_LOCAL_OUT, V_ENDERECO_IP, V_ALIAS, V_FORMATO_INTERFACE,
+                                      V_HEADER_ASTM, V_SEPARA_EXAMES_ASTM, V_DIFERENCIA_PRIMEIRO_ASTM, V_FINAL_LINEA_ASTM, V_SEPARA_LOGS, 
+                                      V_TERMINATION_CODE_ASTM, V_LAYOUT_INTERFACE, V_ACTION_CODE_ASTM, V_REPORT_TYPE_ASTM, V_SEPARA_BLOCOS_ENVIO, V_TIPO_INTERFACE, 
+									  V_EXTENSAO_DESTINO, V_EXTENSAO_ORIGEM, V_INTERVALO_MONITOR,
+									  V_UTILIZA_NUMERACAO_EXTERNO, V_TIPO_DB, V_USER_DB, V_PASSWORD_DB, V_NOME_DB, V_PORTA_DB, V_HOST_DB, V_VERIFICA_COMUNICACAO, 
+									  V_FREQUENCIA_VERIFICACAO, V_SEQUENCIA_VERIFICACAO, V_CENTRO_RASTREIO_WORKLIST);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE EQUIPAMENTOS SET NOME = V_NOME, MODELO_EQUIPAMENTO = V_MODELO_EQUIPAMENTO,
+                             STATUS = V_STATUS, HOST = V_HOST, PORTA = V_PORTA, 
+                             BITS_SEGUNDO = V_BITS_SEGUNDO, BITS_DADOS = V_BITS_DADOS, 
+                             PARIDADE = V_PARIDADE, BITS_PARADA = V_BITS_PARADA, 
+                             CONTROLE_FLUXO = V_CONTROLE_FLUXO, MODO_LISTA_TRABALHO = V_MODO_LISTA_TRABALHO,
+                             TIPO_COMUNICACAO = V_TIPO_COMUNICACAO, LOCAL_IN = V_LOCAL_IN,
+                             LOCAL_OUT = V_LOCAL_OUT, ENDERECO_IP = V_ENDERECO_IP, ALIAS = V_ALIAS,
+                             FORMATO_INTERFACE = V_FORMATO_INTERFACE, HEADER_ASTM = V_HEADER_ASTM, SEPARA_EXAMES_ASTM = V_SEPARA_EXAMES_ASTM,
+                             DIFERENCIA_PRIMEIRO_ASTM = V_DIFERENCIA_PRIMEIRO_ASTM, FINAL_LINEA_ASTM = V_FINAL_LINEA_ASTM, SEPARA_LOGS = V_SEPARA_LOGS, 			    
+                             ACTION_CODE_ASTM = V_ACTION_CODE_ASTM, REPORT_TYPE_ASTM = V_REPORT_TYPE_ASTM, 
+			                 TERMINATION_CODE_ASTM = V_TERMINATION_CODE_ASTM, LAYOUT_INTERFACE = V_LAYOUT_INTERFACE,
+			                 SEPARA_BLOCOS_ENVIO = V_SEPARA_BLOCOS_ENVIO, TIPO_INTERFACE = V_TIPO_INTERFACE, EXTENSAO_DESTINO = V_EXTENSAO_DESTINO,
+			                 EXTENSAO_ORIGEM = V_EXTENSAO_ORIGEM, INTERVALO_MONITOR = V_INTERVALO_MONITOR, 
+			                 UTILIZA_NUMERACAO_EXTERNO = V_UTILIZA_NUMERACAO_EXTERNO,TIPO_DB = V_TIPO_DB, USER_DB = V_USER_DB,
+			                 PASSWORD_DB = V_PASSWORD_DB, NOME_DB = V_NOME_DB, PORTA_DB = V_PORTA_DB, HOST_DB = V_HOST_DB, VERIFICA_COMUNICACAO = V_VERIFICA_COMUNICACAO,  
+							 FREQUENCIA_VERIFICACAO = V_FREQUENCIA_VERIFICACAO, SEQUENCIA_VERIFICACAO = V_SEQUENCIA_VERIFICACAO,
+							 CENTRO_RASTREIO_WORKLIST = V_CENTRO_RASTREIO_WORKLIST
+               WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE EQUIPAMENTOS WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_EQUIPAMENTOS;
