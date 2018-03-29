@@ -18,6 +18,7 @@ CREATE OR REPLACE PROCEDURE PRC_CAIXA(V_CONTA_HOSP     IN CAIXA.CONTA_HOSP%TYPE,
                                       V_COD_PAGAMENTO  IN CAIXA.COD_PAGAMENTO%TYPE,
                                       V_PARCELAS       IN CAIXA.PARCELAS%TYPE,
                                       V_ID_CAIXA       IN OUT CAIXA.ID_CAIXA%TYPE,
+                                      V_ID_RESPONSAVEL_FINANCEIRO IN CAIXA.ID_RESPONSAVEL_FINANCEIRO%TYPE,
                                       V_FUNCAO         IN NUMBER) IS
 BEGIN
   IF (V_FUNCAO = 1) OR (V_FUNCAO = 6) THEN
@@ -32,7 +33,9 @@ BEGIN
      INSERT INTO CAIXA VALUES (V_CONTA_HOSP,  V_REGISTRO,    V_CONTA,     V_DATA_PAG,
                                V_VALOR,       V_DESCONTO,    V_TIPO_DTO,  V_USUARIO,
                                V_DATA_CAD,    V_CORREL,      V_ID_FORMA_PAGAMENTO,  V_CATALOGO, 
-   			       V_USUARIO_DTO, V_USUARIO_ALT, V_DATA_ALT, V_ID_BANDEIRA, V_ID_OPERADORA, V_COD_PAGAMENTO, V_PARCELAS, V_ID_CAIXA);
+   			                       V_USUARIO_DTO, V_USUARIO_ALT, V_DATA_ALT, V_ID_BANDEIRA,
+                               V_ID_OPERADORA, V_COD_PAGAMENTO, V_PARCELAS, V_ID_CAIXA,
+                               V_ID_RESPONSAVEL_FINANCEIRO);
 
   ELSIF V_FUNCAO = 2 THEN
      UPDATE CAIXA SET VALOR = V_VALOR
@@ -55,8 +58,9 @@ BEGIN
                       ID_BANDEIRA = V_ID_BANDEIRA,
                       ID_OPERADORA = V_ID_OPERADORA,
                       COD_PAGAMENTO = V_COD_PAGAMENTO,
-                      PARCELAS = V_PARCELAS
-                WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+                      PARCELAS = V_PARCELAS,
+                      ID_RESPONSAVEL_FINANCEIRO = V_ID_RESPONSAVEL_FINANCEIRO
+                 WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
   END IF;
 
   COMMIT WORK;
