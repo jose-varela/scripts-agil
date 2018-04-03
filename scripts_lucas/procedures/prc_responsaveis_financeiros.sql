@@ -4,18 +4,21 @@ CREATE OR REPLACE PROCEDURE PRC_RESPONSAVEIS_FINANCEIROS(V_ID_RESPONSAVEL_FINANC
                                                          V_EMAIL                      IN RESPONSAVEIS_FINANCEIROS.EMAIL%TYPE,
                                                          V_TELEFONE                   IN RESPONSAVEIS_FINANCEIROS.TELEFONE%TYPE,
                                                          V_TIPO                       IN RESPONSAVEIS_FINANCEIROS.TIPO%TYPE,
+                                                         V_USUARIO                    IN RESPONSAVEIS_FINANCEIROS.USUARIO%TYPE,
+                                                         V_DATA_CAD                   IN RESPONSAVEIS_FINANCEIROS.DATA_CAD%TYPE,
                                                          V_FUNCAO                     IN NUMBER) IS   
 BEGIN
   IF V_FUNCAO = 1 THEN
 	  SELECT SQ_RESPONSAVEIS_FINANCEIROS.NEXTVAL INTO V_ID_RESPONSAVEL_FINANCEIRO FROM DUAL;
 	 
     INSERT INTO RESPONSAVEIS_FINANCEIROS VALUES (V_ID_RESPONSAVEL_FINANCEIRO, V_RESPONSAVEL_FINANCEIRO, 
-                                                 V_CPF_CNPJ, V_EMAIL, V_TELEFONE, V_TIPO);           
+                                                 V_CPF_CNPJ, V_EMAIL, V_TELEFONE, V_TIPO, V_USUARIO, V_DATA_CAD);           
   
   ELSIF V_FUNCAO = 2 THEN
      UPDATE RESPONSAVEIS_FINANCEIROS SET RESPONSAVEL_FINANCEIRO = V_RESPONSAVEL_FINANCEIRO, 
                                          CPF_CNPJ = V_CPF_CNPJ, EMAIL = V_EMAIL,
-                                         TELEFONE = V_TELEFONE, TIPO = V_TIPO
+                                         TELEFONE = V_TELEFONE, TIPO = V_TIPO,
+                                         USUARIO = V_USUARIO, DATA_CAD = V_DATA_CAD
                                      WHERE ID_RESPONSAVEL_FINANCEIRO = V_ID_RESPONSAVEL_FINANCEIRO;	
   
   ELSIF V_FUNCAO = 3 THEN

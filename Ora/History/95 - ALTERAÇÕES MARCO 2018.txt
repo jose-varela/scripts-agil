@@ -27,13 +27,24 @@ BEGIN
 END IS_SITUACAO_EXAME;
 -- fim bloco
 
+CREATE SEQUENCE SQ_RESPONSAVEIS_FINANCEIROS
+MINVALUE 0 
+MAXVALUE 99999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+-- fim bloco
+
 CREATE TABLE RESPONSAVEIS_FINANCEIROS (
     ID_RESPONSAVEL_FINANCEIRO NUMBER(4) NOT NULL,
     RESPONSAVEL_FINANCEIRO VARCHAR2(50) NOT NULL,
-    CPF_CNPJ VARCHAR2(15),
+    CPF_CNPJ VARCHAR2(15) NOT NULL,
     EMAIL VARCHAR2(25),
     TELEFONE VARCHAR2(23),
-    TIPO VARCHAR2(2)
+    TIPO VARCHAR2(2) NOT NULL,
+    USUARIO VARCHAR2(10) NOT NULL,
+    DATA_CAD DATE NOT NULL
 )
 TABLESPACE LIS_DATA;
 -- fim bloco
@@ -51,18 +62,21 @@ CREATE OR REPLACE PROCEDURE PRC_RESPONSAVEIS_FINANCEIROS(V_ID_RESPONSAVEL_FINANC
                                                          V_EMAIL                      IN RESPONSAVEIS_FINANCEIROS.EMAIL%TYPE,
                                                          V_TELEFONE                   IN RESPONSAVEIS_FINANCEIROS.TELEFONE%TYPE,
                                                          V_TIPO                       IN RESPONSAVEIS_FINANCEIROS.TIPO%TYPE,
+                                                         V_USUARIO                    IN RESPONSAVEIS_FINANCEIROS.USUARIO%TYPE,
+                                                         V_DATA_CAD                   IN RESPONSAVEIS_FINANCEIROS.DATA_CAD%TYPE,
                                                          V_FUNCAO                     IN NUMBER) IS   
 BEGIN
   IF V_FUNCAO = 1 THEN
 	  SELECT SQ_RESPONSAVEIS_FINANCEIROS.NEXTVAL INTO V_ID_RESPONSAVEL_FINANCEIRO FROM DUAL;
 	 
     INSERT INTO RESPONSAVEIS_FINANCEIROS VALUES (V_ID_RESPONSAVEL_FINANCEIRO, V_RESPONSAVEL_FINANCEIRO, 
-                                                 V_CPF_CNPJ, V_EMAIL, V_TELEFONE, V_TIPO);           
+                                                 V_CPF_CNPJ, V_EMAIL, V_TELEFONE, V_TIPO, V_USUARIO, V_DATA_CAD);           
   
   ELSIF V_FUNCAO = 2 THEN
      UPDATE RESPONSAVEIS_FINANCEIROS SET RESPONSAVEL_FINANCEIRO = V_RESPONSAVEL_FINANCEIRO, 
                                          CPF_CNPJ = V_CPF_CNPJ, EMAIL = V_EMAIL,
-                                         TELEFONE = V_TELEFONE, TIPO = V_TIPO
+                                         TELEFONE = V_TELEFONE, TIPO = V_TIPO,
+                                         USUARIO = V_USUARIO, DATA_CAD = V_DATA_CAD
                                      WHERE ID_RESPONSAVEL_FINANCEIRO = V_ID_RESPONSAVEL_FINANCEIRO;	
   
   ELSIF V_FUNCAO = 3 THEN
