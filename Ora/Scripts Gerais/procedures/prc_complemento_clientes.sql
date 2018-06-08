@@ -3,6 +3,7 @@ CREATE OR REPLACE PROCEDURE PRC_COMPLEMENTO_CLIENTES(V_REGISTRO               IN
                                                      V_NOME_RESPONSAVEL       IN     COMPLEMENTO_CLIENTES.NOME_RESPONSAVEL%TYPE,
                                                      V_PARENTESCO_RESPONSAVEL IN     COMPLEMENTO_CLIENTES.PARENTESCO_RESPONSAVEL%TYPE,
                                                      V_FOTO                   IN     COMPLEMENTO_CLIENTES.FOTO%TYPE,
+                                                     V_IMPRESSAO_DIGITAL      IN     COMPLEMENTO_CLIENTES.IMPRESSAO_DIGITAL%TYPE,
                                                      V_FUNCAO                 IN     NUMBER) IS
 BEGIN
      DECLARE
@@ -14,7 +15,9 @@ BEGIN
 
      BEGIN
           IF V_FUNCAO = 1 THEN
-             INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, EMPTY_BLOB());
+             INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, 
+                                                      V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, 
+                                                      EMPTY_BLOB(), V_IMPRESSAO_DIGITAL);
 
           ELSIF V_FUNCAO = 2 THEN
              UPDATE COMPLEMENTO_CLIENTES SET TIPAGEM_SANGUINEA  = V_TIPAGEM_SANGUINEA,  
@@ -31,7 +34,9 @@ BEGIN
                 FETCH CUR_PROCURA INTO V_ACHEI;
   
                 IF CUR_PROCURA%NOTFOUND THEN
-                   INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, EMPTY_BLOB());
+                   INSERT INTO COMPLEMENTO_CLIENTES VALUES (V_REGISTRO, V_TIPAGEM_SANGUINEA, 
+                                                            V_NOME_RESPONSAVEL, V_PARENTESCO_RESPONSAVEL, 
+                                                            EMPTY_BLOB(), V_IMPRESSAO_DIGITAL);
                 ELSE
                    UPDATE COMPLEMENTO_CLIENTES SET TIPAGEM_SANGUINEA  = V_TIPAGEM_SANGUINEA,  
                                                    NOME_RESPONSAVEL = V_NOME_RESPONSAVEL,
@@ -39,9 +44,12 @@ BEGIN
                     WHERE REGISTRO = V_REGISTRO;
                 END IF;
                 CLOSE CUR_PROCURA;
+
+          ELSIF V_FUNCAO = 5 THEN
+                UPDATE COMPLEMENTO_CLIENTES SET IMPRESSAO_DIGITAL = V_IMPRESSAO_DIGITAL
+                    WHERE REGISTRO = V_REGISTRO;
           END IF;
 
      END;
      COMMIT WORK;
 END PRC_COMPLEMENTO_CLIENTES;
-/
