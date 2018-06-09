@@ -33,6 +33,7 @@
 @%LIS_HOME%\procedures\prc_postos.sql
 @%LIS_HOME%\procedures\prc_servicos.sql
 @%LIS_HOME%\procedures\prc_postos_servicos.sql
+@%LIS_HOME%\procedures\prc_postos_entidades.sql
 @%LIS_HOME%\procedures\prc_preparos.sql
 @%LIS_HOME%\procedures\prc_procedimentos.sql
 @%LIS_HOME%\procedures\prc_setores.sql
