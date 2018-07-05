@@ -4,15 +4,16 @@ ALTER TABLE RESULTADOS_PASS ADD DATA_CAD DATE DEFAULT SYSDATE NOT NULL;
 CREATE OR REPLACE PROCEDURE PRC_RESULTADOS_PASS(V_ID       IN RESULTADOS_PASS.ID%TYPE,
                                                 V_PASS     IN RESULTADOS_PASS.PASS%TYPE,
                                                 V_PURE     IN RESULTADOS_PASS.PURE%TYPE,
-												V_DATA_CAD IN RESULTADOS_PASS.DATA_CAD%TYPE,
+								                        				V_DATA_CAD IN RESULTADOS_PASS.DATA_CAD%TYPE,
                                                 V_FUNCAO   IN NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 THEN
      IF V_DATA_CAD IS NULL THEN
-	    SELECT SYSDATE INTO V_DATA_CAD FROM DUAL;
-	 END IF;
-	 
-     INSERT INTO RESULTADOS_PASS VALUES (V_ID, V_PASS, V_PURE, V_DATA_CAD);
+         INSERT INTO RESULTADOS_PASS VALUES (V_ID, V_PASS, V_PURE, LOCALTIMESTAMP);
+        -- SELECT SYSDATE INTO V_DATA_CAD FROM DUAL;
+	   ELSE 
+	       INSERT INTO RESULTADOS_PASS VALUES (V_ID, V_PASS, V_PURE, V_DATA_CAD);
+     END IF;
 
   ELSIF V_FUNCAO = 2 THEN
      UPDATE RESULTADOS_PASS SET PASS = V_PASS, PURE = V_PURE, DATA_CAD = V_DATA_CAD WHERE ID = V_ID;
@@ -50,8 +51,8 @@ CREATE OR REPLACE PROCEDURE PRC_GRUPOS_ETIQUETAS(V_GRUPO_ETIQUETA         IN OUT
                                                  V_REALCA_NOME            IN     GRUPOS_ETIQUETAS.REALCA_NOME%TYPE,
                                                  V_IMPRESSORA             IN     GRUPOS_ETIQUETAS.IMPRESSORA%TYPE,
                                                  V_DIGITO_CODIGO          IN     GRUPOS_ETIQUETAS.DIGITO_CODIGO%TYPE,
-												 V_QT_MAX_MNEMONICOS      IN     GRUPOS_ETIQUETAS.QT_MAX_MNEMONICOS%TYPE,
-												 V_LAYOUT_EPL             IN     GRUPOS_ETIQUETAS.LAYOUT_EPL%TYPE,
+                                                 V_QT_MAX_MNEMONICOS      IN     GRUPOS_ETIQUETAS.QT_MAX_MNEMONICOS%TYPE,
+                                                 V_LAYOUT_EPL             IN     GRUPOS_ETIQUETAS.LAYOUT_EPL%TYPE,
                                                  V_FUNCAO                 IN     NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 THEN
@@ -77,7 +78,7 @@ END PRC_GRUPOS_ETIQUETAS;
 ALTER TABLE SERVICOS_ADM ADD IMPRIME_HASH VARCHAR2(1) DEFAULT 'N' NOT NULL;
 -- fim bloco
 
-create or replace PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
                                               V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
                                               V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
                                               V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
