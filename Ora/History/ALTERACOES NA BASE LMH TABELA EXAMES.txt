@@ -1,0 +1,11 @@
+QD FOR ALTERAR A TABELA EXAMES CONSIDERAR ESTA ESTRUTURA
+
+ DATA_AUTORIZACAO                                   DATE
+ ID_TIPO_COLETOR                                    NUMBER(3)
+ VALOR_HONORARIOS                                   NUMBER(12,2)
+ VALOR_CUSTO_OPERACIONAL                            NUMBER(12,2)
+ VALOR_PORTE_MEDICO                                 NUMBER(12,2)
+ DESCONTO_HONORARIOS                                NUMBER(12,2)
+ DESCONTO_CUSTO_OPERACIONAL                         NUMBER(12,2)
+ ID_MEDICO_REALIZANTE1                              NUMBER(6)
+ ID_MEDICO_REALIZANTE2                              NUMBER(6)

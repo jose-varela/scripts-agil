@@ -18,6 +18,7 @@
 @%LIS_HOME%\pks\metodos_pk.sql
 @%LIS_HOME%\pks\planilha_resultados_pk.sql
 @%LIS_HOME%\pks\postos_procedimentos_pk.sql
+@%LIS_HOME%\pks\postos_entidades_pk.sql
 @%LIS_HOME%\pks\comunicados_procedimentos_pk.sql
 @%LIS_HOME%\pks\termos_procedimentos_pk.sql
 @%LIS_HOME%\pks\postos_pk.sql
