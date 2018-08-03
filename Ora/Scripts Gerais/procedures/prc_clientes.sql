@@ -15,6 +15,7 @@ CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGIST
                                          V_CODIGO_EXTERNO IN     CLIENTES.CODIGO_EXTERNO%TYPE,
                                          V_TELEFONE2      IN     CLIENTES.TELEFONE2%TYPE,
                                          V_E_MAIL         IN     CLIENTES.E_MAIL%TYPE,
+                                         V_INFORMA_EMAIL  IN     CLIENTES.INFORMA_EMAIL%TYPE,
                                          V_FUNCAO         IN     NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 OR V_FUNCAO = 4 THEN
@@ -24,7 +25,7 @@ BEGIN
 
      INSERT INTO CLIENTES VALUES (V_REGISTRO, V_NOME,    V_DATA_NAS, V_SEXO,   V_TELEFONE,
                                       V_ENDERECO, V_CIDADE,  V_BAIRRO,   V_ESTADO, V_CEP,
-                                      V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, V_E_MAIL);
+                                      V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, V_E_MAIL, V_INFORMA_EMAIL);
 
   ELSIF V_FUNCAO = 2 THEN
         UPDATE CLIENTES SET NOME     = V_NOME,     DATA_NAS   = V_DATA_NAS, SEXO   = V_SEXO,
@@ -32,7 +33,7 @@ BEGIN
                                 BAIRRO   = V_BAIRRO,   CEP       = V_CEP,      ESTADO = V_ESTADO,
                                 DATA_CAD = V_DATA_CAD, USUARIO   = V_USUARIO,  IDENTIDADE  = V_IDENTIDADE,
                                 CPF      = V_CPF, CODIGO_EXTERNO = V_CODIGO_EXTERNO, TELEFONE2 = V_TELEFONE2,
-                                E_MAIL   = V_E_MAIL
+                                E_MAIL   = V_E_MAIL, INFORMA_EMAIL = V_INFORMA_EMAIL
                           WHERE REGISTRO = V_REGISTRO;
 
   ELSIF V_FUNCAO = 3 THEN
