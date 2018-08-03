@@ -4,7 +4,7 @@ ALTER TABLE RESULTADOS_PASS ADD DATA_CAD DATE DEFAULT SYSDATE NOT NULL;
 CREATE OR REPLACE PROCEDURE PRC_RESULTADOS_PASS(V_ID       IN RESULTADOS_PASS.ID%TYPE,
                                                 V_PASS     IN RESULTADOS_PASS.PASS%TYPE,
                                                 V_PURE     IN RESULTADOS_PASS.PURE%TYPE,
-								                        				V_DATA_CAD IN RESULTADOS_PASS.DATA_CAD%TYPE,
+								                V_DATA_CAD IN RESULTADOS_PASS.DATA_CAD%TYPE,
                                                 V_FUNCAO   IN NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 THEN
