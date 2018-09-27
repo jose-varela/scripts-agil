@@ -164,11 +164,91 @@ CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERV
    COMMIT WORK;
  END PRC_SERVICOS_ADM;
  -- fim bloco
+
+create or replace PROCEDURE PRC_CAIXA(V_CONTA_HOSP     IN CAIXA.CONTA_HOSP%TYPE,
+                                      V_REGISTRO       IN CAIXA.REGISTRO%TYPE,
+                                      V_CONTA          IN CAIXA.CONTA%TYPE,
+                                      V_DATA_PAG       IN CAIXA.DATA_PAG%TYPE,
+                                      V_VALOR          IN CAIXA.VALOR%TYPE,
+                                      V_DESCONTO       IN CAIXA.DESCONTO%TYPE,
+                                      V_TIPO_DTO       IN CAIXA.TIPO_DTO%TYPE,
+                                      V_USUARIO        IN CAIXA.USUARIO%TYPE,
+                                      V_DATA_CAD       IN CAIXA.DATA_CAD%TYPE,
+                                      V_CORREL         IN OUT CAIXA.CORREL%TYPE,
+                                      V_ID_FORMA_PAGAMENTO       IN CAIXA.ID_FORMA_PAGAMENTO%TYPE,
+                                      V_CATALOGO       IN CAIXA.CATALOGO%TYPE,
+                                      V_USUARIO_DTO    IN CAIXA.USUARIO_DTO%TYPE,
+                                      V_USUARIO_ALT    IN CAIXA.USUARIO_ALT%TYPE,
+                                      V_DATA_ALT       IN CAIXA.DATA_ALT%TYPE,
+                                      V_ID_BANDEIRA    IN CAIXA.ID_BANDEIRA%TYPE,
+                                      V_ID_OPERADORA   IN CAIXA.ID_OPERADORA%TYPE,
+                                      V_COD_PAGAMENTO  IN CAIXA.COD_PAGAMENTO%TYPE,
+                                      V_PARCELAS       IN CAIXA.PARCELAS%TYPE,
+                                      V_ID_CAIXA       IN OUT CAIXA.ID_CAIXA%TYPE,
+                                      V_ID_RESPONSAVEL_FINANCEIRO IN CAIXA.ID_RESPONSAVEL_FINANCEIRO%TYPE,
+                                      V_STATUS IN CAIXA.STATUS%TYPE,
+                                      V_FUNCAO         IN NUMBER) IS
+BEGIN
+  IF (V_FUNCAO = 1) OR (V_FUNCAO = 6) THEN
+  
+     IF (V_FUNCAO = 1) THEN
+        SELECT NVL(MAX(C.CORREL)+1,1) INTO V_CORREL FROM CAIXA C 
+        WHERE C.CONTA_HOSP = V_CONTA_HOSP;
+
+        SELECT SQ_CAIXA.NEXTVAL INTO V_ID_CAIXA FROM DUAL;
+     END IF;
+
+     INSERT INTO CAIXA VALUES (V_CONTA_HOSP,  V_REGISTRO,    V_CONTA,     V_DATA_PAG,
+                               V_VALOR,       V_DESCONTO,    V_TIPO_DTO,  V_USUARIO,
+                               V_DATA_CAD,    V_CORREL,      V_ID_FORMA_PAGAMENTO,  V_CATALOGO, 
+   			                       V_USUARIO_DTO, V_USUARIO_ALT, V_DATA_ALT, V_ID_BANDEIRA,
+                               V_ID_OPERADORA, V_COD_PAGAMENTO, V_PARCELAS, V_ID_CAIXA,
+                               V_ID_RESPONSAVEL_FINANCEIRO, V_STATUS);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE CAIXA SET VALOR = V_VALOR
+                      WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 3 THEN
+    UPDATE CAIXA SET STATUS = 'C' WHERE CONTA_HOSP = V_CONTA_HOSP;
+    -- DELETE CAIXA WHERE CONTA_HOSP = V_CONTA_HOSP;
+
+  ELSIF V_FUNCAO = 4 THEN
+    UPDATE CAIXA SET STATUS = 'C', USUARIO_ALT = V_USUARIO_ALT, DATA_ALT = V_DATA_ALT WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+    -- DELETE CAIXA WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE CAIXA SET VALOR = V_VALOR, 
+  	                  DATA_PAG = V_DATA_PAG, 
+                      DESCONTO = V_DESCONTO, 
+                      TIPO_DTO = V_TIPO_DTO, 
+                      ID_FORMA_PAGAMENTO = V_ID_FORMA_PAGAMENTO,
+                      USUARIO_ALT = V_USUARIO_ALT,
+					            DATA_ALT = V_DATA_ALT,
+                      ID_BANDEIRA = V_ID_BANDEIRA,
+                      ID_OPERADORA = V_ID_OPERADORA,
+                      COD_PAGAMENTO = V_COD_PAGAMENTO,
+                      PARCELAS = V_PARCELAS,
+                      ID_RESPONSAVEL_FINANCEIRO = V_ID_RESPONSAVEL_FINANCEIRO
+                 WHERE CONTA_HOSP = V_CONTA_HOSP AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL;
+  END IF;
+
+  COMMIT WORK;
+END PRC_CAIXA;
+-- fim bloco
  
- ALTER TABLE CLIENTES ADD INFORMA_EMAIL VARCHAR2(1);
- -- fim bloco
- 
- CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGISTRO%TYPE,
+ALTER TABLE CLIENTES ADD INFORMA_EMAIL VARCHAR2(1);
+-- fim bloco
+
+ALTER TABLE CLIENTES ADD TRANSGENERO VARCHAR2(1) DEFAULT 'N' NOT NULL;
+-- fim bloco
+
+ALTER TABLE CLIENTES ADD NOME_SOCIAL VARCHAR2(60);
+-- fim bloco
+
+
+
+CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGISTRO%TYPE,
                                          V_NOME           IN     CLIENTES.NOME%TYPE,
                                          V_DATA_NAS       IN     CLIENTES.DATA_NAS%TYPE,
                                          V_SEXO           IN     CLIENTES.SEXO%TYPE,
@@ -186,6 +266,8 @@ CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERV
                                          V_TELEFONE2      IN     CLIENTES.TELEFONE2%TYPE,
                                          V_E_MAIL         IN     CLIENTES.E_MAIL%TYPE,
                                          V_INFORMA_EMAIL  IN     CLIENTES.INFORMA_EMAIL%TYPE,
+                                         V_TRANSGENERO    IN     CLIENTES.TRANSGENERO%TYPE,
+                                         V_NOME_SOCIAL    IN     CLIENTES.NOME_SOCIAL%TYPE,
                                          V_FUNCAO         IN     NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 OR V_FUNCAO = 4 THEN
@@ -194,8 +276,9 @@ BEGIN
      END IF;
 
      INSERT INTO CLIENTES VALUES (V_REGISTRO, V_NOME,    V_DATA_NAS, V_SEXO,   V_TELEFONE,
-                                      V_ENDERECO, V_CIDADE,  V_BAIRRO,   V_ESTADO, V_CEP,
-                                      V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, V_E_MAIL, V_INFORMA_EMAIL);
+                                  V_ENDERECO, V_CIDADE,  V_BAIRRO,   V_ESTADO, V_CEP,
+                                  V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, 
+                                  V_E_MAIL, V_INFORMA_EMAIL, V_TRANSGENERO, V_NOME_SOCIAL);
 
   ELSIF V_FUNCAO = 2 THEN
         UPDATE CLIENTES SET NOME     = V_NOME,     DATA_NAS   = V_DATA_NAS, SEXO   = V_SEXO,
@@ -203,7 +286,8 @@ BEGIN
                                 BAIRRO   = V_BAIRRO,   CEP       = V_CEP,      ESTADO = V_ESTADO,
                                 DATA_CAD = V_DATA_CAD, USUARIO   = V_USUARIO,  IDENTIDADE  = V_IDENTIDADE,
                                 CPF      = V_CPF, CODIGO_EXTERNO = V_CODIGO_EXTERNO, TELEFONE2 = V_TELEFONE2,
-                                E_MAIL   = V_E_MAIL, INFORMA_EMAIL = V_INFORMA_EMAIL
+                                E_MAIL   = V_E_MAIL, INFORMA_EMAIL = V_INFORMA_EMAIL, TRANSGENERO = V_TRANSGENERO,
+                                NOME_SOCIAL = V_NOME_SOCIAL
                           WHERE REGISTRO = V_REGISTRO;
 
   ELSIF V_FUNCAO = 3 THEN
@@ -218,4 +302,6 @@ BEGIN
 END PRC_CLIENTES;
 -- fim bloco
 
- 
+UPDATE CONVENIOS SET VERSAO_TISS = TRANSLATE(VERSAO_TISS,'_','.');
+-- fim bloco
+
