@@ -237,9 +237,17 @@ BEGIN
 END PRC_CAIXA;
 -- fim bloco
  
- ALTER TABLE CLIENTES ADD INFORMA_EMAIL VARCHAR2(1);
- -- fim bloco
- 
+ALTER TABLE CLIENTES ADD INFORMA_EMAIL VARCHAR2(1);
+-- fim bloco
+
+ALTER TABLE CLIENTES ADD TRANSGENERO VARCHAR2(1) DEFAULT 'N' NOT NULL;
+-- fim bloco
+
+ALTER TABLE CLIENTES ADD NOME_SOCIAL VARCHAR2(60);
+-- fim bloco
+
+
+
 CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGISTRO%TYPE,
                                          V_NOME           IN     CLIENTES.NOME%TYPE,
                                          V_DATA_NAS       IN     CLIENTES.DATA_NAS%TYPE,
@@ -258,6 +266,8 @@ CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGIST
                                          V_TELEFONE2      IN     CLIENTES.TELEFONE2%TYPE,
                                          V_E_MAIL         IN     CLIENTES.E_MAIL%TYPE,
                                          V_INFORMA_EMAIL  IN     CLIENTES.INFORMA_EMAIL%TYPE,
+                                         V_TRANSGENERO    IN     CLIENTES.TRANSGENERO%TYPE,
+                                         V_NOME_SOCIAL    IN     CLIENTES.NOME_SOCIAL%TYPE,
                                          V_FUNCAO         IN     NUMBER) IS
 BEGIN
   IF V_FUNCAO = 1 OR V_FUNCAO = 4 THEN
@@ -266,8 +276,9 @@ BEGIN
      END IF;
 
      INSERT INTO CLIENTES VALUES (V_REGISTRO, V_NOME,    V_DATA_NAS, V_SEXO,   V_TELEFONE,
-                                      V_ENDERECO, V_CIDADE,  V_BAIRRO,   V_ESTADO, V_CEP,
-                                      V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, V_E_MAIL, V_INFORMA_EMAIL);
+                                  V_ENDERECO, V_CIDADE,  V_BAIRRO,   V_ESTADO, V_CEP,
+                                  V_DATA_CAD, V_USUARIO, V_IDENTIDADE, V_CPF, V_CODIGO_EXTERNO, V_TELEFONE2, 
+                                  V_E_MAIL, V_INFORMA_EMAIL, V_TRANSGENERO, V_NOME_SOCIAL);
 
   ELSIF V_FUNCAO = 2 THEN
         UPDATE CLIENTES SET NOME     = V_NOME,     DATA_NAS   = V_DATA_NAS, SEXO   = V_SEXO,
@@ -275,7 +286,8 @@ BEGIN
                                 BAIRRO   = V_BAIRRO,   CEP       = V_CEP,      ESTADO = V_ESTADO,
                                 DATA_CAD = V_DATA_CAD, USUARIO   = V_USUARIO,  IDENTIDADE  = V_IDENTIDADE,
                                 CPF      = V_CPF, CODIGO_EXTERNO = V_CODIGO_EXTERNO, TELEFONE2 = V_TELEFONE2,
-                                E_MAIL   = V_E_MAIL, INFORMA_EMAIL = V_INFORMA_EMAIL
+                                E_MAIL   = V_E_MAIL, INFORMA_EMAIL = V_INFORMA_EMAIL, TRANSGENERO = V_TRANSGENERO,
+                                NOME_SOCIAL = V_NOME_SOCIAL
                           WHERE REGISTRO = V_REGISTRO;
 
   ELSIF V_FUNCAO = 3 THEN
