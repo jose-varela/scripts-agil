@@ -218,4 +218,6 @@ BEGIN
 END PRC_CLIENTES;
 -- fim bloco
 
- 
+UPDATE CONVENIOS SET VERSAO_TISS = TRANSLATE(VERSAO_TISS,'_','.');
+-- fim bloco
+
