@@ -240,7 +240,7 @@ END PRC_CAIXA;
  ALTER TABLE CLIENTES ADD INFORMA_EMAIL VARCHAR2(1);
  -- fim bloco
  
- CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGISTRO%TYPE,
+CREATE OR REPLACE PROCEDURE PRC_CLIENTES(V_REGISTRO       IN OUT CLIENTES.REGISTRO%TYPE,
                                          V_NOME           IN     CLIENTES.NOME%TYPE,
                                          V_DATA_NAS       IN     CLIENTES.DATA_NAS%TYPE,
                                          V_SEXO           IN     CLIENTES.SEXO%TYPE,
