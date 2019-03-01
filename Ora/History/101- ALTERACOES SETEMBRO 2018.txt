@@ -1,6 +1,6 @@
-ALTER TABLE VARIAVEIS 
-    ADD CARACTER_PREENCHIMENTO VARCHAR2(1);
--- fim bloco
+	ALTER TABLE VARIAVEIS 
+		ADD CARACTER_PREENCHIMENTO VARCHAR2(1);
+	-- fim bloco
 
 create or replace PROCEDURE PRC_VARIAVEIS(V_MNEMONICO               IN     TEXTOS.MNEMONICO%TYPE,
                                           V_NUMERO                  IN     TEXTOS.NUMERO%TYPE,

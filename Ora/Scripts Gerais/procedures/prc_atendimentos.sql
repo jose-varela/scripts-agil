@@ -94,14 +94,15 @@ BEGIN
           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
 
   ELSIF V_FUNCAO = 12 THEN
-     UPDATE ATENDIMENTOS SET CONVENIO       = V_CONVENIO,
-                             DATA_FAT       = V_DATA_FAT,
-                             LIB_FAT        = V_LIB_FAT,
-                             MED_SOL        = V_MED_SOL,
-                             MATRICULA      = V_MATRICULA,
-							 GUIA_PRINCIPAL = V_GUIA_PRINCIPAL,
-							 CODIGO_PLANO   = V_CODIGO_PLANO,
-							 DATA_VALIDADE  = V_DATA_VALIDADE
+     UPDATE ATENDIMENTOS SET CONVENIO            = V_CONVENIO,
+                             DATA_FAT            = V_DATA_FAT,
+                             LIB_FAT             = V_LIB_FAT,
+                             MED_SOL             = V_MED_SOL,
+                             MATRICULA           = V_MATRICULA,
+							 GUIA_PRINCIPAL      = V_GUIA_PRINCIPAL,
+							 CODIGO_PLANO        = V_CODIGO_PLANO,
+							 DATA_VALIDADE       = V_DATA_VALIDADE,
+							 CARATER_ATENDIMENTO = V_CARATER_ATENDIMENTO
           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
 
   ELSIF V_FUNCAO = 13 THEN

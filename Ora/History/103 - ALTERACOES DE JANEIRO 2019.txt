@@ -193,3 +193,136 @@ BEGIN
     COMMIT WORK;
 END PRC_EXAMES_SEQUENCIAS_SETORES;
 -- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_ATENDIMENTOS(V_POSTO                      IN     ATENDIMENTOS.POSTO%TYPE,
+                                             V_REGISTRO                   IN     ATENDIMENTOS.REGISTRO%TYPE,
+                                             V_ATENDIMENTO                IN OUT ATENDIMENTOS.ATENDIMENTO%TYPE,
+                                             V_CONVENIO                   IN     ATENDIMENTOS.CONVENIO%TYPE,
+                                             V_MATRICULA                  IN     ATENDIMENTOS.MATRICULA%TYPE,
+                                             V_DATA_ATD                   IN     ATENDIMENTOS.DATA_ATD%TYPE,
+                                             V_DATA_FAT                   IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                             V_DATA_ENT                   IN     ATENDIMENTOS.DATA_ENT%TYPE,
+                                             V_HORA_ENT                   IN     ATENDIMENTOS.HORA_ENT%TYPE,
+                                             V_MED_SOL                    IN     ATENDIMENTOS.MED_SOL%TYPE,
+                                             V_LIB_FAT                    IN     ATENDIMENTOS.LIB_FAT%TYPE,
+                                             V_FATURAMENTO                IN     ATENDIMENTOS.FATURAMENTO%TYPE,
+                                             V_USUARIO                    IN     ATENDIMENTOS.USUARIO%TYPE,
+                                             V_DATA_CAD                   IN     ATENDIMENTOS.DATA_CAD%TYPE,
+                                             V_POSTO_ENTREGA              IN     ATENDIMENTOS.POSTO_ENTREGA%TYPE,
+                                             V_SITUACAO                   IN     ATENDIMENTOS.SITUACAO%TYPE,
+                                             V_DATA_DESDE                 IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                             V_DATA_ATE                   IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                             V_CONDICAO_FATURAMENTO       IN     ATENDIMENTOS.FATURAMENTO%TYPE,
+                                             V_CODIGO_PLANO               IN     ATENDIMENTOS.CODIGO_PLANO%TYPE,
+                                             V_DATA_VALIDADE              IN     ATENDIMENTOS.DATA_VALIDADE%TYPE,
+                                             V_ID_FATURA                  IN     ATENDIMENTOS.ID_FATURA%TYPE,
+                                             V_GUIA_PRINCIPAL             IN     ATENDIMENTOS.GUIA_PRINCIPAL%TYPE,
+                                             V_IDENTIFICACAO_BENEFICIARIO IN     ATENDIMENTOS.IDENTIFICACAO_BENEFICIARIO%TYPE,
+                                             V_CARATER_ATENDIMENTO        IN     ATENDIMENTOS.CARATER_ATENDIMENTO%TYPE,
+                                             V_FUNCAO                     IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 OR V_FUNCAO = 9 THEN
+     IF V_FUNCAO = 1 THEN
+       SELECT SQ_ATENDIMENTO.NEXTVAL INTO V_ATENDIMENTO FROM DUAL;
+     END IF;
+
+     INSERT INTO ATENDIMENTOS VALUES (V_POSTO, V_REGISTRO, V_ATENDIMENTO, V_CONVENIO,
+        V_MATRICULA, V_DATA_ATD, V_DATA_FAT, V_DATA_ENT, V_HORA_ENT, V_MED_SOL, V_LIB_FAT,
+        V_FATURAMENTO, V_USUARIO, V_DATA_CAD, V_POSTO_ENTREGA, V_SITUACAO, V_CODIGO_PLANO, V_DATA_VALIDADE, V_ID_FATURA, V_GUIA_PRINCIPAL, V_IDENTIFICACAO_BENEFICIARIO,
+		V_CARATER_ATENDIMENTO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE ATENDIMENTOS SET CONVENIO     = V_CONVENIO,      MATRICULA = V_MATRICULA,
+           DATA_FAT      = V_DATA_FAT,      DATA_ENT  = V_DATA_ENT,
+           HORA_ENT = V_HORA_ENT, MED_SOL       = V_MED_SOL,       LIB_FAT   = V_LIB_FAT,
+           USUARIO  = V_USUARIO,  FATURAMENTO   = V_FATURAMENTO,   DATA_CAD  = V_DATA_CAD,      
+           POSTO    = V_POSTO,    POSTO_ENTREGA = V_POSTO_ENTREGA, SITUACAO  = V_SITUACAO,
+           CODIGO_PLANO = V_CODIGO_PLANO, DATA_VALIDADE = V_DATA_VALIDADE, ID_FATURA = V_ID_FATURA, 
+		   GUIA_PRINCIPAL = V_GUIA_PRINCIPAL, IDENTIFICACAO_BENEFICIARIO = V_IDENTIFICACAO_BENEFICIARIO,
+		   CARATER_ATENDIMENTO = V_CARATER_ATENDIMENTO
+        WHERE REGISTRO = V_REGISTRO AND  ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE ATENDIMENTOS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE ATENDIMENTOS SET DATA_ENT  = V_DATA_ENT,
+                                   HORA_ENT = V_HORA_ENT,
+                                   POSTO_ENTREGA = V_POSTO_ENTREGA,
+                                   DATA_CAD = V_DATA_CAD
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE ATENDIMENTOS SET LIB_FAT = V_LIB_FAT
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 6 THEN
+     IF V_CONDICAO_FATURAMENTO = '' THEN
+        UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO, ID_FATURA = V_ID_FATURA
+               WHERE CONVENIO = V_CONVENIO 
+                 AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                 AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE 
+                 AND LIB_FAT = 'S';
+     ELSE 
+        UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO, ID_FATURA = V_ID_FATURA
+               WHERE CONVENIO = V_CONVENIO 
+                 AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                 AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE 
+                 AND LIB_FAT = 'S' AND FATURAMENTO = V_CONDICAO_FATURAMENTO;
+
+     END IF;
+
+  ELSIF V_FUNCAO = 7 THEN
+     UPDATE ATENDIMENTOS SET LIB_FAT = V_LIB_FAT, DATA_FAT = V_DATA_FAT
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 8 THEN
+     UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 10 THEN
+     UPDATE ATENDIMENTOS SET DATA_ENT  = V_DATA_ENT,
+                             HORA_ENT = V_HORA_ENT
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 11 THEN
+     UPDATE ATENDIMENTOS SET MED_SOL  = V_MED_SOL
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 12 THEN
+     UPDATE ATENDIMENTOS SET CONVENIO            = V_CONVENIO,
+                             DATA_FAT            = V_DATA_FAT,
+                             LIB_FAT             = V_LIB_FAT,
+                             MED_SOL             = V_MED_SOL,
+                             MATRICULA           = V_MATRICULA,
+							 GUIA_PRINCIPAL      = V_GUIA_PRINCIPAL,
+							 CODIGO_PLANO        = V_CODIGO_PLANO,
+							 DATA_VALIDADE       = V_DATA_VALIDADE,
+							 CARATER_ATENDIMENTO = V_CARATER_ATENDIMENTO
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 13 THEN
+     UPDATE ATENDIMENTOS SET MATRICULA = V_MATRICULA, 
+	                         GUIA_PRINCIPAL = V_GUIA_PRINCIPAL, 
+							 IDENTIFICACAO_BENEFICIARIO = V_IDENTIFICACAO_BENEFICIARIO
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 14 THEN
+     UPDATE ATENDIMENTOS SET SITUACAO = V_SITUACAO, DATA_CAD = V_DATA_CAD, USUARIO = V_USUARIO
+          WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  ELSIF V_FUNCAO = 15 THEN
+        UPDATE ATENDIMENTOS SET ID_FATURA = NULL
+               WHERE CONVENIO = V_CONVENIO 
+                 AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                 AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE;
+
+  ELSIF V_FUNCAO = 16 THEN
+     UPDATE ATENDIMENTOS SET DATA_ATD = V_DATA_ATD
+               WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+  END IF;
+
+  COMMIT WORK;
+END PRC_ATENDIMENTOS;
+-- fim bloco
