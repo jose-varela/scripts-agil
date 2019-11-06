@@ -1,0 +1,278 @@
+CREATE INDEX EXAMES_B2B_ETIQUETA_I    
+       ON EXAMES_B2B (EQUIPAMENTO, ETIQUETA_EXTERNO)
+       TABLESPACE LIS_INDX;
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS
+      ADD PORTA_IN NUMBER(6);
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS
+      ADD PORTA_OUT NUMBER(6);
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS
+      ADD SEPARA_COMUNICACAO VARCHAR2(1) DEFAULT 'N' NOT NULL;
+-- fim bloco
+	  
+UPDATE EQUIPAMENTOS SET PORTA_IN  = SUBSTR(endereco_ip,INSTR(endereco_ip,':')+1,4) 
+  WHERE INSTR(endereco_ip,':') > 0
+    AND SUBSTR(endereco_ip,INSTR(endereco_ip,':')+1,4) <> '    ';
+-- fim bloco
+
+--UPDATE EQUIPAMENTOS SET PORTA_OUT = PORTA;
+-- fim bloco
+
+create or replace PROCEDURE PRC_EQUIPAMENTOS(V_EQUIPAMENTO               IN OUT  EQUIPAMENTOS.EQUIPAMENTO%TYPE,
+                                             V_NOME                      IN      EQUIPAMENTOS.NOME%TYPE,
+                                             V_MODELO_EQUIPAMENTO        IN      EQUIPAMENTOS.MODELO_EQUIPAMENTO%TYPE,
+                                             V_STATUS                    IN      EQUIPAMENTOS.STATUS%TYPE,
+                                             V_HOST                      IN      EQUIPAMENTOS.HOST%TYPE,
+                                             V_PORTA                     IN      EQUIPAMENTOS.PORTA%TYPE,
+                                             V_BITS_SEGUNDO              IN      EQUIPAMENTOS.BITS_SEGUNDO%TYPE,
+                                             V_BITS_DADOS                IN      EQUIPAMENTOS.BITS_DADOS%TYPE,
+                                             V_PARIDADE                  IN      EQUIPAMENTOS.PARIDADE%TYPE,
+                                             V_BITS_PARADA               IN      EQUIPAMENTOS.BITS_PARADA%TYPE,
+                                             V_CONTROLE_FLUXO            IN      EQUIPAMENTOS.CONTROLE_FLUXO%TYPE,
+                                             V_MODO_OPERACAO             IN      EQUIPAMENTOS.MODO_OPERACAO%TYPE,
+                                             V_TIPO_COMUNICACAO          IN      EQUIPAMENTOS.TIPO_COMUNICACAO%TYPE,
+                                             V_LOCAL_IN                  IN      EQUIPAMENTOS.LOCAL_IN%TYPE,
+                                             V_LOCAL_OUT                 IN      EQUIPAMENTOS.LOCAL_OUT%TYPE,
+                                             V_ENDERECO_IP               IN      EQUIPAMENTOS.ENDERECO_IP%TYPE,
+                                             V_ALIAS                     IN      EQUIPAMENTOS.ALIAS%TYPE,
+                                             V_FORMATO_INTERFACE         IN      EQUIPAMENTOS.FORMATO_INTERFACE%TYPE,
+                                             V_HEADER_ASTM               IN      EQUIPAMENTOS.HEADER_ASTM%TYPE,
+                                             V_SEPARA_EXAMES_ASTM        IN      EQUIPAMENTOS.SEPARA_EXAMES_ASTM%TYPE,
+                                             V_DIFERENCIA_PRIMEIRO_ASTM  IN      EQUIPAMENTOS.DIFERENCIA_PRIMEIRO_ASTM%TYPE,
+                                             V_FINAL_LINEA_ASTM          IN      EQUIPAMENTOS.FINAL_LINEA_ASTM%TYPE,
+                                             V_SEPARA_LOGS               IN      EQUIPAMENTOS.SEPARA_LOGS%TYPE,
+                                             V_TERMINATION_CODE_ASTM     IN      EQUIPAMENTOS.TERMINATION_CODE_ASTM%TYPE,
+                                             V_LAYOUT_INTERFACE          IN      EQUIPAMENTOS.LAYOUT_INTERFACE%TYPE,
+                                             V_ACTION_CODE_ASTM          IN      EQUIPAMENTOS.ACTION_CODE_ASTM%TYPE,
+                                             V_REPORT_TYPE_ASTM          IN      EQUIPAMENTOS.REPORT_TYPE_ASTM%TYPE,
+                                             V_SEPARA_BLOCOS_ENVIO       IN      EQUIPAMENTOS.SEPARA_BLOCOS_ENVIO%TYPE,
+                                             V_TIPO_INTERFACE            IN      EQUIPAMENTOS.TIPO_INTERFACE%TYPE,
+                                             V_EXTENSAO_DESTINO          IN      EQUIPAMENTOS.EXTENSAO_DESTINO%TYPE,
+                                             V_EXTENSAO_ORIGEM           IN      EQUIPAMENTOS.EXTENSAO_ORIGEM%TYPE,
+                                             V_INTERVALO_MONITOR         IN      EQUIPAMENTOS.INTERVALO_MONITOR%TYPE,
+                                             V_UTILIZA_NUMERACAO_EXTERNO IN      EQUIPAMENTOS.UTILIZA_NUMERACAO_EXTERNO%TYPE,
+                                             V_TIPO_DB                   IN      EQUIPAMENTOS.TIPO_DB%TYPE,
+                                             V_USER_DB                   IN      EQUIPAMENTOS.USER_DB%TYPE,
+                                             V_PASSWORD_DB               IN      EQUIPAMENTOS.PASSWORD_DB%TYPE,
+                                             V_NOME_DB                   IN      EQUIPAMENTOS.NOME_DB%TYPE,
+											 V_PORTA_DB                  IN      EQUIPAMENTOS.PORTA_DB%TYPE,
+											 V_HOST_DB                   IN      EQUIPAMENTOS.HOST_DB%TYPE,
+											 V_VERIFICA_COMUNICACAO      IN      EQUIPAMENTOS.VERIFICA_COMUNICACAO%TYPE,
+											 V_FREQUENCIA_VERIFICACAO    IN      EQUIPAMENTOS.FREQUENCIA_VERIFICACAO%TYPE,
+											 V_SEQUENCIA_VERIFICACAO     IN      EQUIPAMENTOS.SEQUENCIA_VERIFICACAO%TYPE,
+											 V_CENTRO_RASTREIO_WORKLIST  IN      EQUIPAMENTOS.CENTRO_RASTREIO_WORKLIST%TYPE,
+                                             V_PORTA_IN                  IN      EQUIPAMENTOS.PORTA_IN%TYPE,
+                                             V_PORTA_OUT                 IN      EQUIPAMENTOS.PORTA_OUT%TYPE,
+                                             V_SEPARA_COMUNICACAO        IN      EQUIPAMENTOS.SEPARA_COMUNICACAO%TYPE,
+                                             V_FUNCAO                    IN      NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_EQUIPAMENTO.NEXTVAL INTO V_EQUIPAMENTO FROM DUAL;
+     INSERT INTO EQUIPAMENTOS VALUES (V_EQUIPAMENTO, V_NOME, V_MODELO_EQUIPAMENTO, V_STATUS, V_HOST, V_PORTA, 
+                                      V_BITS_SEGUNDO, V_BITS_DADOS, V_PARIDADE, V_BITS_PARADA, V_CONTROLE_FLUXO, 
+                                      V_MODO_OPERACAO, V_TIPO_COMUNICACAO, V_LOCAL_IN, V_LOCAL_OUT, V_ENDERECO_IP, V_ALIAS, V_FORMATO_INTERFACE,
+                                      V_HEADER_ASTM, V_SEPARA_EXAMES_ASTM, V_DIFERENCIA_PRIMEIRO_ASTM, V_FINAL_LINEA_ASTM, V_SEPARA_LOGS, 
+                                      V_TERMINATION_CODE_ASTM, V_LAYOUT_INTERFACE, V_ACTION_CODE_ASTM, V_REPORT_TYPE_ASTM, V_SEPARA_BLOCOS_ENVIO, V_TIPO_INTERFACE, 
+									  V_EXTENSAO_DESTINO, V_EXTENSAO_ORIGEM, V_INTERVALO_MONITOR,
+									  V_UTILIZA_NUMERACAO_EXTERNO, V_TIPO_DB, V_USER_DB, V_PASSWORD_DB, V_NOME_DB, V_PORTA_DB, V_HOST_DB, V_VERIFICA_COMUNICACAO, 
+									  V_FREQUENCIA_VERIFICACAO, V_SEQUENCIA_VERIFICACAO, V_CENTRO_RASTREIO_WORKLIST, V_PORTA_IN, V_PORTA_OUT, V_SEPARA_COMUNICACAO);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE EQUIPAMENTOS SET NOME = V_NOME, MODELO_EQUIPAMENTO = V_MODELO_EQUIPAMENTO,
+                             STATUS = V_STATUS, HOST = V_HOST, PORTA = V_PORTA, 
+                             BITS_SEGUNDO = V_BITS_SEGUNDO, BITS_DADOS = V_BITS_DADOS, 
+                             PARIDADE = V_PARIDADE, BITS_PARADA = V_BITS_PARADA, 
+                             CONTROLE_FLUXO = V_CONTROLE_FLUXO, MODO_OPERACAO = V_MODO_OPERACAO,
+                             TIPO_COMUNICACAO = V_TIPO_COMUNICACAO, LOCAL_IN = V_LOCAL_IN,
+                             LOCAL_OUT = V_LOCAL_OUT, ENDERECO_IP = V_ENDERECO_IP, ALIAS = V_ALIAS,
+                             FORMATO_INTERFACE = V_FORMATO_INTERFACE, HEADER_ASTM = V_HEADER_ASTM, SEPARA_EXAMES_ASTM = V_SEPARA_EXAMES_ASTM,
+                             DIFERENCIA_PRIMEIRO_ASTM = V_DIFERENCIA_PRIMEIRO_ASTM, FINAL_LINEA_ASTM = V_FINAL_LINEA_ASTM, SEPARA_LOGS = V_SEPARA_LOGS, 			    
+                             ACTION_CODE_ASTM = V_ACTION_CODE_ASTM, REPORT_TYPE_ASTM = V_REPORT_TYPE_ASTM, 
+			                 TERMINATION_CODE_ASTM = V_TERMINATION_CODE_ASTM, LAYOUT_INTERFACE = V_LAYOUT_INTERFACE,
+			                 SEPARA_BLOCOS_ENVIO = V_SEPARA_BLOCOS_ENVIO, TIPO_INTERFACE = V_TIPO_INTERFACE, EXTENSAO_DESTINO = V_EXTENSAO_DESTINO,
+			                 EXTENSAO_ORIGEM = V_EXTENSAO_ORIGEM, INTERVALO_MONITOR = V_INTERVALO_MONITOR, 
+			                 UTILIZA_NUMERACAO_EXTERNO = V_UTILIZA_NUMERACAO_EXTERNO,TIPO_DB = V_TIPO_DB, USER_DB = V_USER_DB,
+			                 PASSWORD_DB = V_PASSWORD_DB, NOME_DB = V_NOME_DB, PORTA_DB = V_PORTA_DB, HOST_DB = V_HOST_DB, VERIFICA_COMUNICACAO = V_VERIFICA_COMUNICACAO,  
+							 FREQUENCIA_VERIFICACAO = V_FREQUENCIA_VERIFICACAO, SEQUENCIA_VERIFICACAO = V_SEQUENCIA_VERIFICACAO,
+							 CENTRO_RASTREIO_WORKLIST = V_CENTRO_RASTREIO_WORKLIST, PORTA_IN = V_PORTA_IN, PORTA_OUT = V_PORTA_OUT,
+							 SEPARA_COMUNICACAO = V_SEPARA_COMUNICACAO
+               WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE EQUIPAMENTOS WHERE EQUIPAMENTO = V_EQUIPAMENTO;
+  END IF;
+
+  COMMIT WORK;
+  
+END PRC_EQUIPAMENTOS;
+-- fim bloco
+
+CREATE TABLE EQUIPAMENTOS_CENTROS_RASTREIO(
+    EQUIPAMENTO NUMBER(3) NOT NULL,
+    CENTRO_RASTREIO NUMBER(2) NOT NULL
+)
+TABLESPACE LIS_DATA;
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS_CENTROS_RASTREIO ADD CONSTRAINT EQUIP_CENTROS_RASTREIO_PK 
+      PRIMARY KEY (EQUIPAMENTO, CENTRO_RASTREIO);
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS_CENTROS_RASTREIO ADD CONSTRAINT EQUIP_CENTROS_EQUIPAMENTOS_FK
+    FOREIGN KEY (EQUIPAMENTO) REFERENCES EQUIPAMENTOS(EQUIPAMENTO)
+      ON DELETE CASCADE;
+-- fim bloco
+
+ALTER TABLE EQUIPAMENTOS_CENTROS_RASTREIO ADD CONSTRAINT EQUIP_CENTROS_RASTREIO_FK
+    FOREIGN KEY (CENTRO_RASTREIO) REFERENCES CENTROS_RASTREO(CENTRO_RASTREIO)
+      ON DELETE CASCADE;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_EQUIP_CENTROS_RASTREIO(V_EQUIPAMENTO     IN     EQUIPAMENTOS_CENTROS_RASTREIO.EQUIPAMENTO%TYPE,
+                                                       V_CENTRO_RASTREIO IN     EQUIPAMENTOS_CENTROS_RASTREIO.CENTRO_RASTREIO%TYPE,
+                                                       V_FUNCAO          IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO EQUIPAMENTOS_CENTROS_RASTREIO VALUES (V_EQUIPAMENTO, V_CENTRO_RASTREIO);
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE EQUIPAMENTOS_CENTROS_RASTREIO WHERE EQUIPAMENTO = V_EQUIPAMENTO AND CENTRO_RASTREIO = V_CENTRO_RASTREIO;
+
+  END IF;           
+
+  COMMIT WORK;
+
+END PRC_EQUIP_CENTROS_RASTREIO;
+-- fim bloco
+
+INSERT INTO EQUIPAMENTOS_CENTROS_RASTREIO 
+           (SELECT EQUIPAMENTO, CENTRO_RASTREIO_WORKLIST 
+              FROM EQUIPAMENTOS 
+             WHERE CENTRO_RASTREIO_WORKLIST IS NOT NULL AND CENTRO_RASTREIO_WORKLIST > 0)
+-- fim bloco
+
+ALTER TABLE POSTOS_EQUIPAMENTOS
+      ADD IMPRIME_ETIQUETA VARCHAR2(1) DEFAULT 'N' NOT NULL;
+-- fim bloco
+
+create or replace PROCEDURE PRC_POSTOS_EQUIPAMENTOS(V_POSTO             IN POSTOS_EQUIPAMENTOS.POSTO%TYPE,
+                                                     V_EQUIPAMENTO      IN POSTOS_EQUIPAMENTOS.EQUIPAMENTO%TYPE,
+                                                     V_LOGIN            IN POSTOS_EQUIPAMENTOS.LOGIN%TYPE,
+                                                     V_PASS             IN POSTOS_EQUIPAMENTOS.PASS%TYPE,
+                                                     V_LOTE             IN OUT POSTOS_EQUIPAMENTOS.LOTE%TYPE,
+													 V_IMPRIME_ETIQUETA IN POSTOS_EQUIPAMENTOS.IMPRIME_ETIQUETA%TYPE,
+                                                     V_FUNCAO           IN NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      INSERT INTO POSTOS_EQUIPAMENTOS VALUES (V_POSTO, V_EQUIPAMENTO, V_LOGIN, V_PASS, V_LOTE, V_IMPRIME_ETIQUETA);
+   ELSIF V_FUNCAO = 2 THEN
+ 	 UPDATE POSTOS_EQUIPAMENTOS SET LOGIN = V_LOGIN, PASS = V_PASS, LOTE = V_LOTE, IMPRIME_ETIQUETA = V_IMPRIME_ETIQUETA
+           WHERE POSTO = V_POSTO AND EQUIPAMENTO = V_EQUIPAMENTO;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE POSTOS_EQUIPAMENTOS WHERE POSTO = V_POSTO AND EQUIPAMENTO = V_EQUIPAMENTO;
+   ELSIF V_FUNCAO = 4 THEN
+      UPDATE POSTOS_EQUIPAMENTOS SET LOTE = LOTE + 1 
+       WHERE POSTO = V_POSTO AND EQUIPAMENTO = V_EQUIPAMENTO;
+   END IF;
+   COMMIT WORK;
+ END PRC_POSTOS_EQUIPAMENTOS;
+-- fim bloco
+ 
+ALTER TABLE SERVICOS_ADM ADD IMPRIME_VALORES_ORCAMENTO VARCHAR2(1) DEFAULT 'N' NOT NULL;
+-- fim bloco
+
+create or replace PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                              V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                              V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                              V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                              V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                              V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                              V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                              V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                              V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                              V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                              V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                              V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                              V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                              V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                              V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                              V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                              V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                              V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                              V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                              V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                              V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                              V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                              V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                              V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                              V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                              V_E_MAIL                    IN SERVICOS_ADM.E_MAIL%TYPE,
+                                              V_IMPRIME_INF_LIBERACAO     IN SERVICOS_ADM.IMPRIME_INF_LIBERACAO%TYPE,
+                                              V_UNICODE                   IN SERVICOS_ADM.UNICODE%TYPE,
+                                              V_LARGURA_FORMULARIO        IN SERVICOS_ADM.LARGURA_FORMULARIO%TYPE,
+                                              V_ALTURA_FORMULARIO         IN SERVICOS_ADM.ALTURA_FORMULARIO%TYPE,
+                                              V_LARGURA_LAUDO             IN SERVICOS_ADM.LARGURA_LAUDO%TYPE,
+                                              V_POSICAO_ESQUERDA_LAUDO    IN SERVICOS_ADM.POSICAO_ESQUERDA_LAUDO%TYPE,
+                                              V_FIXA_ASSINATURA_RODAPE    IN SERVICOS_ADM.FIXA_ASSINATURA_RODAPE%TYPE,
+                                              V_REVISAO_RESULTADOS        IN SERVICOS_ADM.REVISAO_RESULTADOS%TYPE,
+                                              V_TEMPO_PUBLICACAO_WEB      IN SERVICOS_ADM.TEMPO_PUBLICACAO_WEB%TYPE,
+                                              V_TEMPO_PUBLICACAO_INTERNA  IN SERVICOS_ADM.TEMPO_PUBLICACAO_INTERNA%TYPE,
+                                              V_LARGURA_ETIQUETA          IN SERVICOS_ADM.LARGURA_ETIQUETA%TYPE,
+                                              V_ALTURA_ETIQUETA           IN SERVICOS_ADM.ALTURA_ETIQUETA%TYPE,
+                                              V_CONFERE_GUIAS             IN SERVICOS_ADM.CONFERE_GUIAS%TYPE,
+                                              V_FORMULARIO_LAUDO          IN SERVICOS_ADM.FORMULARIO_LAUDO%TYPE,
+                                              V_CNES                      IN SERVICOS_ADM.CNES%TYPE,
+                                              V_LAYOUT_LAUDO              IN SERVICOS_ADM.LAYOUT_LAUDO%TYPE,
+                                              V_ID_MEDICO_RESPONSAVEL     IN SERVICOS_ADM.ID_MEDICO_RESPONSAVEL%TYPE,
+                                              V_PROXY                     IN SERVICOS_ADM.PROXY%TYPE,
+                                              V_LOGIN_PROXY               IN SERVICOS_ADM.LOGIN_PROXY%TYPE,
+                                              V_PASS_PROXY                IN SERVICOS_ADM.PASS_PROXY%TYPE,
+                                              V_ID_ADM_RESPONSAVEL        IN SERVICOS_ADM.ID_ADM_RESPONSAVEL%TYPE,
+                                              V_IMPRIME_HISTORICO         IN SERVICOS_ADM.IMPRIME_HISTORICO%TYPE,
+                                              V_DATA_INICIO_HISTORICO     IN SERVICOS_ADM.DATA_INICIO_HISTORICO%TYPE,
+                                              V_IMPRIME_HASH              IN SERVICOS_ADM.IMPRIME_HASH%TYPE,
+                                              V_IMPRIME_VALORES_ORCAMENTO IN SERVICOS_ADM.IMPRIME_VALORES_ORCAMENTO%TYPE,
+                                              V_FUNCAO                    IN NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+
+      INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, V_RAZAO_SOCIAL,
+                                       V_CPF_CGC, V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                       V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF, 
+                                       V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE,
+                                       V_E_MAIL, V_IMPRIME_INF_LIBERACAO, V_UNICODE, V_LARGURA_FORMULARIO, V_ALTURA_FORMULARIO, V_LARGURA_LAUDO,
+                                       V_POSICAO_ESQUERDA_LAUDO, V_FIXA_ASSINATURA_RODAPE, V_REVISAO_RESULTADOS, V_TEMPO_PUBLICACAO_WEB,
+ 	    			                   V_TEMPO_PUBLICACAO_INTERNA, V_LARGURA_ETIQUETA, V_ALTURA_ETIQUETA, V_CONFERE_GUIAS, V_FORMULARIO_LAUDO, 
+ 									   V_CNES, EMPTY_BLOB, V_ID_MEDICO_RESPONSAVEL, V_PROXY, V_LOGIN_PROXY, V_PASS_PROXY, V_ID_ADM_RESPONSAVEL, 
+                                       V_IMPRIME_HISTORICO, v_DATA_INICIO_HISTORICO, V_IMPRIME_HASH, V_IMPRIME_VALORES_ORCAMENTO);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO,
+                              RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, DATA_HORA_ALT = V_DATA_HORA_ALT, 
+                              USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                              CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                              TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                              WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO, 
+                              IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE, RESULTADOS_WEB = V_RESULTADOS_WEB, E_MAIL = V_E_MAIL,
+                              IMPRIME_INF_LIBERACAO = V_IMPRIME_INF_LIBERACAO, UNICODE = V_UNICODE, LARGURA_FORMULARIO = V_LARGURA_FORMULARIO,
+                              ALTURA_FORMULARIO = V_ALTURA_FORMULARIO, LARGURA_LAUDO = V_LARGURA_LAUDO, POSICAO_ESQUERDA_LAUDO = V_POSICAO_ESQUERDA_LAUDO,
+ 			                  FIXA_ASSINATURA_RODAPE = V_FIXA_ASSINATURA_RODAPE, REVISAO_RESULTADOS = V_REVISAO_RESULTADOS, TEMPO_PUBLICACAO_WEB = V_TEMPO_PUBLICACAO_WEB,
+ 			                  TEMPO_PUBLICACAO_INTERNA = V_TEMPO_PUBLICACAO_INTERNA, LARGURA_ETIQUETA = V_LARGURA_ETIQUETA, ALTURA_ETIQUETA = V_ALTURA_ETIQUETA,
+                              CONFERE_GUIAS = V_CONFERE_GUIAS, FORMULARIO_LAUDO = V_FORMULARIO_LAUDO, CNES = V_CNES, ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL,
+                              PROXY = V_PROXY, LOGIN_PROXY = V_LOGIN_PROXY, PASS_PROXY = V_PASS_PROXY, ID_ADM_RESPONSAVEL = V_ID_ADM_RESPONSAVEL,
+                              IMPRIME_HISTORICO = V_IMPRIME_HISTORICO, DATA_INICIO_HISTORICO = V_DATA_INICIO_HISTORICO, IMPRIME_HASH = V_IMPRIME_HASH,
+							  IMPRIME_VALORES_ORCAMENTO = V_IMPRIME_VALORES_ORCAMENTO
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   END IF;
+   COMMIT WORK;
+ END PRC_SERVICOS_ADM;
+ -- fim bloco
+ 
+-- NO PROXIMO SCRIPT ELIMINAR A COLUNA CENTRO_RASTREIO_WORKLIST
