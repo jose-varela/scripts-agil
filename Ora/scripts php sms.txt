@@ -1,0 +1,55 @@
+        Schema::create('crs_modelos_sms', function(Blueprint $table) {
+            $table->increments('mds_id');
+            $table->string('mds_nome', 60);
+            $table->longtext('mds_modelo');
+
+        Schema::create('crs_categorias_sms', function(Blueprint $table){
+            $table->increments('cts_id');
+            $table->string('cts_nome', 60);
+
+        Schema::create('crs_interfaces', function(Blueprint $table) {
+            $table->increments('itf_id');
+            $table->string('itf_nome', 60);
+            $table->string('itf_url', 60);
+            $table->integer('itf_porta');
+            $table->string('itf_usuario', 60);
+            $table->string('itf_senha', 45);
+            $table->longtext('itf_devices');
+
+        Schema::create('crs_sms', function(Blueprint $table) {
+            $table->increments('sms_id');
+            $table->integer('sms_cts_id')->unsigned();
+            $table->integer('sms_itf_id')->unsigned();
+            $table->integer('sms_mds_id')->unsigned();
+            $table->string('sms_conexao');
+            $table->longtext('sms_sql');
+            $table->string('sms_numeros')->nullable();
+            $table->boolean('sms_repeticao')->default(False);
+            $table->integer('sms_repeticao_tempo')->default(0);
+            $table->string('sms_referencia')->nullable();
+            $table->boolean('sms_ativo');
+
+            $table->foreign('sms_cts_id')->references('cts_id')->on('crs_categorias_sms')->onDelete('cascade');
+            $table->foreign('sms_itf_id')->references('itf_id')->on('crs_interfaces')->onDelete('cascade');
+            $table->foreign('sms_mds_id')->references('mds_id')->on('crs_modelos_sms')->onDelete('cascade');
+
+
+        Schema::create('crs_sms_configuracoes', function(Blueprint $table) {
+            $table->increments('scf_id');
+            $table->integer('scf_sms_id')->unsigned();
+            $table->string('scf_parametro', 45);
+            $table->string('scf_parametro_ref', 45);
+
+            
+		Schema::create('crs_worklist', function (Blueprint $table) {
+            $table->increments('wrk_id');
+            $table->integer('wrk_sms_id')->unsigned();
+            $table->string('wrk_corpo_mensagem', 160);
+            $table->string('wrk_numero_envio', 160);
+            $table->string('wrk_referencia', 160);
+            $table->dateTime('wrk_proximo_envio')->nullable();
+
+            $table->foreign('wrk_sms_id')->references('sms_id')->on('crs_sms')->onDelete('cascade');
+
+
+		
