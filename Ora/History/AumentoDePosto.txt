@@ -1,0 +1,60 @@
+SELECT *
+  FROM all_tab_columns
+WHERE upper(column_name)  LIKE '%POSTO%'
+ AND owner = 'LBP'
+ AND data_type = 'NUMBER'
+ ORDER BY table_name, column_name
+
+ALTER TABLE  AMOSTRAS                      MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  ATENDIMENTOS                  MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  ATENDIMENTOS                  MODIFY POSTO_ENTREGA                  NUMBER(3); 
+ALTER TABLE  ATENDIMENTOS_B2B              MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  AUXILIAR                      MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  COBRANCA_ATENDIMENTOS         MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  COBRANCA_ATENDIMENTOS         MODIFY POSTO_COBRANCA                 NUMBER(3); 
+ALTER TABLE  COMPLEMENTO_ATENDIMENTOS      MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  CONFERENCIA_GUIAS             MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  CONTAS_ATENDIMENTOS           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  CONVENIOS_POSTOS              MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EQUIPAMENTOS_CONTROLES_LOTES  MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  EQUIPAMENTOS_TEXTOS           MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  EQUIPAMENTOS_VARIAVEIS        MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  EQUIP_VARIAVEIS_CONVERSOES    MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  EVOLUCAO_RESULTADOS           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXAMES                        MODIFY POSTO                          NUMBER(3);  
+ALTER TABLE  EXAMES                        MODIFY POSTO_REA                      NUMBER(3);  
+ALTER TABLE  EXAMES_AUTORIZACOES           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXAMES_B2B                    MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXAMES_B2B                    MODIFY POSTO_B2B                      NUMBER(3); 
+ALTER TABLE  EXAMES_CORRELACIONADOS        MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXAMES_SEQUENCIAS_SETORES     MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXAMES_SITUACOES              MODIFY POSTO                          NUMBER(3);  
+ALTER TABLE  EXCECOES_GRUPOS_ETIQUETAS     MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  EXCECOES_PADRAO_ETIQUETAS     MODIFY POSTO_REALIZANTE               NUMBER(3); 
+ALTER TABLE  FATORES                       MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  GRUPOS_OBJ_POSTOS             MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  MAP_B2B_POSTOS                MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  MAP_EQUIPAMENTOS_POSTOS       MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  NUMEROS_ATENDIMENTOS          MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  PENDENCIAS                    MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  POSTOS                        MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  POSTOS_ENTIDADES              MODIFY ID_POSTO                       NUMBER(3); 
+ALTER TABLE  POSTOS_EQUIPAMENTOS           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  POSTOS_MEDICOS_RESPONSAVEIS   MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  POSTOS_PROCEDIMENTOS          MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  POSTOS_SERVICOS_B2B           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  PROCEDIMENTOS                 MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  PROCEDIMENTOS_URGENTES        MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  RASTROS_AMOSTRAS              MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  RASTROS_AMOSTRAS              MODIFY POSTO_RASTRO                   NUMBER(3); 
+ALTER TABLE  RESULTADOS_ATUAL              MODIFY POSTO                          NUMBER(3);   
+ALTER TABLE  RESULTADOS_B2B                MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  RESULTADOS_DIGITALIZADOS      MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  RESULTADOS_HISTORICO          MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  RESULTADOS_STREAMS            MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  RESULTADOS_TEXTOS             MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  SEQUENCIAS_SETORES            MODIFY POSTO_REA                      NUMBER(3); 
+ALTER TABLE  TRANSACOES_TES                MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  UNIDADES_POSTOS               MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  WORKLIST_RESULTADOS           MODIFY POSTO                          NUMBER(3); 
+ALTER TABLE  WORKLIST_STREAMS              MODIFY POSTO                          NUMBER(3); 

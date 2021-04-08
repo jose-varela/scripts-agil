@@ -1,5 +1,16 @@
 ALTER TABLE AUXILIAR ADD CODE_INTEGRA BLOB;
 -- fim bloco
 
-UPDATE AUXILIAR SET CODE_INTEGRA = CODE_TOOLS; 
+UPDATE AUXILIAR 
+   SET CODE_INTEGRA =
+utl_raw.cast_to_raw('<?xml version="1.0"?>
+<ServiceCONFIG ServiceID="-1" ServicePass="" ServiceHost="http://192.168.1.68:8005/" ServiceToken="" ServiceLote="1" ServiceVersion="1.0" ServiceType="integraCODETOOLS">
+  <Resources>
+    <Resource ResourceName="DATE-TIME" ResourceValue="info/sysdate/" ResourceActive="True"/>
+    <Resource ResourceName="CEP" ResourceValue="cep/viacep/" ResourceActive="True"/>
+    <Resource ResourceName="PROXY" ResourceValue="proxy/requisicao/" ResourceActive="True"/>
+  </Resources>
+</ServiceCONFIG>');
 -- fim bloco
+
+

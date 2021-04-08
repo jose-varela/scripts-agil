@@ -1,3 +1,17 @@
+-- cria pk de tabela
+ALTER TABLE TABELA0 ADD 
+ CONSTRAINT TABELA0_PK PRIMARY KEY (MNEMONICO);
+ 
+-- insere mnemonicos nao existentes na tabela
+INSERT INTO TABELA0 SELECT P.MNEMONICO, 0, '', 'TAB' 
+                     FROM PROCEDIMENTOS P
+                    WHERE P.MNEMONICO NOT IN (SELECT T.MNEMONICO FROM TABELA0 T); 						
+ 
+ -- cria fk tabela
+ALTER TABLE TABELA0 ADD 
+ CONSTRAINT TABELA0_FK FOREIGN KEY (MNEMONICO) REFERENCES  
+ PROCEDIMENTOS(MNEMONICO) ON DELETE CASCADE;
+
 -- elimina tabelas que nao existem no catalogo
 SELECT 'delete tabela' || CATALOGO || ' t where t.mnemonico not in (select p.mnemonico from procedimentos p where p.mnemonico = t.mnemonico);'
   FROM CATALOGO;
