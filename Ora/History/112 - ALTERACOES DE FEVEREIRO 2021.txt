@@ -239,11 +239,10 @@ ALTER TABLE AUXILIAR ADD CODE_SERVICES BLOB;
 UPDATE AUXILIAR 
    SET CODE_SERVICES = 
 utl_raw.cast_to_raw('[
-   "{\"serviceID\": \"codeEXPERIENCE\", \"serviceHost\": \"http://192.168.1.1:9001/v1\", \"serviceAtivo\": false}",
-   "{\"serviceID\": \"codeLOG\", \"serviceHost\": \"http://192.168.1.1:9020\", \"serviceAtivo\": true}",
-   "{\"serviceID\": \"codeAUTH\", \"serviceHost\": \"http://192.168.1.1:9000\", \"serviceAtivo\": false}",
-   "{\"serviceID\": \"codeSEND\", \"serviceHost\": \"http://192.168.1.1:9040\", \"serviceAtivo\": false}"
-
+   {\"serviceID\": \"codeEXPERIENCE\", \"serviceHost\": \"http://192.168.1.1:9001/v1\", \"serviceAtivo\": "false"},
+   {\"serviceID\": \"codeLOG\", \"serviceHost\": \"http://192.168.1.1:9020\", \"serviceAtivo\": "true"},
+   {\"serviceID\": \"codeAUTH\", \"serviceHost\": \"http://192.168.1.1:9000\", \"serviceAtivo\": "false"},
+   {\"serviceID\": \"codeSEND\", \"serviceHost\": \"http://192.168.1.1:9040\", \"serviceAtivo\": "false"}
 ]')
 -- fim bloco
 
