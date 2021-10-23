@@ -1,0 +1,34 @@
+create or replace FUNCTION GET_DATA_ULTIMO_RASTREIO(V_POSTO           IN NUMBER,
+                                                    V_ATENDIMENTO     IN NUMBER,
+                                                    V_CORREL          IN NUMBER,
+                                                    V_AMOSTRA         IN NUMBER,
+                                                    V_CENTRO_RASTREIO IN NUMBER) RETURN DATE IS RESULT DATE;
+BEGIN
+     SELECT MIN(RA.DATA_RASTRO) INTO RESULT 
+       FROM RASTROS_AMOSTRAS RA
+      WHERE RA.POSTO = V_POSTO
+        AND RA.ATENDIMENTO = V_ATENDIMENTO
+        AND RA.CORREL = V_CORREL
+        AND RA.AMOSTRA = V_AMOSTRA
+        AND RA.CENTRO_RASTREIO = V_CENTRO_RASTREIO;
+    RETURN(RESULT);
+END GET_DATA_ULTIMO_RASTREIO;
+-- fim bloco
+
+create or replace FUNCTION GET_MINUTOS_ULTIMO_RASTREIO(V_POSTO           IN NUMBER,
+                                                       V_ATENDIMENTO     IN NUMBER,
+                                                       V_CORREL          IN NUMBER,
+                                                       V_AMOSTRA         IN NUMBER,
+                                                       V_CENTRO_RASTREIO IN NUMBER) RETURN NUMBER IS RESULT NUMBER;
+BEGIN
+     SELECT (SYSDATE- MIN(RA.DATA_RASTRO)) * 1440 INTO RESULT 
+       FROM RASTROS_AMOSTRAS RA
+      WHERE RA.POSTO = V_POSTO
+        AND RA.ATENDIMENTO = V_ATENDIMENTO
+        AND RA.CORREL = V_CORREL
+        AND RA.AMOSTRA = V_AMOSTRA
+        AND RA.CENTRO_RASTREIO = V_CENTRO_RASTREIO;
+    RETURN(RESULT);
+END GET_MINUTOS_ULTIMO_RASTREIO;
+-- fim bloco
+
