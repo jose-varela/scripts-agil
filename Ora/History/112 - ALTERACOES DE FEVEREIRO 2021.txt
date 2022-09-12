@@ -86,9 +86,9 @@ CREATE OR REPLACE VIEW ATENDIMENTOS_VALORES AS
 		   A.GUIA_PRINCIPAL,
 		   A.CARATER_ATENDIMENTO,
 		   A.IDENTIFICACAO_BENEFICIARIO,
+		   D.VALOR VALOR_DEVEDOR,
 		   SUM(C.VALOR) VALOR_PAGO,
 		   SUM(C.DESCONTO) VALOR_DESCONTO,
-		   SUM(D.VALOR) VALOR_DEVEDOR,
 		   GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES,
 		   NVL(SUM(C.VALOR), GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO)) VALOR_ATENDIMENTO,
    		   GET_COUNT_EXAMES_SITUACAO(A.POSTO, A.ATENDIMENTO, 'TODOS') QT_EXAMES
@@ -117,7 +117,8 @@ CREATE OR REPLACE VIEW ATENDIMENTOS_VALORES AS
 		    A.ID_FATURA,
 		    A.GUIA_PRINCIPAL,
 		    A.CARATER_ATENDIMENTO,
-		    A.IDENTIFICACAO_BENEFICIARIO
+		    A.IDENTIFICACAO_BENEFICIARIO,
+			D.VALOR
 -- fim bloco
 
 create or replace FUNCTION GET_ETIQUETA_MNEMONICOS(V_POSTO       IN NUMBER,
@@ -239,11 +240,10 @@ ALTER TABLE AUXILIAR ADD CODE_SERVICES BLOB;
 UPDATE AUXILIAR 
    SET CODE_SERVICES = 
 utl_raw.cast_to_raw('[
-   "{\"serviceID\": \"codeEXPERIENCE\", \"serviceHost\": \"http://192.168.1.1:9001/v1\", \"serviceAtivo\": false}",
-   "{\"serviceID\": \"codeLOG\", \"serviceHost\": \"http://192.168.1.1:9020\", \"serviceAtivo\": true}",
-   "{\"serviceID\": \"codeAUTH\", \"serviceHost\": \"http://192.168.1.1:9000\", \"serviceAtivo\": false}",
-   "{\"serviceID\": \"codeSEND\", \"serviceHost\": \"http://192.168.1.1:9040\", \"serviceAtivo\": false}"
-
+   {\"serviceID\": \"codeEXPERIENCE\", \"serviceHost\": \"http://192.168.1.1:9001/v1\", \"serviceAtivo\": "false"},
+   {\"serviceID\": \"codeLOG\", \"serviceHost\": \"http://192.168.1.1:9020\", \"serviceAtivo\": "true"},
+   {\"serviceID\": \"codeAUTH\", \"serviceHost\": \"http://192.168.1.1:9000\", \"serviceAtivo\": "false"},
+   {\"serviceID\": \"codeSEND\", \"serviceHost\": \"http://192.168.1.1:9040\", \"serviceAtivo\": "false"}
 ]')
 -- fim bloco
 
