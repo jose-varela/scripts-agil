@@ -1,0 +1,377 @@
+CREATE TABLE "INTERFACES_ENVIO" 
+(	
+	"ID_INTERFACE_ENVIO"   NUMBER(4) NOT NULL ENABLE, 
+	"NOME"                 VARCHAR2(60 BYTE) NOT NULL ENABLE, 
+	"TIPO_INTERFACE_ENVIO" VARCHAR2(4 BYTE) NOT NULL ENABLE, 
+	"URL"                  VARCHAR2(60 BYTE) NOT NULL ENABLE, 
+	"PORTA"                VARCHAR2(4 BYTE), 
+	"USUARIO"              VARCHAR2(35 BYTE) NOT NULL ENABLE, 
+	"SENHA"                VARCHAR2(20 BYTE) NOT NULL ENABLE, 
+	"DEVICES"              VARCHAR2(120 BYTE) 
+) ;
+-- fim bloco
+
+ALTER TABLE INTERFACES_ENVIO ADD CONSTRAINT INTERFACES_ENVIO_PK 
+      PRIMARY KEY (ID_INTERFACE_ENVIO);
+-- fim bloco
+
+INSERT INTO INTERFACES_ENVIO VALUES(0,'SEM CONFIGURACÃO', 'NULO', 'smtp.???.com.br', '', 'agil','agil','');
+-- fim bloco
+
+INSERT INTO INTERFACES_ENVIO VALUES(1,'E-MAIL PRINCIPAL', 'MAIL', 'smtp.???.com.br', '', 'agil','agil','');
+-- fim bloco
+
+
+CREATE SEQUENCE SQ_INTERFACES_ENVIO
+MINVALUE 0 
+MAXVALUE 999999999
+INCREMENT BY 1
+START WITH 2
+NOCACHE
+NOORDER;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_INTERFACES_ENVIO(
+                                                V_ID_INTERFACE_ENVIO   IN OUT INTERFACES_ENVIO.ID_INTERFACE_ENVIO%TYPE,
+                                                V_NOME                 IN     INTERFACES_ENVIO.NOME%TYPE,
+                                                V_TIPO_INTERFACE_ENVIO IN     INTERFACES_ENVIO.TIPO_INTERFACE_ENVIO%TYPE,
+                                                V_URL                  IN     INTERFACES_ENVIO.URL%TYPE,
+                                                V_PORTA                IN     INTERFACES_ENVIO.PORTA%TYPE,
+                                                V_USUARIO              IN     INTERFACES_ENVIO.USUARIO%TYPE,
+                                                V_SENHA                IN     INTERFACES_ENVIO.SENHA%TYPE,
+                                                V_DEVICES              IN     INTERFACES_ENVIO.DEVICES%TYPE,
+                                                V_FUNCAO               IN NUMBER
+                                            ) IS
+BEGIN
+    IF V_FUNCAO = 1 THEN
+        SELECT SQ_INTERFACES_ENVIO.NEXTVAL INTO V_ID_INTERFACE_ENVIO FROM DUAL;
+        INSERT INTO INTERFACES_ENVIO VALUES(V_ID_INTERFACE_ENVIO,  
+		                                    V_NOME,                
+		                                    V_TIPO_INTERFACE_ENVIO,
+		                                    V_URL,                 
+		                                    V_PORTA,               
+		                                    V_USUARIO,             
+		                                    V_SENHA,               
+		                                    V_DEVICES);             
+		
+
+    ELSIF V_FUNCAO = 2 THEN
+        UPDATE INTERFACES_ENVIO SET NOME = V_NOME, 
+									TIPO_INTERFACE_ENVIO = V_TIPO_INTERFACE_ENVIO,
+									URL = V_URL,
+									PORTA = V_PORTA,
+									USUARIO = V_USUARIO,
+									SENHA = V_SENHA,
+									DEVICES = V_DEVICES
+                              WHERE ID_INTERFACE_ENVIO = V_ID_INTERFACE_ENVIO;
+
+    ELSIF V_FUNCAO = 3 THEN
+        DELETE INTERFACES_ENVIO WHERE ID_INTERFACE_ENVIO = V_ID_INTERFACE_ENVIO;
+
+    END IF;
+
+    COMMIT WORK;
+END PRC_INTERFACES_ENVIO;
+-- fim bloco
+
+--
+-- SERVICO_ADM
+--
+ALTER TABLE SERVICOS_ADM ADD ID_INTERFACE_ENVIO_SMS NUMBER(4);
+-- fim bloco
+ALTER TABLE SERVICOS_ADM ADD ID_INTERFACE_ENVIO_EMAIL NUMBER(4);
+-- fim bloco
+
+ALTER TABLE SERVICOS_ADM ADD CONSTRAINT SERVICOS_ADM_ENVIO_SMS_FK
+    FOREIGN KEY (ID_INTERFACE_ENVIO_SMS) REFERENCES INTERFACES_ENVIO(ID_INTERFACE_ENVIO);
+-- fim bloco
+
+ALTER TABLE SERVICOS_ADM ADD CONSTRAINT SERVICOS_ADM_ENVIO_EMAIL_FK
+    FOREIGN KEY (ID_INTERFACE_ENVIO_EMAIL) REFERENCES INTERFACES_ENVIO(ID_INTERFACE_ENVIO);
+-- fim bloco
+
+create or replace PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                              V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                              V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                              V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                              V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                              V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                              V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                              V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                              V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                              V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                              V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                              V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                              V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                              V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                              V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                              V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                              V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                              V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                              V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                              V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                              V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                              V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                              V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                              V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                              V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                              V_E_MAIL                    IN SERVICOS_ADM.E_MAIL%TYPE,
+                                              V_IMPRIME_INF_LIBERACAO     IN SERVICOS_ADM.IMPRIME_INF_LIBERACAO%TYPE,
+                                              V_UNICODE                   IN SERVICOS_ADM.UNICODE%TYPE,
+                                              V_LARGURA_FORMULARIO        IN SERVICOS_ADM.LARGURA_FORMULARIO%TYPE,
+                                              V_ALTURA_FORMULARIO         IN SERVICOS_ADM.ALTURA_FORMULARIO%TYPE,
+                                              V_LARGURA_LAUDO             IN SERVICOS_ADM.LARGURA_LAUDO%TYPE,
+                                              V_POSICAO_ESQUERDA_LAUDO    IN SERVICOS_ADM.POSICAO_ESQUERDA_LAUDO%TYPE,
+                                              V_FIXA_ASSINATURA_RODAPE    IN SERVICOS_ADM.FIXA_ASSINATURA_RODAPE%TYPE,
+                                              V_REVISAO_RESULTADOS        IN SERVICOS_ADM.REVISAO_RESULTADOS%TYPE,
+                                              V_TEMPO_PUBLICACAO_WEB      IN SERVICOS_ADM.TEMPO_PUBLICACAO_WEB%TYPE,
+                                              V_TEMPO_PUBLICACAO_INTERNA  IN SERVICOS_ADM.TEMPO_PUBLICACAO_INTERNA%TYPE,
+                                              V_LARGURA_ETIQUETA          IN SERVICOS_ADM.LARGURA_ETIQUETA%TYPE,
+                                              V_ALTURA_ETIQUETA           IN SERVICOS_ADM.ALTURA_ETIQUETA%TYPE,
+                                              V_CONFERE_GUIAS             IN SERVICOS_ADM.CONFERE_GUIAS%TYPE,
+                                              V_FORMULARIO_LAUDO          IN SERVICOS_ADM.FORMULARIO_LAUDO%TYPE,
+                                              V_CNES                      IN SERVICOS_ADM.CNES%TYPE,
+                                              V_LAYOUT_LAUDO              IN SERVICOS_ADM.LAYOUT_LAUDO%TYPE,
+                                              V_ID_MEDICO_RESPONSAVEL     IN SERVICOS_ADM.ID_MEDICO_RESPONSAVEL%TYPE,
+                                              V_PROXY                     IN SERVICOS_ADM.PROXY%TYPE,
+                                              V_LOGIN_PROXY               IN SERVICOS_ADM.LOGIN_PROXY%TYPE,
+                                              V_PASS_PROXY                IN SERVICOS_ADM.PASS_PROXY%TYPE,
+                                              V_ID_ADM_RESPONSAVEL        IN SERVICOS_ADM.ID_ADM_RESPONSAVEL%TYPE,
+                                              V_IMPRIME_HISTORICO         IN SERVICOS_ADM.IMPRIME_HISTORICO%TYPE,
+                                              V_DATA_INICIO_HISTORICO     IN SERVICOS_ADM.DATA_INICIO_HISTORICO%TYPE,
+                                              V_IMPRIME_HASH              IN SERVICOS_ADM.IMPRIME_HASH%TYPE,
+                                              V_IMPRIME_VALORES_ORCAMENTO IN SERVICOS_ADM.IMPRIME_VALORES_ORCAMENTO%TYPE,
+											  V_ID_INTERFACE_ENVIO_SMS    IN SERVICOS_ADM.ID_INTERFACE_ENVIO_SMS%TYPE,
+											  V_ID_INTERFACE_ENVIO_EMAIL  IN SERVICOS_ADM.ID_INTERFACE_ENVIO_EMAIL%TYPE,
+                                              V_FUNCAO                    IN NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+
+      INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, V_RAZAO_SOCIAL,
+                                       V_CPF_CGC, V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                       V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF, 
+                                       V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE,
+                                       V_E_MAIL, V_IMPRIME_INF_LIBERACAO, V_UNICODE, V_LARGURA_FORMULARIO, V_ALTURA_FORMULARIO, V_LARGURA_LAUDO,
+                                       V_POSICAO_ESQUERDA_LAUDO, V_FIXA_ASSINATURA_RODAPE, V_REVISAO_RESULTADOS, V_TEMPO_PUBLICACAO_WEB,
+ 	    			                   V_TEMPO_PUBLICACAO_INTERNA, V_LARGURA_ETIQUETA, V_ALTURA_ETIQUETA, V_CONFERE_GUIAS, V_FORMULARIO_LAUDO, 
+ 									   V_CNES, EMPTY_BLOB, V_ID_MEDICO_RESPONSAVEL, V_PROXY, V_LOGIN_PROXY, V_PASS_PROXY, V_ID_ADM_RESPONSAVEL, 
+                                       V_IMPRIME_HISTORICO, v_DATA_INICIO_HISTORICO, V_IMPRIME_HASH, V_IMPRIME_VALORES_ORCAMENTO,
+									   V_ID_INTERFACE_ENVIO_SMS, V_ID_INTERFACE_ENVIO_EMAIL);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO,
+                              RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, DATA_HORA_ALT = V_DATA_HORA_ALT, 
+                              USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                              CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                              TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                              WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO, 
+                              IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE, RESULTADOS_WEB = V_RESULTADOS_WEB, E_MAIL = V_E_MAIL,
+                              IMPRIME_INF_LIBERACAO = V_IMPRIME_INF_LIBERACAO, UNICODE = V_UNICODE, LARGURA_FORMULARIO = V_LARGURA_FORMULARIO,
+                              ALTURA_FORMULARIO = V_ALTURA_FORMULARIO, LARGURA_LAUDO = V_LARGURA_LAUDO, POSICAO_ESQUERDA_LAUDO = V_POSICAO_ESQUERDA_LAUDO,
+ 			                  FIXA_ASSINATURA_RODAPE = V_FIXA_ASSINATURA_RODAPE, REVISAO_RESULTADOS = V_REVISAO_RESULTADOS, TEMPO_PUBLICACAO_WEB = V_TEMPO_PUBLICACAO_WEB,
+ 			                  TEMPO_PUBLICACAO_INTERNA = V_TEMPO_PUBLICACAO_INTERNA, LARGURA_ETIQUETA = V_LARGURA_ETIQUETA, ALTURA_ETIQUETA = V_ALTURA_ETIQUETA,
+                              CONFERE_GUIAS = V_CONFERE_GUIAS, FORMULARIO_LAUDO = V_FORMULARIO_LAUDO, CNES = V_CNES, ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL,
+                              PROXY = V_PROXY, LOGIN_PROXY = V_LOGIN_PROXY, PASS_PROXY = V_PASS_PROXY, ID_ADM_RESPONSAVEL = V_ID_ADM_RESPONSAVEL,
+                              IMPRIME_HISTORICO = V_IMPRIME_HISTORICO, DATA_INICIO_HISTORICO = V_DATA_INICIO_HISTORICO, IMPRIME_HASH = V_IMPRIME_HASH,
+							  IMPRIME_VALORES_ORCAMENTO = V_IMPRIME_VALORES_ORCAMENTO, ID_INTERFACE_ENVIO_SMS = V_ID_INTERFACE_ENVIO_SMS,
+							  ID_INTERFACE_ENVIO_EMAIL = V_ID_INTERFACE_ENVIO_EMAIL
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   END IF;
+   COMMIT WORK;
+ END PRC_SERVICOS_ADM;
+ -- fim bloco
+ 
+
+--
+-- POSTOS
+--
+ALTER TABLE POSTOS ADD CONFIGURACAO CLOB;
+-- fim bloco
+ALTER TABLE POSTOS ADD ID_INTERFACE_ENVIO_SMS NUMBER(4);
+-- fim bloco
+ALTER TABLE POSTOS ADD ID_INTERFACE_ENVIO_EMAIL NUMBER(4);
+-- fim bloco
+
+ALTER TABLE POSTOS ADD CONSTRAINT POSTOS_ENVIO_SMS_FK
+    FOREIGN KEY (ID_INTERFACE_ENVIO_SMS) REFERENCES INTERFACES_ENVIO(ID_INTERFACE_ENVIO);
+-- fim bloco
+
+ALTER TABLE POSTOS ADD CONSTRAINT POSTOS_ADM_ENVIO_EMAIL_FK
+    FOREIGN KEY (ID_INTERFACE_ENVIO_EMAIL) REFERENCES INTERFACES_ENVIO(ID_INTERFACE_ENVIO);
+-- fim bloco
+
+create or replace PROCEDURE PRC_POSTOS(V_POSTO                     IN OUT POSTOS.POSTO%TYPE,
+                                       V_NOME                      IN     POSTOS.NOME%TYPE,
+                                       V_INFORMATIZADO             IN     POSTOS.INFORMATIZADO%TYPE,
+                                       V_HORA_ENT                  IN     POSTOS.HORA_ENT%TYPE,
+                                       V_INTERNO                   IN     POSTOS.INTERNO%TYPE,
+                                       V_DATA_CAD                  IN     POSTOS.DATA_CAD%TYPE,
+                                       V_REALIZA_EXAMES            IN     POSTOS.REALIZA_EXAMES%TYPE,
+                                       V_DIRECIONA_EXAMES          IN     POSTOS.DIRECIONA_EXAMES%TYPE,
+                                       V_STATUS                    IN     POSTOS.STATUS%TYPE,
+                                       V_COLETA_MATERIAL           IN     POSTOS.COLETA_MATERIAL%TYPE,
+                                       V_TIPO_POSTO                IN     POSTOS.TIPO_POSTO%TYPE,
+                                       V_PASS                      IN     POSTOS.PASS%TYPE,
+                                       V_ENDERECO                  IN     POSTOS.ENDERECO%TYPE,
+                                       V_MNEMONICO_POSTO           IN     POSTOS.MNEMONICO_POSTO%TYPE,
+                                       V_NOME_FICHA                IN     POSTOS.NOME_FICHA%TYPE,
+                                       V_LAYOUT_LAUDO              IN     POSTOS.LAYOUT_LAUDO%TYPE,
+                                       V_LAYOUT_PADRAO             IN     POSTOS.LAYOUT_PADRAO%TYPE,
+									   V_IMPRIME_PARCIAL_DIGITADOS IN     POSTOS.IMPRIME_PARCIAL_DIGITADOS%TYPE,
+									   V_CONFIGURACAO              IN     POSTOS.CONFIGURACAO%TYPE,
+									   V_ID_INTERFACE_ENVIO_SMS    IN     POSTOS.ID_INTERFACE_ENVIO_SMS%TYPE,
+									   V_ID_INTERFACE_ENVIO_EMAIL  IN     POSTOS.ID_INTERFACE_ENVIO_EMAIL%TYPE,
+                                       V_FUNCAO                    IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_POSTO.NEXTVAL INTO V_POSTO FROM DUAL;
+     INSERT INTO POSTOS VALUES (V_POSTO, V_NOME, V_INFORMATIZADO, V_HORA_ENT, V_INTERNO, V_DATA_CAD,
+                                V_REALIZA_EXAMES, V_DIRECIONA_EXAMES, V_STATUS, V_COLETA_MATERIAL, 
+                                V_TIPO_POSTO, V_PASS, V_ENDERECO, V_MNEMONICO_POSTO, V_NOME_FICHA, EMPTY_BLOB, V_LAYOUT_PADRAO,
+								V_IMPRIME_PARCIAL_DIGITADOS, V_CONFIGURACAO, V_ID_INTERFACE_ENVIO_SMS, V_ID_INTERFACE_ENVIO_EMAIL);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE POSTOS SET NOME = V_NOME,     INFORMATIZADO = V_INFORMATIZADO, 
+                             HORA_ENT = V_HORA_ENT, INTERNO = V_INTERNO, DATA_CAD = V_DATA_CAD,
+                             REALIZA_EXAMES = V_REALIZA_EXAMES, DIRECIONA_EXAMES = V_DIRECIONA_EXAMES,
+                             STATUS = V_STATUS, COLETA_MATERIAL = V_COLETA_MATERIAL, TIPO_POSTO = V_TIPO_POSTO, PASS = V_PASS,
+                             ENDERECO = V_ENDERECO, MNEMONICO_POSTO = V_MNEMONICO_POSTO, NOME_FICHA = V_NOME_FICHA, LAYOUT_PADRAO = V_LAYOUT_PADRAO,
+							 IMPRIME_PARCIAL_DIGITADOS = V_IMPRIME_PARCIAL_DIGITADOS, CONFIGURACAO = V_CONFIGURACAO,
+							 ID_INTERFACE_ENVIO_SMS = V_ID_INTERFACE_ENVIO_SMS, ID_INTERFACE_ENVIO_EMAIL = V_ID_INTERFACE_ENVIO_EMAIL 
+                        WHERE POSTO = V_POSTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE POSTOS WHERE POSTO = V_POSTO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_POSTOS;
+
+CREATE TABLE "MODELOS_MENSAGENS" 
+ (	
+	"ID_MODELO_MENSAGEM"    NUMBER(7,0) NOT NULL ENABLE, 
+	"NOME"                  VARCHAR2(60 BYTE) NOT NULL ENABLE, 
+	"MODELO_MENSAGEM"       VARCHAR2(255 BYTE) NOT NULL ENABLE ,
+	"ID_CATEGORIA_MENSAGEM" NUMBER(7,0) NOT NULL ENABLE
+);
+-- fim bloco
+
+ALTER TABLE MODELOS_MENSAGENS ADD CONSTRAINT MODELOS_MENSAGENS_PK 
+      PRIMARY KEY (ID_MODELO_MENSAGEM);
+-- fim bloco
+
+CREATE SEQUENCE SQ_MODELOS_MENSAGENS
+MINVALUE 0 
+MAXVALUE 999999999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_MODELOS_MENSAGENS(
+                                                V_ID_MODELO_MENSAGEM    IN OUT MODELOS_MENSAGENS.ID_MODELO_MENSAGEM%TYPE,
+                                                V_NOME                  IN     MODELOS_MENSAGENS.NOME%TYPE,
+                                                V_MODELO_MENSAGEM       IN     MODELOS_MENSAGENS.MODELO_MENSAGEM%TYPE,
+                                                V_ID_CATEGORIA_MENSAGEM IN     MODELOS_MENSAGENS.ID_CATEGORIA_MENSAGEM%TYPE,
+                                                V_FUNCAO                IN NUMBER
+                                            ) IS
+BEGIN
+    IF V_FUNCAO = 1 THEN
+        SELECT SQ_MODELOS_MENSAGENS.NEXTVAL INTO V_ID_MODELO_MENSAGEM FROM DUAL;
+        INSERT INTO MODELOS_MENSAGENS VALUES(V_ID_MODELO_MENSAGEM,  
+		                                     V_NOME,                
+		                                     V_MODELO_MENSAGEM,
+		                                     V_ID_CATEGORIA_MENSAGEM);             
+
+    ELSIF V_FUNCAO = 2 THEN
+        UPDATE MODELOS_MENSAGENS SET NOME = V_NOME, 
+								 	 MODELO_MENSAGEM = V_MODELO_MENSAGEM,
+									 ID_CATEGORIA_MENSAGEM = V_ID_CATEGORIA_MENSAGEM
+                              WHERE ID_MODELO_MENSAGEM = V_ID_MODELO_MENSAGEM;
+
+    ELSIF V_FUNCAO = 3 THEN
+        DELETE MODELOS_MENSAGENS WHERE ID_MODELO_MENSAGEM = V_ID_MODELO_MENSAGEM;
+
+    END IF;
+
+    COMMIT WORK;
+END PRC_MODELOS_MENSAGENS;
+-- fim bloco
+
+CREATE TABLE "CATEGORIAS_MENSAGENS" 
+ (	
+	"ID_CATEGORIA_MENSAGEM" NUMBER(7,0) NOT NULL ENABLE, 
+	"CATEGORIA_NOME"        VARCHAR2(60 BYTE) NOT NULL ENABLE
+);
+
+ALTER TABLE CATEGORIAS_MENSAGENS ADD CONSTRAINT CATEGORIAS_MENSAGENS_PK 
+      PRIMARY KEY (ID_CATEGORIA_MENSAGEM);
+-- fim bloco
+
+CREATE SEQUENCE SQ_CATEGORIAS_MENSAGENS
+MINVALUE 0 
+MAXVALUE 999999999
+INCREMENT BY 1
+START WITH 2
+NOCACHE
+NOORDER;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_CATEGORIAS_MENSAGENS(
+                                                     V_ID_CATEGORIA_MENSAGEM IN OUT CATEGORIAS_MENSAGENS.ID_CATEGORIA_MENSAGEM%TYPE,
+                                                     V_CATEGORIA_NOME        IN     CATEGORIAS_MENSAGENS.CATEGORIA_NOME%TYPE,
+                                                     V_FUNCAO                IN NUMBER
+                                                     ) IS
+BEGIN
+    IF V_FUNCAO = 1 THEN
+        SELECT SQ_CATEGORIAS_MENSAGENS.NEXTVAL INTO V_ID_CATEGORIA_MENSAGEM FROM DUAL;
+        INSERT INTO CATEGORIAS_MENSAGENS VALUES(V_ID_CATEGORIA_MENSAGEM,  
+		                                        V_CATEGORIA_NOME);             
+
+    ELSIF V_FUNCAO = 2 THEN
+        UPDATE CATEGORIAS_MENSAGENS SET CATEGORIA_NOME = V_CATEGORIA_NOME
+                              WHERE ID_CATEGORIA_MENSAGEM = V_ID_CATEGORIA_MENSAGEM;
+
+    ELSIF V_FUNCAO = 3 THEN
+        DELETE CATEGORIAS_MENSAGENS WHERE ID_CATEGORIA_MENSAGEM = V_ID_CATEGORIA_MENSAGEM;
+
+    END IF;
+
+    COMMIT WORK;
+END PRC_CATEGORIAS_MENSAGENS;
+-- fim bloco
+
+/*
+CREATE TABLE "SMS" 
+(	
+	"ID"         	  NUMBER(7,0) NOT NULL ENABLE, 
+	"CONEXAO" 		  VARCHAR2(60 BYTE) NOT NULL ENABLE, 
+	"SQL"        	  VARCHAR2(255 BYTE) NOT NULL ENABLE, 
+	"NUMERO"          VARCHAR2(160 BYTE) NOT NULL ENABLE, 
+	"REPETICAO"       VARCHAR2(1 BYTE), 
+	"REPETICAO_TEMPO" VARCHAR2(1 BYTE), 
+	"REFERENCIA"      VARCHAR2(20 BYTE), 
+	"ATIVO"           VARCHAR2(1 BYTE) 
+);
+
+CREATE TABLE "CONFIGURACOES" 
+(	
+	"ID"                   NUMBER(7,0) NOT NULL ENABLE, 
+	"PARAMETRO"            VARCHAR2(23 BYTE), 
+	"PARAMETRO_REFERENCIA" VARCHAR2(60 BYTE)
+);
+
+CREATE TABLE "WORK_LIST" 
+(	
+	"ID"             NUMBER(7,0) NOT NULL ENABLE, 
+	"CORPO_MENSAGEM" VARCHAR2(160 BYTE) NOT NULL ENABLE, 
+	"NUMERO_ENVIO"   VARCHAR2(160 BYTE) NOT NULL ENABLE, 
+	"REFERENCIA"     VARCHAR2(160 BYTE) NOT NULL ENABLE, 
+	"PROXIMO_ENVIO"  DATE
+);
+*/
