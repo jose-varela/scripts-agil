@@ -1,0 +1,117 @@
+ALTER TABLE RASTROS_AMOSTRAS ADD ETIQUETA_EXTERNO VARCHAR2(16)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_RASTROS_AMOSTRAS(V_POSTO           IN RASTROS_AMOSTRAS.POSTO%TYPE,
+                                                 V_ATENDIMENTO      IN RASTROS_AMOSTRAS.ATENDIMENTO%TYPE,
+                                                 V_CORREL           IN RASTROS_AMOSTRAS.CORREL%TYPE,
+                                                 V_AMOSTRA          IN RASTROS_AMOSTRAS.AMOSTRA%TYPE,
+                                                 V_CENTRO_RASTREIO  IN RASTROS_AMOSTRAS.CENTRO_RASTREIO%TYPE,
+                                                 V_USUARIO_RASTRO   IN RASTROS_AMOSTRAS.USUARIO_RASTRO%TYPE,
+                                                 V_DATA_RASTRO      IN RASTROS_AMOSTRAS.DATA_RASTRO%TYPE,
+                                                 V_ESTACAO_RASTRO   IN RASTROS_AMOSTRAS.ESTACAO_RASTRO%TYPE,
+                                                 V_POSTO_RASTRO     IN RASTROS_AMOSTRAS.POSTO_RASTRO%TYPE,
+                                                 V_ID_LOTE_RASTRO   IN RASTROS_AMOSTRAS.ID_LOTE_RASTRO%TYPE,
+                                                 V_ETIQUETA_EXTERNO IN RASTROS_AMOSTRAS.ETIQUETA_EXTERNO%TYPE,
+                                                 V_FUNCAO          IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO RASTROS_AMOSTRAS VALUES (V_POSTO, V_ATENDIMENTO, V_CORREL, V_AMOSTRA,
+                                          V_CENTRO_RASTREIO, V_USUARIO_RASTRO, V_DATA_RASTRO, V_ESTACAO_RASTRO,
+                                          V_POSTO_RASTRO, V_ID_LOTE_RASTRO, V_ETIQUETA_EXTERNO);
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE RASTROS_AMOSTRAS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO
+                                   AND CORREL = V_CORREL AND AMOSTRA = V_AMOSTRA;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_RASTROS_AMOSTRAS;
+-- fim bloco
+
+create or replace FUNCTION GET_VALOR_PAGO_ATENDIMENTO(V_POSTO           IN NUMBER,
+                                                      V_ATENDIMENTO     IN NUMBER) RETURN NUMBER IS
+L_RESULT NUMBER;
+L_PAG_ATO VARCHAR2(1);
+
+BEGIN
+     SELECT C.PAG_ATO INTO L_PAG_ATO
+	   FROM ATENDIMENTOS A, CONVENIOS C
+	  WHERE A.POSTO = V_POSTO
+        AND A.ATENDIMENTO = V_ATENDIMENTO
+        AND C.CONVENIO = A.CONVENIO;
+		
+     IF L_PAG_ATO <> 'S' THEN
+	    SELECT GET_VALOR_EXAMES(V_POSTO, V_ATENDIMENTO) INTO L_RESULT 
+        FROM DUAL;
+	 ELSE
+	    SELECT SUM(C.VALOR) INTO L_RESULT
+		  FROM CONTAS_ATENDIMENTOS CA, CAIXA C
+         WHERE CA.POSTO = V_POSTO
+           AND CA.ATENDIMENTO = V_ATENDIMENTO
+           AND C.CONTA_HOSP = CA.CONTA_HOSP
+		   AND C.STATUS = 'A';		   
+	 END IF;
+		
+     RETURN(L_RESULT);
+	
+END GET_VALOR_PAGO_ATENDIMENTO;
+-- fim bloco
+
+
+  CREATE OR REPLACE FORCE VIEW "TESTE"."ATENDIMENTOS_VALORES" ("POSTO", "ATENDIMENTO", "CONTA_HOSP", "DATA_ATD", "REGISTRO", "CONVENIO", "MATRICULA", "CODIGO_PLANO", "DATA_FAT", "MED_SOL", "SITUACAO", "LIB_FAT", "FATURAMENTO", "ID_FATURA", "GUIA_PRINCIPAL", "CARATER_ATENDIMENTO", "IDENTIFICACAO_BENEFICIARIO", "VALOR_DEVEDOR", "VALOR_PAGO", "VALOR_DESCONTO", "VALOR_EXAMES", "VALOR_EXAMES_CADASTRADOS", "VALOR_EXAMES_FATURADOS", "VALOR_ATENDIMENTO", "QT_EXAMES") AS 
+  SELECT A.POSTO, 
+         A.ATENDIMENTO,
+         NVL(CA.CONTA_HOSP,0) CONTA_HOSP,
+         A.DATA_ATD,
+         A.REGISTRO,
+         A.CONVENIO,
+         A.MATRICULA,
+         A.CODIGO_PLANO,
+         A.DATA_FAT,
+         A.MED_SOL,
+         A.SITUACAO,
+         A.LIB_FAT,
+         A.FATURAMENTO,
+         A.ID_FATURA,
+         A.GUIA_PRINCIPAL,
+         A.CARATER_ATENDIMENTO,
+         A.IDENTIFICACAO_BENEFICIARIO,
+         D.VALOR VALOR_DEVEDOR,
+         SUM(C.VALOR) VALOR_PAGO,
+         SUM(C.DESCONTO) VALOR_DESCONTO,
+         GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES,
+         GET_VALOR_EXAMES_CADASTRADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_CADASTRADOS,
+         GET_VALOR_EXAMES_FATURADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_FATURADOS,
+         GET_VALOR_PAGO_ATENDIMENTO(A.POSTO, A.ATENDIMENTO) VALOR_ATENDIMENTO,
+         GET_COUNT_EXAMES_SITUACAO(A.POSTO, A.ATENDIMENTO, 'TODOS') QT_EXAMES
+    FROM ATENDIMENTOS A, 
+         CONTAS_ATENDIMENTOS CA, 
+         CAIXA C,
+         DEVEDORES D
+   WHERE CA.POSTO(+) = A.POSTO 
+     AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+     AND D.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.STATUS(+) = 'A'
+   GROUP BY A.POSTO, 
+            A.ATENDIMENTO,
+            CA.CONTA_HOSP,
+            A.DATA_ATD,
+            A.REGISTRO,
+            A.CONVENIO,
+            A.MATRICULA,
+            A.CODIGO_PLANO,
+            A.DATA_FAT,
+            A.MED_SOL,
+            A.SITUACAO,
+            A.LIB_FAT,
+            A.FATURAMENTO,
+            A.ID_FATURA,
+            A.GUIA_PRINCIPAL,
+            A.CARATER_ATENDIMENTO,
+            A.IDENTIFICACAO_BENEFICIARIO,
+            D.VALOR;
+-- fim bloco
+ 
+
