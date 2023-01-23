@@ -1,7 +1,0 @@
---
--- EXAMES
---
-CREATE INDEX EXAMES_MNEMONICO_I    
-       ON EXAMES (MNEMONICO)
-       TABLESPACE LIS_INDX;
--- fim bloco
