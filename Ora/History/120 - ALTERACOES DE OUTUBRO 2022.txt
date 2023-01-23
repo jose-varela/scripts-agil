@@ -1,0 +1,251 @@
+ALTER TABLE RASTROS_AMOSTRAS ADD ETIQUETA_EXTERNO VARCHAR2(16)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_RASTROS_AMOSTRAS(V_POSTO           IN RASTROS_AMOSTRAS.POSTO%TYPE,
+                                                 V_ATENDIMENTO      IN RASTROS_AMOSTRAS.ATENDIMENTO%TYPE,
+                                                 V_CORREL           IN RASTROS_AMOSTRAS.CORREL%TYPE,
+                                                 V_AMOSTRA          IN RASTROS_AMOSTRAS.AMOSTRA%TYPE,
+                                                 V_CENTRO_RASTREIO  IN RASTROS_AMOSTRAS.CENTRO_RASTREIO%TYPE,
+                                                 V_USUARIO_RASTRO   IN RASTROS_AMOSTRAS.USUARIO_RASTRO%TYPE,
+                                                 V_DATA_RASTRO      IN RASTROS_AMOSTRAS.DATA_RASTRO%TYPE,
+                                                 V_ESTACAO_RASTRO   IN RASTROS_AMOSTRAS.ESTACAO_RASTRO%TYPE,
+                                                 V_POSTO_RASTRO     IN RASTROS_AMOSTRAS.POSTO_RASTRO%TYPE,
+                                                 V_ID_LOTE_RASTRO   IN RASTROS_AMOSTRAS.ID_LOTE_RASTRO%TYPE,
+                                                 V_ETIQUETA_EXTERNO IN RASTROS_AMOSTRAS.ETIQUETA_EXTERNO%TYPE,
+                                                 V_FUNCAO          IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO RASTROS_AMOSTRAS VALUES (V_POSTO, V_ATENDIMENTO, V_CORREL, V_AMOSTRA,
+                                          V_CENTRO_RASTREIO, V_USUARIO_RASTRO, V_DATA_RASTRO, V_ESTACAO_RASTRO,
+                                          V_POSTO_RASTRO, V_ID_LOTE_RASTRO, V_ETIQUETA_EXTERNO);
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE RASTROS_AMOSTRAS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO
+                                   AND CORREL = V_CORREL AND AMOSTRA = V_AMOSTRA;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_RASTROS_AMOSTRAS;
+-- fim bloco
+
+create or replace FUNCTION GET_VALOR_PAGO_ATENDIMENTO(V_POSTO           IN NUMBER,
+                                                      V_ATENDIMENTO     IN NUMBER) RETURN NUMBER IS
+L_RESULT NUMBER;
+L_PAG_ATO VARCHAR2(1);
+
+BEGIN
+     SELECT C.PAG_ATO INTO L_PAG_ATO
+	   FROM ATENDIMENTOS A, CONVENIOS C
+	  WHERE A.POSTO = V_POSTO
+        AND A.ATENDIMENTO = V_ATENDIMENTO
+        AND C.CONVENIO = A.CONVENIO;
+		
+     IF L_PAG_ATO <> 'S' THEN
+	    SELECT GET_VALOR_EXAMES(V_POSTO, V_ATENDIMENTO) INTO L_RESULT 
+        FROM DUAL;
+	 ELSE
+	    SELECT SUM(C.VALOR) INTO L_RESULT
+		  FROM CONTAS_ATENDIMENTOS CA, CAIXA C
+         WHERE CA.POSTO = V_POSTO
+           AND CA.ATENDIMENTO = V_ATENDIMENTO
+           AND C.CONTA_HOSP = CA.CONTA_HOSP
+		   AND C.STATUS = 'A';		   
+	 END IF;
+		
+     RETURN(L_RESULT);
+	
+END GET_VALOR_PAGO_ATENDIMENTO;
+-- fim bloco
+
+
+  CREATE OR REPLACE FORCE VIEW "TESTE"."ATENDIMENTOS_VALORES" ("POSTO", "ATENDIMENTO", "CONTA_HOSP", "DATA_ATD", "REGISTRO", "CONVENIO", "MATRICULA", "CODIGO_PLANO", "DATA_FAT", "MED_SOL", "SITUACAO", "LIB_FAT", "FATURAMENTO", "ID_FATURA", "GUIA_PRINCIPAL", "CARATER_ATENDIMENTO", "IDENTIFICACAO_BENEFICIARIO", "VALOR_DEVEDOR", "VALOR_PAGO", "VALOR_DESCONTO", "VALOR_EXAMES", "VALOR_EXAMES_CADASTRADOS", "VALOR_EXAMES_FATURADOS", "VALOR_ATENDIMENTO", "QT_EXAMES") AS 
+  SELECT A.POSTO, 
+         A.ATENDIMENTO,
+         NVL(CA.CONTA_HOSP,0) CONTA_HOSP,
+         A.DATA_ATD,
+         A.REGISTRO,
+         A.CONVENIO,
+         A.MATRICULA,
+         A.CODIGO_PLANO,
+         A.DATA_FAT,
+         A.MED_SOL,
+         A.SITUACAO,
+         A.LIB_FAT,
+         A.FATURAMENTO,
+         A.ID_FATURA,
+         A.GUIA_PRINCIPAL,
+         A.CARATER_ATENDIMENTO,
+         A.IDENTIFICACAO_BENEFICIARIO,
+         D.VALOR VALOR_DEVEDOR,
+         SUM(C.VALOR) VALOR_PAGO,
+         SUM(C.DESCONTO) VALOR_DESCONTO,
+         GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES,
+         GET_VALOR_EXAMES_CADASTRADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_CADASTRADOS,
+         GET_VALOR_EXAMES_FATURADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_FATURADOS,
+         GET_VALOR_PAGO_ATENDIMENTO(A.POSTO, A.ATENDIMENTO) VALOR_ATENDIMENTO,
+         GET_COUNT_EXAMES_SITUACAO(A.POSTO, A.ATENDIMENTO, 'TODOS') QT_EXAMES
+    FROM ATENDIMENTOS A, 
+         CONTAS_ATENDIMENTOS CA, 
+         CAIXA C,
+         DEVEDORES D
+   WHERE CA.POSTO(+) = A.POSTO 
+     AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+     AND D.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.STATUS(+) = 'A'
+   GROUP BY A.POSTO, 
+            A.ATENDIMENTO,
+            CA.CONTA_HOSP,
+            A.DATA_ATD,
+            A.REGISTRO,
+            A.CONVENIO,
+            A.MATRICULA,
+            A.CODIGO_PLANO,
+            A.DATA_FAT,
+            A.MED_SOL,
+            A.SITUACAO,
+            A.LIB_FAT,
+            A.FATURAMENTO,
+            A.ID_FATURA,
+            A.GUIA_PRINCIPAL,
+            A.CARATER_ATENDIMENTO,
+            A.IDENTIFICACAO_BENEFICIARIO,
+            D.VALOR;
+-- fim bloco
+ 
+ALTER TABLE PROCEDIMENTOS ADD PESO VARCHAR(1);
+-- fim bloco
+
+ALTER TABLE PROCEDIMENTOS ADD ALTURA VARCHAR(1);
+-- fim bloco
+
+ALTER TABLE PROCEDIMENTOS ADD VOLUME_URINA VARCHAR(1);
+-- fim bloco
+
+update PROCEDIMENTOS SET PESO = 'N'; 
+-- fim bloco
+
+update PROCEDIMENTOS SET ALTURA = 'N'; 
+-- fim bloco
+
+update PROCEDIMENTOS SET VOLUME_URINA = 'N'; 
+-- fim bloco
+
+update PROCEDIMENTOS SET PESO = 'S' WHERE MNEMONICO = 'CCE'; 
+-- fim bloco
+
+update PROCEDIMENTOS SET ALTURA = 'S' WHERE MNEMONICO = 'CCE';
+-- fim bloco
+
+UPDATE PROCEDIMENTOS SET VOLUME_URINA = 'S'
+ WHERE MNEMONICO IN (SELECT P.MNEMONICO
+                       FROM PROCEDIMENTOS P 
+                       JOIN MATERIAIS M ON M.MATERIAL = P.MATERIAL
+                      WHERE INSTR(M.NOME,'URINA') > 0
+                        AND INSTR(M.NOME,'HORAS') > 0);  
+ -- fim bloco
+ 
+create or replace PROCEDURE PRC_PROCEDIMENTOS(V_PROCEDIMENTO                IN     PROCEDIMENTOS.PROCEDIMENTO%TYPE,
+                                              V_NOME                        IN     PROCEDIMENTOS.NOME%TYPE,
+                                              V_MNEMONICO                   IN OUT PROCEDIMENTOS.MNEMONICO%TYPE,
+                                              V_SETOR                       IN     PROCEDIMENTOS.SETOR%TYPE,
+                                              V_MATERIAL                    IN     PROCEDIMENTOS.MATERIAL%TYPE,
+                                              V_METODO                      IN     PROCEDIMENTOS.METODO%TYPE,
+                                              V_POSTO                       IN     PROCEDIMENTOS.POSTO%TYPE,
+                                              V_ENTREGA                     IN     PROCEDIMENTOS.ENTREGA%TYPE,
+                                              V_TROCA_MATERIAL              IN     PROCEDIMENTOS.TROCA_MATERIAL%TYPE,
+                                              V_GRUPO_ETIQUETA              IN     PROCEDIMENTOS.GRUPO_ETIQUETA%TYPE,
+                                              V_PRIORIDADE_IMPRESSAO        IN     PROCEDIMENTOS.PRIORIDADE_IMPRESSAO%TYPE,
+                                              V_IMPRESSAO_EXCLUSIVA         IN     PROCEDIMENTOS.IMPRESSAO_EXCLUSIVA%TYPE,
+                                              V_QT_MAX_ATENDIMENTO          IN     PROCEDIMENTOS.QT_MAX_ATENDIMENTO%TYPE,
+                                              V_STATUS                      IN     PROCEDIMENTOS.STATUS%TYPE,
+                                              V_IMPRIME_MAPA                IN     PROCEDIMENTOS.IMPRIME_MAPA%TYPE,
+                                              V_TIPO_LIBERACAO              IN     PROCEDIMENTOS.TIPO_LIBERACAO%TYPE,
+                                              V_LAYOUT_INTERFACE            IN     PROCEDIMENTOS.LAYOUT_INTERFACE%TYPE,
+                                              V_COLUNAS_LAYOUT              IN     PROCEDIMENTOS.COLUNAS_LAYOUT%TYPE,
+                                              V_LINHAS_LAYOUT               IN     PROCEDIMENTOS.LINHAS_LAYOUT%TYPE,
+                                              V_ORIENTACAO_LAYOUT           IN     PROCEDIMENTOS.ORIENTACAO_LAYOUT%TYPE,
+                                              V_HISTORICO_LAYOUT            IN     PROCEDIMENTOS.HISTORICO_LAYOUT%TYPE,
+                                              V_HORA_COLE                   IN     PROCEDIMENTOS.HORA_COLE%TYPE,
+                                              V_TROCA_POSTO                 IN     PROCEDIMENTOS.TROCA_POSTO%TYPE,
+                                              V_DUM                         IN     PROCEDIMENTOS.DUM%TYPE,
+                                              V_TIPO_ENTREGA                IN     PROCEDIMENTOS.TIPO_ENTREGA%TYPE,
+                                              V_TIPO_COLETA                 IN     PROCEDIMENTOS.TIPO_COLETA%TYPE,
+                                              V_SEPARA_VARIAVEIS_FICHA      IN     PROCEDIMENTOS.SEPARA_VARIAVEIS_FICHA%TYPE,
+                                              V_SEM_VALOR                   IN     PROCEDIMENTOS.SEM_VALOR%TYPE,
+                                              V_TEM_EVOLUCAO                IN     PROCEDIMENTOS.TEM_EVOLUCAO%TYPE,
+                                              V_QUEBRA_PAGINA               IN     PROCEDIMENTOS.QUEBRA_PAGINA%TYPE,
+                                              V_AVISO_ETIQUETA              IN     PROCEDIMENTOS.AVISO_ETIQUETA%TYPE,
+                                              V_TIPO_PROCEDIMENTO           IN     PROCEDIMENTOS.TIPO_PROCEDIMENTO%TYPE,
+                                              V_QT_HISTORICO_IMP            IN     PROCEDIMENTOS.QT_HISTORICO_IMP%TYPE,
+                                              V_METODOLOGIA_UNICA_HISTORICO IN     PROCEDIMENTOS.METODOLOGIA_UNICA_HISTORICO%TYPE,
+                                              V_VISUALIZA_LIBERACAO         IN     PROCEDIMENTOS.VISUALIZA_LIBERACAO%TYPE,
+                                              V_DUR                         IN     PROCEDIMENTOS.DUR%TYPE,
+                                              V_PESO                        IN     PROCEDIMENTOS.PESO%TYPE,
+                                              V_ALTURA                      IN     PROCEDIMENTOS.ALTURA%TYPE,
+                                              V_VOLUME_URINA                IN     PROCEDIMENTOS.VOLUME_URINA%TYPE,
+                                              V_FUNCAO                      IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PROCEDIMENTOS VALUES (V_PROCEDIMENTO,   V_NOME,   V_MNEMONICO, V_SETOR,
+                                       V_MATERIAL,       V_METODO, V_POSTO,     V_ENTREGA, 
+                                       V_TROCA_MATERIAL, V_GRUPO_ETIQUETA, V_PRIORIDADE_IMPRESSAO,
+                                       V_IMPRESSAO_EXCLUSIVA, V_QT_MAX_ATENDIMENTO, V_STATUS, V_IMPRIME_MAPA,
+                                       V_TIPO_LIBERACAO, V_LAYOUT_INTERFACE, V_COLUNAS_LAYOUT, V_LINHAS_LAYOUT,
+                                       V_ORIENTACAO_LAYOUT, V_HISTORICO_LAYOUT, V_HORA_COLE, V_TROCA_POSTO, V_DUM,
+                                       V_TIPO_ENTREGA, V_TIPO_COLETA, V_SEPARA_VARIAVEIS_FICHA, V_SEM_VALOR, V_TEM_EVOLUCAO,
+                                       V_QUEBRA_PAGINA, V_AVISO_ETIQUETA, V_TIPO_PROCEDIMENTO, V_QT_HISTORICO_IMP, V_METODOLOGIA_UNICA_HISTORICO,
+									   V_VISUALIZA_LIBERACAO, V_DUR, V_PESO, V_ALTURA, V_VOLUME_URINA);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PROCEDIMENTOS SET PROCEDIMENTO           = V_PROCEDIMENTO,   NOME                 = V_NOME,   
+                              SETOR                  = V_SETOR,          MATERIAL             = V_MATERIAL,
+                              METODO                 = V_METODO,         POSTO                = V_POSTO,
+                              ENTREGA                = V_ENTREGA,        TROCA_MATERIAL       = V_TROCA_MATERIAL,
+                              GRUPO_ETIQUETA         = V_GRUPO_ETIQUETA, PRIORIDADE_IMPRESSAO = V_PRIORIDADE_IMPRESSAO,
+                              IMPRESSAO_EXCLUSIVA    = V_IMPRESSAO_EXCLUSIVA, 
+                              QT_MAX_ATENDIMENTO     = V_QT_MAX_ATENDIMENTO, DUM              = V_DUM,
+                              STATUS                 = V_STATUS,         IMPRIME_MAPA         = V_IMPRIME_MAPA,
+                              TIPO_LIBERACAO         = V_TIPO_LIBERACAO, LAYOUT_INTERFACE     = V_LAYOUT_INTERFACE,
+                              COLUNAS_LAYOUT         = V_COLUNAS_LAYOUT, LINHAS_LAYOUT        = V_LINHAS_LAYOUT,
+                              ORIENTACAO_LAYOUT      = V_ORIENTACAO_LAYOUT, HISTORICO_LAYOUT  = V_HISTORICO_LAYOUT,
+                              HORA_COLE              = V_HORA_COLE,      TROCA_POSTO          = V_TROCA_POSTO,
+                              TIPO_ENTREGA           = V_TIPO_ENTREGA,   TIPO_COLETA          = V_TIPO_COLETA,
+                              SEPARA_VARIAVEIS_FICHA = V_SEPARA_VARIAVEIS_FICHA,
+                              SEM_VALOR              = V_SEM_VALOR,      TEM_EVOLUCAO         = V_TEM_EVOLUCAO,
+                              QUEBRA_PAGINA          = V_QUEBRA_PAGINA,  AVISO_ETIQUETA       = V_AVISO_ETIQUETA,
+			                  TIPO_PROCEDIMENTO      = V_TIPO_PROCEDIMENTO, QT_HISTORICO_IMP  = V_QT_HISTORICO_IMP,
+                              METODOLOGIA_UNICA_HISTORICO = V_METODOLOGIA_UNICA_HISTORICO, VISUALIZA_LIBERACAO = V_VISUALIZA_LIBERACAO,
+                              DUR                    = V_DUR,
+							  PESO = V_PESO,
+                              ALTURA = V_ALTURA,
+                              VOLUME_URINA = V_VOLUME_URINA
+                        WHERE MNEMONICO = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PROCEDIMENTOS WHERE MNEMONICO = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 4 THEN
+     UPDATE PROCEDIMENTOS SET GRUPO_ETIQUETA = V_GRUPO_ETIQUETA
+                               WHERE MNEMONICO     = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 5 THEN
+     UPDATE PROCEDIMENTOS SET PRIORIDADE_IMPRESSAO = V_PRIORIDADE_IMPRESSAO,
+                              IMPRESSAO_EXCLUSIVA  = V_IMPRESSAO_EXCLUSIVA
+                              WHERE MNEMONICO      = V_MNEMONICO;
+
+  ELSIF V_FUNCAO = 6 THEN
+     UPDATE PROCEDIMENTOS SET  TIPO_LIBERACAO = V_TIPO_LIBERACAO, LAYOUT_INTERFACE = V_LAYOUT_INTERFACE,
+                               COLUNAS_LAYOUT = V_COLUNAS_LAYOUT, LINHAS_LAYOUT    = V_LINHAS_LAYOUT,
+                               ORIENTACAO_LAYOUT = V_ORIENTACAO_LAYOUT, HISTORICO_LAYOUT = V_HISTORICO_LAYOUT,
+                               TEM_EVOLUCAO = V_TEM_EVOLUCAO, QUEBRA_PAGINA = V_QUEBRA_PAGINA, QT_HISTORICO_IMP = V_QT_HISTORICO_IMP,
+							   VISUALIZA_LIBERACAO = V_VISUALIZA_LIBERACAO
+                          WHERE MNEMONICO     = V_MNEMONICO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_PROCEDIMENTOS;
+-- fim bloco
