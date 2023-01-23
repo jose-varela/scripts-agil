@@ -1,0 +1,158 @@
+--
+-- ATENDIMENTOS_VALORES
+--
+
+  CREATE OR REPLACE FORCE VIEW "ATENDIMENTOS_VALORES" ("POSTO", "ATENDIMENTO", "CONTA_HOSP", "DATA_ATD", "REGISTRO", "CONVENIO", "MATRICULA", "CODIGO_PLANO", "DATA_FAT", "MED_SOL", "SITUACAO", "LIB_FAT", "FATURAMENTO", "ID_FATURA", "GUIA_PRINCIPAL", "CARATER_ATENDIMENTO", "IDENTIFICACAO_BENEFICIARIO", "VALOR_DEVEDOR", "VALOR_PAGO", "VALOR_DESCONTO", "VALOR_EXAMES", "VALOR_EXAMES_CADASTRADOS", "VALOR_EXAMES_FATURADOS", "VALOR_ATENDIMENTO", "QT_EXAMES") AS 
+  SELECT A.POSTO, 
+         A.ATENDIMENTO,
+         NVL(CA.CONTA_HOSP,0) CONTA_HOSP,
+         A.DATA_ATD,
+         A.REGISTRO,
+         A.CONVENIO,
+         A.MATRICULA,
+         A.CODIGO_PLANO,
+         A.DATA_FAT,
+         A.MED_SOL,
+         A.SITUACAO,
+         A.LIB_FAT,
+         A.FATURAMENTO,
+         A.ID_FATURA,
+         A.GUIA_PRINCIPAL,
+         A.CARATER_ATENDIMENTO,
+         A.IDENTIFICACAO_BENEFICIARIO,
+         D.VALOR VALOR_DEVEDOR,
+         SUM(C.VALOR) VALOR_PAGO,
+         SUM(C.DESCONTO) VALOR_DESCONTO,
+         GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES,
+         GET_VALOR_EXAMES_CADASTRADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_CADASTRADOS,
+         GET_VALOR_EXAMES_FATURADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_FATURADOS,
+         GET_VALOR_PAGO_ATENDIMENTO(A.POSTO, A.ATENDIMENTO) VALOR_ATENDIMENTO,
+         GET_COUNT_EXAMES_SITUACAO(A.POSTO, A.ATENDIMENTO, 'TODOS') QT_EXAMES
+    FROM ATENDIMENTOS A, 
+         CONTAS_ATENDIMENTOS CA, 
+         CAIXA C,
+         DEVEDORES D
+   WHERE CA.POSTO(+) = A.POSTO 
+     AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+     AND D.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.STATUS(+) = 'A'
+   GROUP BY A.POSTO, 
+            A.ATENDIMENTO,
+            CA.CONTA_HOSP,
+            A.DATA_ATD,
+            A.REGISTRO,
+            A.CONVENIO,
+            A.MATRICULA,
+            A.CODIGO_PLANO,
+            A.DATA_FAT,
+            A.MED_SOL,
+            A.SITUACAO,
+            A.LIB_FAT,
+            A.FATURAMENTO,
+            A.ID_FATURA,
+            A.GUIA_PRINCIPAL,
+            A.CARATER_ATENDIMENTO,
+            A.IDENTIFICACAO_BENEFICIARIO,
+            D.VALOR;
+  -- fim bloco 
+			
+DROP VIEW atendimentos_valores;
+CREATE OR REPLACE VIEW atendimentos_valores
+    AS
+ SELECT a.posto,
+    a.atendimento,
+    COALESCE(ca.conta_hosp, 0) AS conta_hosp,
+    a.data_atd,
+    a.registro,
+    a.convenio,
+    a.matricula,
+    a.codigo_plano,
+    a.data_fat,
+    a.med_sol,
+    a.situacao,
+    a.lib_fat,
+    a.faturamento,
+    a.id_fatura,
+    a.guia_principal,
+    a.carater_atendimento,
+    a.identificacao_beneficiario,
+    d.valor AS valor_devedor,
+    sum(c.valor) AS valor_pago,
+    sum(c.desconto) AS valor_desconto,
+    get_valor_exames(a.posto::bigint, a.atendimento::bigint) AS valor_exames,
+    get_valor_exames_cadastrados(a.posto::integer, a.atendimento) AS valor_exames_cadastrados,
+    get_valor_exames_faturados(a.posto::integer, a.atendimento) AS valor_exames_faturados,
+    COALESCE(sum(c.valor), get_valor_exames(a.posto::bigint, a.atendimento::bigint)::double precision - d.valor) AS valor_atendimento,
+    get_count_exames_situacao(a.posto::bigint, a.atendimento::bigint, 'TODOS'::text) AS qt_exames
+   FROM atendimentos a
+     LEFT JOIN contas_atendimentos ca ON ca.posto = a.posto AND ca.atendimento = a.atendimento
+     LEFT JOIN devedores d ON d.conta_hosp = ca.conta_hosp
+     LEFT JOIN caixa c ON c.conta_hosp = ca.conta_hosp AND c.status::text = 'A'::text
+  GROUP BY a.posto, a.atendimento, ca.conta_hosp, a.data_atd, a.registro, a.convenio, a.matricula, a.codigo_plano, a.data_fat, a.med_sol, a.situacao, a.lib_fat, a.faturamento, a.id_fatura, a.guia_principal, a.carater_atendimento, a.identificacao_beneficiario, d.valor;
+  -- fim bloco
+
+--
+-- EXAMES_B2B
+--
+create or replace PROCEDURE PRC_EXAMES_B2B(V_ID_EXAME_B2B           IN OUT EXAMES_B2B.ID_EXAME_B2B%TYPE,
+                                            V_POSTO                  IN EXAMES_B2B.POSTO%TYPE,
+                                            V_ATENDIMENTO            IN EXAMES_B2B.ATENDIMENTO%TYPE,
+                                            V_CORREL                 IN EXAMES_B2B.CORREL%TYPE,
+                                            V_AMOSTRA                IN EXAMES_B2B.AMOSTRA%TYPE,
+                                            V_POSTO_B2B              IN EXAMES_B2B.POSTO_B2B%TYPE,
+                                            V_EQUIPAMENTO            IN EXAMES_B2B.EQUIPAMENTO%TYPE,
+                                            V_CORREL_B2B             IN EXAMES_B2B.CORREL_B2B%TYPE,
+                                            V_SITUACAO_B2B           IN EXAMES_B2B.SITUACAO_B2B%TYPE,
+                                            V_DATA_B2B               IN EXAMES_B2B.DATA_B2B%TYPE,
+                                            V_USUARIO_B2B            IN EXAMES_B2B.USUARIO_B2B%TYPE,
+                                            V_ESTACAO_B2B            IN EXAMES_B2B.ESTACAO_B2B%TYPE,
+                                            V_LOTE_B2B               IN EXAMES_B2B.LOTE_B2B%TYPE,
+ 				            V_CODIGO_EXTERNO         IN EXAMES_B2B.CODIGO_EXTERNO%TYPE,
+ 					    V_ETIQUETA_EXTERNO       IN EXAMES_B2B.ETIQUETA_EXTERNO%TYPE,
+                                            V_PEDIDO_EXTERNO         IN EXAMES_B2B.PEDIDO_EXTERNO%TYPE,
+                                            V_FUNCAO                 IN NUMBER) IS
+ BEGIN                                                           
+   IF V_FUNCAO = 1 THEN                                          
+      SELECT SQ_EXAME_B2B.NEXTVAL INTO V_ID_EXAME_B2B FROM DUAL;
+      INSERT INTO EXAMES_B2B VALUES(V_ID_EXAME_B2B, V_POSTO, V_ATENDIMENTO, V_CORREL, V_AMOSTRA, V_POSTO_B2B, 
+                                    V_EQUIPAMENTO , V_CORREL_B2B, V_SITUACAO_B2B, V_DATA_B2B, 
+                                    V_USUARIO_B2B, V_ESTACAO_B2B, V_LOTE_B2B, V_CODIGO_EXTERNO,V_ETIQUETA_EXTERNO,
+                                    V_PEDIDO_EXTERNO);
+   ELSIF V_FUNCAO = 2 THEN
+             UPDATE EXAMES_B2B SET POSTO                 = V_POSTO,
+                                   ATENDIMENTO           = V_ATENDIMENTO,
+                                   CORREL                = V_CORREL,
+                                   AMOSTRA               = V_AMOSTRA,
+                                   POSTO_B2B             = V_POSTO_B2B,
+                                   EQUIPAMENTO           = V_EQUIPAMENTO ,
+                                   CORREL_B2B            = V_CORREL_B2B,
+                                   SITUACAO_B2B          = V_SITUACAO_B2B,
+                                   DATA_B2B              = V_DATA_B2B,
+                                   USUARIO_B2B           = V_USUARIO_B2B,
+                                   ESTACAO_B2B           = V_ESTACAO_B2B,
+ 				   CODIGO_EXTERNO        = V_CODIGO_EXTERNO,
+ 				   ETIQUETA_EXTERNO      = V_ETIQUETA_EXTERNO,
+                                   PEDIDO_EXTERNO        = V_PEDIDO_EXTERNO
+                           WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+   ELSIF V_FUNCAO = 3 THEN
+             DELETE EXAMES_B2B WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+   ELSIF V_FUNCAO = 4 THEN
+             DELETE EXAMES_B2B WHERE POSTO = V_POSTO;
+   ELSIF V_FUNCAO = 5 THEN
+             UPDATE EXAMES_B2B SET SITUACAO_B2B          = V_SITUACAO_B2B,
+                                   DATA_B2B              = V_DATA_B2B,
+                                   USUARIO_B2B           = V_USUARIO_B2B,
+                                   ESTACAO_B2B           = V_ESTACAO_B2B
+                           WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+   ELSIF V_FUNCAO = 6 THEN
+ 			UPDATE EXAMES_B2B SET SITUACAO_B2B = V_SITUACAO_B2B
+                           WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+   ELSIF V_FUNCAO = 7 THEN
+ 			UPDATE EXAMES_B2B SET PEDIDO_EXTERNO = V_PEDIDO_EXTERNO,
+                            LOTE_B2B = V_LOTE_B2B
+                           WHERE ID_EXAME_B2B = V_ID_EXAME_B2B;
+   END IF;
+   COMMIT WORK;
+ END PRC_EXAMES_B2B;
+-- fim bloco
