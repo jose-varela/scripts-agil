@@ -1,0 +1,1330 @@
+
+--
+-- DISABLE CONSTRAINT
+--
+ALTER TABLE ATENDIMENTOS      DROP CONSTRAINT ATENDIMENTOS_MEDICOS_FK;
+ -- fim bloco
+
+ALTER TABLE ENTIDADES_MEDICOS DROP CONSTRAINT ENTIDADES_MEDICOS_MEDICOS_FK;
+-- fim bloco
+
+--
+-- MEDICOS
+--
+ALTER TABLE MEDICOS MODIFY ("ID_MEDICO" NOT NULL);
+-- fim bloco
+
+ALTER TABLE MEDICOS DROP CONSTRAINT "MEDICOS_PK";
+-- fim bloco
+
+DROP INDEX MEDICOS_PK;
+-- fim bloco
+
+ALTER TABLE MEDICOS ADD CONSTRAINT MEDICOS_PK 
+PRIMARY KEY ("ID_MEDICO") ENABLE;
+-- fim bloco
+
+CREATE UNIQUE INDEX MEDICOS_UK ON MEDICOS (TIPO_CR, UF_CONSELHO, CRM);
+ -- fim bloco
+
+CREATE INDEX MEDICOS_NOME_I ON MEDICOS (NOME); 
+ -- fim bloco
+
+
+CREATE INDEX MEDICOS_CRM_I ON MEDICOS (CRM); 
+ -- fim bloco
+
+create or replace PROCEDURE PRC_MEDICOS(V_CRM             IN OUT MEDICOS.CRM%TYPE,
+                                         V_NOME            IN     MEDICOS.NOME%TYPE,
+                                         V_CPF             IN     MEDICOS.CPF%TYPE,
+                                         V_TIPO            IN     MEDICOS.TIPO%TYPE,
+                                         V_STATUS          IN     MEDICOS.STATUS%TYPE,
+                                         V_UF_CONSELHO     IN     MEDICOS.UF_CONSELHO%TYPE,
+                                         V_TIPO_CR         IN     MEDICOS.TIPO_CR%TYPE,
+                                         V_TELEFONE        IN     MEDICOS.TELEFONE%TYPE,
+                                         V_TELEFONE2       IN     MEDICOS.TELEFONE2%TYPE,
+                                         V_EMAIL           IN     MEDICOS.EMAIL%TYPE,
+                                         V_PASS            IN     MEDICOS.PASS%TYPE,
+                                         V_ID_MEDICO       IN OUT MEDICOS.ID_MEDICO%TYPE,
+                                         V_DATA_NAS        IN     MEDICOS.DATA_NAS%TYPE,
+                                         V_PREFIXO_NOME    IN     MEDICOS.PREFIXO_NOME%TYPE,
+                                         V_CODIGO_UNIMED   IN     MEDICOS.CODIGO_UNIMED%TYPE,
+                                         V_ID_CBO          IN     MEDICOS.ID_CBO%TYPE,
+                                         V_ESPECIALIZACAO  IN     MEDICOS.ESPECIALIZACAO%TYPE,
+                                         V_CNS             IN     MEDICOS.CNS%TYPE,
+                                         V_FUNCAO          IN     NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      SELECT SQ_MEDICOS.NEXTVAL INTO V_ID_MEDICO FROM DUAL;
+      INSERT INTO MEDICOS VALUES (V_CRM, V_NOME, V_CPF, V_TIPO, V_STATUS, V_UF_CONSELHO, V_TIPO_CR, V_TELEFONE, V_TELEFONE2, V_EMAIL, V_PASS, V_ID_MEDICO, V_DATA_NAS, V_PREFIXO_NOME, V_CODIGO_UNIMED, V_ID_CBO, V_ESPECIALIZACAO, V_CNS);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE MEDICOS SET CRM = V_CRM, NOME = V_NOME, CPF = V_CPF, TIPO = V_TIPO, STATUS = V_STATUS,
+                               UF_CONSELHO = V_UF_CONSELHO, TIPO_CR = V_TIPO_CR,
+                               TELEFONE = V_TELEFONE, TELEFONE2 = V_TELEFONE2, EMAIL = V_EMAIL, 
+                               PASS = V_PASS, DATA_NAS = V_DATA_NAS, PREFIXO_NOME = V_PREFIXO_NOME, 
+                               CODIGO_UNIMED = V_CODIGO_UNIMED, ID_CBO = V_ID_CBO, ESPECIALIZACAO = V_ESPECIALIZACAO,
+                               CNS= V_CNS 
+       WHERE ID_MEDICO = V_ID_MEDICO;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE MEDICOS WHERE ID_MEDICO = V_ID_MEDICO;
+   ELSIF V_FUNCAO = 4 THEN
+      UPDATE MEDICOS SET NOME = V_NOME, CPF = V_CPF 
+       WHERE ID_MEDICO = V_ID_MEDICO;
+   END IF;
+   COMMIT WORK;
+ END PRC_MEDICOS;
+-- fim bloco
+
+
+--
+-- ATENDIMENTOS                        
+--
+ALTER TABLE ATENDIMENTOS ADD ID_MEDICO_SOLICITANTE NUMBER(6);
+-- fim bloco
+UPDATE ATENDIMENTOS A SET A.ID_MEDICO_SOLICITANTE = (SELECT M.ID_MEDICO
+                                                       FROM MEDICOS M
+                        						      WHERE M.CRM = A.MED_SOL);
+-- fim bloco
+
+ALTER TABLE ATENDIMENTOS MODIFY ("ID_MEDICO_SOLICITANTE" NOT NULL);
+-- fim bloco
+
+ALTER TABLE ATENDIMENTOS ADD CONSTRAINT ATENDIMENTOS_MEDICOS_FK 
+ FOREIGN KEY ("ID_MEDICO_SOLICITANTE") REFERENCES MEDICOS ("ID_MEDICO") ENABLE;
+-- fim bloco
+
+ALTER TABLE ATENDIMENTOS DROP COLUMN MED_SOL;
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_ATENDIMENTOS(V_POSTO                      IN     ATENDIMENTOS.POSTO%TYPE,
+                                              V_REGISTRO                   IN     ATENDIMENTOS.REGISTRO%TYPE,
+                                              V_ATENDIMENTO                IN OUT ATENDIMENTOS.ATENDIMENTO%TYPE,
+                                              V_CONVENIO                   IN     ATENDIMENTOS.CONVENIO%TYPE,
+                                              V_MATRICULA                  IN     ATENDIMENTOS.MATRICULA%TYPE,
+                                              V_DATA_ATD                   IN     ATENDIMENTOS.DATA_ATD%TYPE,
+                                              V_DATA_FAT                   IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                              V_DATA_ENT                   IN     ATENDIMENTOS.DATA_ENT%TYPE,
+                                              V_HORA_ENT                   IN     ATENDIMENTOS.HORA_ENT%TYPE,
+                                              V_LIB_FAT                    IN     ATENDIMENTOS.LIB_FAT%TYPE,
+                                              V_FATURAMENTO                IN     ATENDIMENTOS.FATURAMENTO%TYPE,
+                                              V_USUARIO                    IN     ATENDIMENTOS.USUARIO%TYPE,
+                                              V_DATA_CAD                   IN     ATENDIMENTOS.DATA_CAD%TYPE,
+                                              V_POSTO_ENTREGA              IN     ATENDIMENTOS.POSTO_ENTREGA%TYPE,
+                                              V_SITUACAO                   IN     ATENDIMENTOS.SITUACAO%TYPE,
+                                              V_DATA_DESDE                 IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                              V_DATA_ATE                   IN     ATENDIMENTOS.DATA_FAT%TYPE,
+                                              V_CONDICAO_FATURAMENTO       IN     ATENDIMENTOS.FATURAMENTO%TYPE,
+                                              V_CODIGO_PLANO               IN     ATENDIMENTOS.CODIGO_PLANO%TYPE,
+                                              V_DATA_VALIDADE              IN     ATENDIMENTOS.DATA_VALIDADE%TYPE,
+                                              V_ID_FATURA                  IN     ATENDIMENTOS.ID_FATURA%TYPE,
+                                              V_GUIA_PRINCIPAL             IN     ATENDIMENTOS.GUIA_PRINCIPAL%TYPE,
+                                              V_IDENTIFICACAO_BENEFICIARIO IN     ATENDIMENTOS.IDENTIFICACAO_BENEFICIARIO%TYPE,
+                                              V_CARATER_ATENDIMENTO        IN     ATENDIMENTOS.CARATER_ATENDIMENTO%TYPE,
+                                              V_ID_MEDICO_SOLICITANTE      IN     ATENDIMENTOS.ID_MEDICO_SOLICITANTE%TYPE,
+                                              V_FUNCAO                     IN     NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 OR V_FUNCAO = 9 THEN
+      IF V_FUNCAO = 1 THEN
+        SELECT SQ_ATENDIMENTO.NEXTVAL INTO V_ATENDIMENTO FROM DUAL;
+      END IF;
+      INSERT INTO ATENDIMENTOS VALUES (V_POSTO, V_REGISTRO, V_ATENDIMENTO, V_CONVENIO, V_MATRICULA, 
+	                                   V_DATA_ATD, V_DATA_FAT, V_DATA_ENT, V_HORA_ENT, V_LIB_FAT,
+                                       V_FATURAMENTO, V_USUARIO, V_DATA_CAD, V_POSTO_ENTREGA, V_SITUACAO, 
+									   V_CODIGO_PLANO, V_DATA_VALIDADE, V_ID_FATURA, V_GUIA_PRINCIPAL, 
+									   V_IDENTIFICACAO_BENEFICIARIO, V_CARATER_ATENDIMENTO, V_ID_MEDICO_SOLICITANTE);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE ATENDIMENTOS SET CONVENIO     = V_CONVENIO,      MATRICULA = V_MATRICULA,
+            DATA_FAT      = V_DATA_FAT,      DATA_ENT  = V_DATA_ENT,
+            HORA_ENT = V_HORA_ENT, LIB_FAT   = V_LIB_FAT,
+            USUARIO  = V_USUARIO,  FATURAMENTO   = V_FATURAMENTO,   DATA_CAD  = V_DATA_CAD,      
+            POSTO    = V_POSTO,    POSTO_ENTREGA = V_POSTO_ENTREGA, SITUACAO  = V_SITUACAO,
+            CODIGO_PLANO = V_CODIGO_PLANO, DATA_VALIDADE = V_DATA_VALIDADE, ID_FATURA = V_ID_FATURA, 
+ 		   GUIA_PRINCIPAL = V_GUIA_PRINCIPAL, IDENTIFICACAO_BENEFICIARIO = V_IDENTIFICACAO_BENEFICIARIO,
+ 		   CARATER_ATENDIMENTO = V_CARATER_ATENDIMENTO, ID_MEDICO_SOLICITANTE = V_ID_MEDICO_SOLICITANTE
+         WHERE REGISTRO = V_REGISTRO AND  ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE ATENDIMENTOS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 4 THEN
+      UPDATE ATENDIMENTOS SET DATA_ENT  = V_DATA_ENT,
+                                    HORA_ENT = V_HORA_ENT,
+                                    POSTO_ENTREGA = V_POSTO_ENTREGA,
+                                    DATA_CAD = V_DATA_CAD
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 5 THEN
+      UPDATE ATENDIMENTOS SET LIB_FAT = V_LIB_FAT
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 6 THEN
+      IF V_CONDICAO_FATURAMENTO = '' THEN
+         UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO, ID_FATURA = V_ID_FATURA
+                WHERE CONVENIO = V_CONVENIO 
+                  AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                  AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE 
+                  AND LIB_FAT = 'S';
+      ELSE 
+         UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO, ID_FATURA = V_ID_FATURA
+                WHERE CONVENIO = V_CONVENIO 
+                  AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                  AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE 
+                  AND LIB_FAT = 'S' AND FATURAMENTO = V_CONDICAO_FATURAMENTO;
+      END IF;
+   ELSIF V_FUNCAO = 7 THEN
+      UPDATE ATENDIMENTOS SET LIB_FAT = V_LIB_FAT, DATA_FAT = V_DATA_FAT
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 8 THEN
+      UPDATE ATENDIMENTOS SET FATURAMENTO = V_FATURAMENTO
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 10 THEN
+      UPDATE ATENDIMENTOS SET DATA_ENT  = V_DATA_ENT,
+                              HORA_ENT = V_HORA_ENT
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 11 THEN
+      UPDATE ATENDIMENTOS SET ID_MEDICO_SOLICITANTE  = V_ID_MEDICO_SOLICITANTE
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 12 THEN
+      UPDATE ATENDIMENTOS SET CONVENIO            = V_CONVENIO,
+                              DATA_FAT            = V_DATA_FAT,
+                              LIB_FAT             = V_LIB_FAT,
+                              ID_MEDICO_SOLICITANTE = V_ID_MEDICO_SOLICITANTE,
+                              MATRICULA           = V_MATRICULA,
+ 							 GUIA_PRINCIPAL      = V_GUIA_PRINCIPAL,
+ 							 CODIGO_PLANO        = V_CODIGO_PLANO,
+ 							 DATA_VALIDADE       = V_DATA_VALIDADE,
+ 							 CARATER_ATENDIMENTO = V_CARATER_ATENDIMENTO
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 13 THEN
+      UPDATE ATENDIMENTOS SET MATRICULA = V_MATRICULA, 
+ 	                         GUIA_PRINCIPAL = V_GUIA_PRINCIPAL, 
+ 							 IDENTIFICACAO_BENEFICIARIO = V_IDENTIFICACAO_BENEFICIARIO
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 14 THEN
+      UPDATE ATENDIMENTOS SET SITUACAO = V_SITUACAO, DATA_CAD = V_DATA_CAD, USUARIO = V_USUARIO
+           WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   ELSIF V_FUNCAO = 15 THEN
+         UPDATE ATENDIMENTOS SET ID_FATURA = NULL
+                WHERE CONVENIO = V_CONVENIO 
+                  AND (V_CODIGO_PLANO IS NULL OR CODIGO_PLANO = V_CODIGO_PLANO)
+                  AND DATA_FAT >= V_DATA_DESDE AND DATA_FAT <= V_DATA_ATE;
+   ELSIF V_FUNCAO = 16 THEN
+      UPDATE ATENDIMENTOS SET DATA_ATD = V_DATA_ATD
+                WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+   END IF;
+   COMMIT WORK;
+ END PRC_ATENDIMENTOS;
+-- fim bloco
+
+--
+-- ENTIDADES_MEDICOS
+--
+UPDATE ENTIDADES_MEDICOS EM SET EM.ID_MEDICO = (SELECT M.ID_MEDICO
+                                                  FROM MEDICOS M
+										 		 WHERE M.CRM = EM.CRM);
+-- fim bloco					
+							 
+ALTER TABLE ENTIDADES_MEDICOS MODIFY ("ID_MEDICO" NOT NULL);
+-- fim bloco
+
+ALTER TABLE ENTIDADES_MEDICOS DROP CONSTRAINT "ENTIDADES_MEDICOS_PK";
+-- fim bloco
+
+DROP INDEX ENTIDADES_MEDICOS_PK;
+-- fim bloco
+
+ALTER TABLE ENTIDADES_MEDICOS ADD CONSTRAINT ENTIDADES_MEDICOS_PK 
+      PRIMARY KEY ("ENTIDADE","ID_MEDICO") ENABLE;
+-- fim bloco	
+
+ALTER TABLE ENTIDADES_MEDICOS ADD CONSTRAINT ENTIDADES_MEDICOS_MEDICOS_FK 
+ FOREIGN KEY ("ID_MEDICO") REFERENCES MEDICOS ("ID_MEDICO") ENABLE;
+-- fim bloco
+
+ALTER TABLE ENTIDADES_MEDICOS DROP COLUMN CRM;
+-- fim bloco
+
+create or replace PROCEDURE PRC_ENTIDADES_MEDICOS(V_ENTIDADE    IN     ENTIDADES_MEDICOS.ENTIDADE%TYPE,
+                                                  V_ID_MEDICO   IN     ENTIDADES_MEDICOS.ID_MEDICO%TYPE,
+                                                  V_FUNCAO      IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO ENTIDADES_MEDICOS VALUES (V_ENTIDADE, V_ID_MEDICO);
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE ENTIDADES_MEDICOS WHERE ENTIDADE = V_ENTIDADE AND ID_MEDICO = V_ID_MEDICO;
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_ENTIDADES_MEDICOS;
+
+-- fim bloco
+		
+--
+-- COMPLEMENTO_ATENDIMENTOS
+--
+ALTER TABLE COMPLEMENTO_ATENDIMENTOS ADD INDICACAO_CLINICA VARCHAR2(250);
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_COMPLEMENTO_ATENDIMENTOS(V_POSTO                     IN     COMPLEMENTO_ATENDIMENTOS.POSTO%TYPE,
+                                                         V_ATENDIMENTO               IN     COMPLEMENTO_ATENDIMENTOS.ATENDIMENTO%TYPE,
+                                                         V_USUARIO                   IN     COMPLEMENTO_ATENDIMENTOS.USUARIO%TYPE,
+                                                         V_DATA_CAD                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_CAD%TYPE,
+                                                         V_COD_VALID                 IN     COMPLEMENTO_ATENDIMENTOS.COD_VALID%TYPE,
+                                                         V_DATA_INT                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_INT%TYPE,
+                                                         V_DATA_ALT                  IN     COMPLEMENTO_ATENDIMENTOS.DATA_ALT%TYPE,
+                                                         V_LOTE                      IN     COMPLEMENTO_ATENDIMENTOS.LOTE%TYPE,
+                                                         V_ID_ORG_EMPRESA_CONVENIADA IN     COMPLEMENTO_ATENDIMENTOS.ID_ORG_EMPRESA_CONVENIADA%TYPE,
+                                                         V_CID                       IN     COMPLEMENTO_ATENDIMENTOS.CID%TYPE,
+                                                         V_GESTANTE                  IN     COMPLEMENTO_ATENDIMENTOS.GESTANTE%TYPE,
+                                                         V_DATA_UM                   IN     COMPLEMENTO_ATENDIMENTOS.DATA_UM%TYPE,
+                                                         V_ULTIMA_REFEICAO           IN     COMPLEMENTO_ATENDIMENTOS.ULTIMA_REFEICAO%TYPE,
+                                                         V_MEDICACAO                 IN     COMPLEMENTO_ATENDIMENTOS.MEDICACAO%TYPE,
+                                                         V_OBSERVACOES               IN     COMPLEMENTO_ATENDIMENTOS.OBSERVACOES%TYPE,
+                                                         V_PESO                      IN     COMPLEMENTO_ATENDIMENTOS.PESO%TYPE,
+                                                         V_ALTURA                    IN     COMPLEMENTO_ATENDIMENTOS.ALTURA%TYPE,
+                                                         V_VOL_URINA                 IN     COMPLEMENTO_ATENDIMENTOS.VOL_URINA%TYPE,
+                                                         V_CODIGO_EXTERNO            IN     COMPLEMENTO_ATENDIMENTOS.CODIGO_EXTERNO%TYPE,
+                                                         V_ID_ACOMODACAO             IN     COMPLEMENTO_ATENDIMENTOS.ID_ACOMODACAO%TYPE,
+                                                         V_LEITO                     IN     COMPLEMENTO_ATENDIMENTOS.LEITO%TYPE,
+                                                         V_INDICACAO_CLINICA         IN     COMPLEMENTO_ATENDIMENTOS.INDICACAO_CLINICA%TYPE,
+                                                         V_FUNCAO                    IN     NUMBER) IS
+BEGIN
+     DECLARE
+            V_ACHEI  NUMBER(8);
+            
+            CURSOR CUR_PROCURA IS
+                   SELECT ATENDIMENTO FROM COMPLEMENTO_ATENDIMENTOS 
+                    WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+     BEGIN               
+          IF V_FUNCAO = 1 THEN
+             INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                          V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                          V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                          V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO, V_INDICACAO_CLINICA);
+
+          ELSIF V_FUNCAO = 2 THEN
+                UPDATE COMPLEMENTO_ATENDIMENTOS SET USUARIO        = V_USUARIO,  DATA_CAD = V_DATA_CAD, COD_VALID = V_COD_VALID,
+                                                          DATA_INT       = V_DATA_INT, DATA_ALT = V_DATA_ALT, LOTE      = V_LOTE,
+                                                          ID_ORG_EMPRESA_CONVENIADA = V_ID_ORG_EMPRESA_CONVENIADA,  CID = V_CID, OBSERVACOES = V_OBSERVACOES,
+                                                          PESO           = V_PESO,     ALTURA   = V_ALTURA,   VOL_URINA = V_VOL_URINA,
+                                                          CODIGO_EXTERNO = V_CODIGO_EXTERNO, ID_ACOMODACAO = V_ID_ACOMODACAO,
+                                                          LEITO          = V_LEITO, INDICACAO_CLINICA = V_INDICACAO_CLINICA
+                 WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+          ELSIF V_FUNCAO = 3 THEN
+                DELETE COMPLEMENTO_ATENDIMENTOS WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+          ELSIF V_FUNCAO = 4 THEN
+                OPEN CUR_PROCURA;
+                FETCH CUR_PROCURA INTO V_ACHEI;
+  
+                IF CUR_PROCURA%NOTFOUND THEN
+                   INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                                      V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                                      V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                                      V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO, V_INDICACAO_CLINICA);
+                ELSE
+                    UPDATE COMPLEMENTO_ATENDIMENTOS SET GESTANTE = V_GESTANTE, DATA_UM = V_DATA_UM, ULTIMA_REFEICAO = V_ULTIMA_REFEICAO, MEDICACAO = V_MEDICACAO,
+                                                              OBSERVACOES = V_OBSERVACOES, PESO = V_PESO, ALTURA = V_ALTURA, VOL_URINA = V_VOL_URINA,
+                                                              CODIGO_EXTERNO = V_CODIGO_EXTERNO, ID_ACOMODACAO = V_ID_ACOMODACAO, CID = V_CID,
+                                                              LEITO = V_LEITO, ID_ORG_EMPRESA_CONVENIADA = V_ID_ORG_EMPRESA_CONVENIADA, INDICACAO_CLINICA = V_INDICACAO_CLINICA
+                     WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+                END IF;
+                CLOSE CUR_PROCURA;
+          
+          ELSIF V_FUNCAO = 5 THEN
+                OPEN CUR_PROCURA;
+                FETCH CUR_PROCURA INTO V_ACHEI;
+  
+                IF CUR_PROCURA%NOTFOUND THEN
+                   INSERT INTO COMPLEMENTO_ATENDIMENTOS VALUES (V_POSTO, V_ATENDIMENTO, V_USUARIO, V_DATA_CAD,
+                                                                      V_COD_VALID, V_DATA_INT, V_DATA_ALT, V_LOTE, V_ID_ORG_EMPRESA_CONVENIADA, V_CID,
+                                                                      V_GESTANTE, V_DATA_UM, V_ULTIMA_REFEICAO, V_MEDICACAO, V_OBSERVACOES, 
+                                                                      V_PESO, V_ALTURA, V_VOL_URINA, V_CODIGO_EXTERNO, V_ID_ACOMODACAO, V_LEITO, V_INDICACAO_CLINICA);
+                ELSE
+                    UPDATE COMPLEMENTO_ATENDIMENTOS SET CODIGO_EXTERNO = V_CODIGO_EXTERNO
+                     WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+                END IF;
+                CLOSE CUR_PROCURA;
+          END IF;                                                        
+     END;     
+     COMMIT WORK;
+END PRC_COMPLEMENTO_ATENDIMENTOS;
+-- fim bloco
+
+--
+-- EXAMES
+--
+ALTER TABLE EXAMES ADD VALIDADE_SENHA     DATE;
+-- fim bloco
+
+ALTER TABLE EXAMES ADD SITUACAO_AUTORIZACAO VARCHAR2(1) DEFAULT 'N';
+-- fim bloco
+
+UPDATE EXAMES SET SITUACAO_AUTORIZACAO = 'N';
+-- fim bloco
+
+ALTER TABLE EXAMES MODIFY SITUACAO_AUTORIZACAO NOT NULL;
+-- fim bloco
+
+ALTER TABLE EXAMES ADD DATA_AUTORIZACAO           DATE;
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD ID_TIPO_COLETOR            NUMBER(3);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD VALOR_HONORARIOS           NUMBER(12,2);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD VALOR_CUSTO_OPERACIONAL    NUMBER(12,2);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD VALOR_PORTE_MEDICO         NUMBER(12,2);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD DESCONTO_HONORARIOS        NUMBER(12,2);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD DESCONTO_CUSTO_OPERACIONAL NUMBER(12,2);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD ID_MEDICO_REALIZANTE1      NUMBER(6);
+ -- fim bloco
+
+ALTER TABLE EXAMES ADD ID_MEDICO_REALIZANTE2      NUMBER(6); 
+-- fim bloco
+
+UPDATE EXAMES E SET E.ID_MEDICO_REALIZANTE1 = (SELECT M.ID_MEDICO
+                                                 FROM MEDICOS M
+										 	    WHERE M.CRM = E.MED_REA1);
+-- fim bloco
+
+UPDATE EXAMES E SET E.ID_MEDICO_REALIZANTE2 = (SELECT M.ID_MEDICO
+                                                 FROM MEDICOS M
+										 	    WHERE M.CRM = E.MED_REA2);
+-- fim bloco					
+ALTER TABLE EXAMES DROP COLUMN MED_REA1;
+ -- fim bloco
+
+ALTER TABLE EXAMES DROP COLUMN MED_REA2;
+ -- fim bloco
+
+create or replace PROCEDURE PRC_EXAMES(V_POSTO                        IN EXAMES.POSTO%TYPE,
+                     V_ATENDIMENTO                  IN EXAMES.ATENDIMENTO%TYPE,
+                     V_CORREL                       IN OUT EXAMES.CORREL%TYPE,
+                     V_CONTROLE                     IN EXAMES.CONTROLE%TYPE,
+                     V_MNEMONICO                    IN EXAMES.MNEMONICO%TYPE,
+                     V_MATERIAL                     IN EXAMES.MATERIAL%TYPE,
+                     V_PENDENCIA                    IN EXAMES.PENDENCIA%TYPE,
+                     V_SITUACAO                     IN EXAMES.SITUACAO%TYPE,
+                     V_IMPR_MAPA                    IN EXAMES.IMPR_MAPA%TYPE,
+                     V_VALOR_HON                    IN EXAMES.VALOR_HON%TYPE,
+                     V_VALOR_ESPECIAL               IN EXAMES.VALOR_ESPECIAL%TYPE,
+                     V_DATA_CAD                     IN EXAMES.DATA_CAD%TYPE,
+                     V_DATA_COLE                    IN EXAMES.DATA_COLE%TYPE,
+                     V_USUARIO                      IN EXAMES.USUARIO%TYPE,
+                     V_USUARIO_COLE                 IN EXAMES.USUARIO_COLE%TYPE,
+                     V_OBSERVACOES                  IN EXAMES.OBSERVACOES%TYPE,
+                     V_ETIQUETA                     IN EXAMES.ETIQUETA%TYPE,
+                     V_GUIA                         IN EXAMES.GUIA%TYPE,
+                     V_SENHA                        IN EXAMES.SENHA%TYPE,
+                     V_LIB_FAT                      IN EXAMES.LIB_FAT%TYPE,
+                     V_POSTO_REA                    IN EXAMES.POSTO_REA%TYPE,
+                     V_SITUACAO_INTERFACE           IN EXAMES.SITUACAO_INTERFACE%TYPE,
+                     V_DATA_ENT                     IN EXAMES.DATA_ENT%TYPE,
+                     V_TIPO_COLETA                  IN EXAMES.TIPO_COLETA%TYPE,
+                     V_DATA_REA1                    IN EXAMES.DATA_REA1%TYPE,
+                     V_DATA_REA2                    IN EXAMES.DATA_REA2%TYPE,
+                     V_VALOR_PAGO                   IN EXAMES.VALOR_PAGO%TYPE,
+                     V_AUTORIZACAO                  IN EXAMES.AUTORIZACAO%TYPE,
+                     V_VALIDADE_SENHA               IN EXAMES.VALIDADE_SENHA%TYPE,
+                     V_SITUACAO_AUTORIZACAO         IN EXAMES.SITUACAO_AUTORIZACAO%TYPE,
+                     V_DATA_AUTORIZACAO              IN EXAMES.DATA_AUTORIZACAO%TYPE,             
+                     V_ID_TIPO_COLETOR              IN EXAMES.ID_TIPO_COLETOR%TYPE,           
+                     V_VALOR_HONORARIOS             IN EXAMES.VALOR_HONORARIOS%TYPE,          
+                     V_VALOR_CUSTO_OPERACIONAL      IN EXAMES.VALOR_CUSTO_OPERACIONAL%TYPE,   
+                     V_VALOR_PORTE_MEDICO           IN EXAMES.VALOR_PORTE_MEDICO%TYPE,        
+                     V_DESCONTO_HONORARIOS          IN EXAMES.DESCONTO_HONORARIOS%TYPE,       
+                     V_DESCONTO_CUSTO_OPERACIONAL   IN EXAMES.DESCONTO_CUSTO_OPERACIONAL%TYPE,
+                     V_ID_MEDICO_REALIZANTE1        IN EXAMES.ID_MEDICO_REALIZANTE1%TYPE,
+                     V_ID_MEDICO_REALIZANTE2        IN EXAMES.ID_MEDICO_REALIZANTE2%TYPE,
+                     V_FUNCAO                       IN NUMBER) IS
+BEGIN
+	IF V_FUNCAO = 1 THEN                                      
+		IF V_CORREL < 1 THEN
+		     SELECT NVL(MAX(CORREL)+1,1) INTO V_CORREL FROM EXAMES
+			  WHERE POSTO = V_POSTO 
+                AND ATENDIMENTO = V_ATENDIMENTO;
+		END IF;
+	
+		INSERT INTO EXAMES
+			VALUES (V_POSTO,          V_ATENDIMENTO,        V_CORREL,      V_CONTROLE,       V_MNEMONICO,    
+			        V_MATERIAL,       V_PENDENCIA,          V_SITUACAO,    V_IMPR_MAPA,      V_VALOR_HON,    
+					V_VALOR_ESPECIAL, V_DATA_CAD,           V_DATA_COLE,   V_USUARIO,        V_USUARIO_COLE,   
+					V_OBSERVACOES,    V_ETIQUETA,           V_GUIA,	       V_SENHA,          V_LIB_FAT,  
+					V_POSTO_REA,      V_SITUACAO_INTERFACE,	V_DATA_ENT,    V_TIPO_COLETA,    V_DATA_REA1,
+					V_DATA_REA2,      V_VALOR_PAGO,         V_AUTORIZACAO, V_VALIDADE_SENHA, V_SITUACAO_AUTORIZACAO,
+                    V_DATA_AUTORIZACAO, V_ID_TIPO_COLETOR, V_VALOR_HONORARIOS, V_VALOR_CUSTO_OPERACIONAL, V_VALOR_PORTE_MEDICO, 
+                    V_DESCONTO_HONORARIOS, V_DESCONTO_CUSTO_OPERACIONAL,
+					V_ID_MEDICO_REALIZANTE1, V_ID_MEDICO_REALIZANTE2);
+
+	ELSIF V_FUNCAO = 2 THEN
+        UPDATE EXAMES SET CONTROLE                	 = V_CONTROLE,
+                          MNEMONICO               	 = V_MNEMONICO,
+                          GUIA                    	 = V_GUIA,
+                          DATA_COLE               	 = V_DATA_COLE,
+                          MATERIAL                	 = V_MATERIAL,
+                          PENDENCIA               	 = V_PENDENCIA,
+                          SITUACAO                	 = V_SITUACAO,
+                          IMPR_MAPA                	 = V_IMPR_MAPA,
+                          DATA_CAD                	 = V_DATA_CAD,
+                          USUARIO                 	 = V_USUARIO,
+                          OBSERVACOES             	 = V_OBSERVACOES,
+                          VALOR_HON                  = V_VALOR_HON,
+                          USUARIO_COLE            	 = V_USUARIO_COLE,
+                          VALOR_ESPECIAL          	 = V_VALOR_ESPECIAL,
+                          ETIQUETA                 	 = V_ETIQUETA,
+                          POSTO_REA                	 = V_POSTO_REA,
+                          SENHA                   	 = V_SENHA,
+                          TIPO_COLETA             	 = V_TIPO_COLETA,
+                          DATA_REA1               	 = V_DATA_REA1,
+                          DATA_REA2               	 = V_DATA_REA2,
+                          VALOR_PAGO              	 = V_VALOR_PAGO,
+						  AUTORIZACAO             	 = V_AUTORIZACAO,
+                          VALIDADE_SENHA          	 = V_VALIDADE_SENHA, 
+                          SITUACAO_AUTORIZACAO    	 = V_SITUACAO_AUTORIZACAO,
+						  ID_TIPO_COLETOR            = V_ID_TIPO_COLETOR,
+						  VALOR_HONORARIOS           = V_VALOR_HONORARIOS,             
+						  VALOR_CUSTO_OPERACIONAL    = V_VALOR_CUSTO_OPERACIONAL,
+						  VALOR_PORTE_MEDICO         = V_VALOR_PORTE_MEDICO,
+						  DESCONTO_HONORARIOS        = V_DESCONTO_HONORARIOS,
+						  DESCONTO_CUSTO_OPERACIONAL = V_DESCONTO_CUSTO_OPERACIONAL,
+                          ID_MEDICO_REALIZANTE1 	 = V_ID_MEDICO_REALIZANTE1, 
+                          ID_MEDICO_REALIZANTE2 	 = V_ID_MEDICO_REALIZANTE1                          
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL   = V_CORREL;
+
+	ELSIF V_FUNCAO = 3 THEN
+        DELETE EXAMES WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 4 THEN
+        DELETE EXAMES WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+	ELSIF V_FUNCAO = 5 THEN
+        UPDATE EXAMES SET GUIA = V_GUIA, SENHA = V_SENHA, AUTORIZACAO = V_AUTORIZACAO, 
+		                  VALIDADE_SENHA = V_VALIDADE_SENHA, SITUACAO_AUTORIZACAO = V_SITUACAO_AUTORIZACAO                                    
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 6 THEN
+        UPDATE EXAMES SET OBSERVACOES = V_OBSERVACOES
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 7 THEN
+        UPDATE EXAMES SET SITUACAO = V_SITUACAO,
+                          DATA_CAD = V_DATA_CAD,
+                          USUARIO  = V_USUARIO
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 8 THEN
+        UPDATE EXAMES SET PENDENCIA          = V_PENDENCIA,
+                          DATA_COLE          = V_DATA_COLE,
+                          USUARIO_COLE       = V_USUARIO_COLE,
+                          IMPR_MAPA          = V_IMPR_MAPA,
+                          ETIQUETA           = V_ETIQUETA,
+                          CONTROLE           = V_CONTROLE,
+                          SITUACAO_INTERFACE = V_SITUACAO_INTERFACE
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 9 THEN
+        UPDATE EXAMES SET IMPR_MAPA = V_IMPR_MAPA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 10 THEN
+        UPDATE EXAMES SET VALOR_HON 				 = V_VALOR_HON,
+                          VALOR_ESPECIAL 			 = V_VALOR_ESPECIAL,
+                          VALOR_PAGO 				 = V_VALOR_PAGO,
+						  VALOR_HONORARIOS           = V_VALOR_HONORARIOS,             
+						  VALOR_CUSTO_OPERACIONAL    = V_VALOR_CUSTO_OPERACIONAL,
+						  VALOR_PORTE_MEDICO         = V_VALOR_PORTE_MEDICO,
+						  DESCONTO_HONORARIOS        = V_DESCONTO_HONORARIOS,
+						  DESCONTO_CUSTO_OPERACIONAL = V_DESCONTO_CUSTO_OPERACIONAL
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 11 THEN
+        UPDATE EXAMES SET ETIQUETA = V_ETIQUETA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 12 THEN
+        UPDATE EXAMES SET MATERIAL = V_MATERIAL
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 13 THEN
+		UPDATE EXAMES SET MNEMONICO = V_MNEMONICO,
+                          MATERIAL  = V_MATERIAL,
+                          TIPO_COLETA = V_TIPO_COLETA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 14 THEN
+        UPDATE EXAMES SET AUTORIZACAO = V_AUTORIZACAO, SITUACAO_AUTORIZACAO = V_SITUACAO_AUTORIZACAO
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 15 THEN
+        UPDATE EXAMES SET SITUACAO = V_SITUACAO,
+                          ID_MEDICO_REALIZANTE1 = V_ID_MEDICO_REALIZANTE1,
+                          DATA_REA1 = V_DATA_REA1
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 16 THEN
+        UPDATE EXAMES SET LIB_FAT = V_LIB_FAT
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 17 THEN
+        UPDATE EXAMES SET POSTO_REA = V_POSTO_REA,
+                          IMPR_MAPA = V_IMPR_MAPA,
+                          ETIQUETA  = V_ETIQUETA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 18 THEN
+        UPDATE EXAMES SET SITUACAO_INTERFACE = V_SITUACAO_INTERFACE
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 19 THEN
+        UPDATE EXAMES SET DATA_ENT = V_DATA_ENT
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 20 THEN
+        UPDATE EXAMES SET SITUACAO = V_SITUACAO,
+                          ID_MEDICO_REALIZANTE2 = V_ID_MEDICO_REALIZANTE2,
+                          DATA_REA2 = V_DATA_REA2
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 21 THEN
+        UPDATE EXAMES SET DATA_COLE            = V_DATA_COLE,
+                          USUARIO_COLE         = V_USUARIO_COLE
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 22 THEN
+        UPDATE EXAMES SET TIPO_COLETA = V_TIPO_COLETA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 23 THEN
+        UPDATE EXAMES SET VALOR_PAGO = V_VALOR_PAGO
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	ELSIF V_FUNCAO = 24 THEN
+        UPDATE EXAMES SET VALOR_PAGO = 0
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+
+	ELSIF V_FUNCAO = 25 THEN
+        UPDATE EXAMES E SET VALOR_PAGO = VALOR_HON
+         WHERE POSTO = POSTO AND ATENDIMENTO = ATENDIMENTO AND CORREL = CORREL;
+
+	ELSIF V_FUNCAO = 26 THEN
+        UPDATE EXAMES SET POSTO_REA = V_POSTO_REA
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO AND CORREL = V_CORREL;
+
+	END IF;
+	
+    COMMIT WORK;
+END PRC_EXAMES;
+-- fim bloco
+
+--
+--POSTOS
+--
+ALTER TABLE POSTOS ADD HORA_ENT_FINAL VARCHAR2(5);
+-- fim bloco
+
+create or replace PROCEDURE PRC_POSTOS(V_POSTO                    IN OUT POSTOS.POSTO%TYPE,
+                                       V_NOME                      IN     POSTOS.NOME%TYPE,
+                                       V_INFORMATIZADO             IN     POSTOS.INFORMATIZADO%TYPE,
+                                       V_HORA_ENT                  IN     POSTOS.HORA_ENT%TYPE,
+                                       V_HORA_ENT_FINAL            IN     POSTOS.HORA_ENT_FINAL%TYPE,
+                                       V_INTERNO                   IN     POSTOS.INTERNO%TYPE,
+                                       V_DATA_CAD                  IN     POSTOS.DATA_CAD%TYPE,
+                                       V_REALIZA_EXAMES            IN     POSTOS.REALIZA_EXAMES%TYPE,
+                                       V_DIRECIONA_EXAMES          IN     POSTOS.DIRECIONA_EXAMES%TYPE,
+                                       V_STATUS                    IN     POSTOS.STATUS%TYPE,
+                                       V_COLETA_MATERIAL           IN     POSTOS.COLETA_MATERIAL%TYPE,
+                                       V_TIPO_POSTO                IN     POSTOS.TIPO_POSTO%TYPE,
+                                       V_PASS                      IN     POSTOS.PASS%TYPE,
+                                       V_ENDERECO                  IN     POSTOS.ENDERECO%TYPE,
+                                       V_MNEMONICO_POSTO           IN     POSTOS.MNEMONICO_POSTO%TYPE,
+                                       V_NOME_FICHA                IN     POSTOS.NOME_FICHA%TYPE,
+                                       V_LAYOUT_LAUDO              IN     POSTOS.LAYOUT_LAUDO%TYPE,
+                                       V_LAYOUT_PADRAO             IN     POSTOS.LAYOUT_PADRAO%TYPE,
+                                       V_IMPRIME_PARCIAL_DIGITADOS IN     POSTOS.IMPRIME_PARCIAL_DIGITADOS%TYPE,
+									   V_CONFIGURACAO              IN     POSTOS.CONFIGURACAO%TYPE,
+									   V_ID_INTERFACE_ENVIO_SMS    IN     POSTOS.ID_INTERFACE_ENVIO_SMS%TYPE,
+									   V_ID_INTERFACE_ENVIO_EMAIL  IN     POSTOS.ID_INTERFACE_ENVIO_EMAIL%TYPE,
+                                       V_FUNCAO                    IN     NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_POSTO.NEXTVAL INTO V_POSTO FROM DUAL;
+     INSERT INTO POSTOS VALUES (V_POSTO, V_NOME, V_INFORMATIZADO, V_HORA_ENT, V_INTERNO, V_DATA_CAD,
+                                V_REALIZA_EXAMES, V_DIRECIONA_EXAMES, V_STATUS, V_COLETA_MATERIAL, 
+                                V_TIPO_POSTO, V_PASS, V_ENDERECO, V_MNEMONICO_POSTO, V_NOME_FICHA, EMPTY_BLOB, V_LAYOUT_PADRAO,
+								V_IMPRIME_PARCIAL_DIGITADOS, V_CONFIGURACAO, V_ID_INTERFACE_ENVIO_SMS, V_ID_INTERFACE_ENVIO_EMAIL, V_HORA_ENT_FINAL);
+
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE POSTOS SET NOME = V_NOME,     INFORMATIZADO = V_INFORMATIZADO, 
+                             HORA_ENT = V_HORA_ENT, INTERNO = V_INTERNO, DATA_CAD = V_DATA_CAD,
+                             REALIZA_EXAMES = V_REALIZA_EXAMES, DIRECIONA_EXAMES = V_DIRECIONA_EXAMES,
+                             STATUS = V_STATUS, COLETA_MATERIAL = V_COLETA_MATERIAL, TIPO_POSTO = V_TIPO_POSTO, PASS = V_PASS,
+                             ENDERECO = V_ENDERECO, MNEMONICO_POSTO = V_MNEMONICO_POSTO, NOME_FICHA = V_NOME_FICHA, LAYOUT_PADRAO = V_LAYOUT_PADRAO,
+							 IMPRIME_PARCIAL_DIGITADOS = V_IMPRIME_PARCIAL_DIGITADOS, CONFIGURACAO = V_CONFIGURACAO,
+							 ID_INTERFACE_ENVIO_SMS = V_ID_INTERFACE_ENVIO_SMS, ID_INTERFACE_ENVIO_EMAIL = V_ID_INTERFACE_ENVIO_EMAIL, 
+               HORA_ENT_FINAL = V_HORA_ENT_FINAL
+                        WHERE POSTO = V_POSTO;
+  
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE POSTOS WHERE POSTO = V_POSTO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_POSTOS;
+-- fim bloco
+
+--
+--POSTOS_MEDICOS_RESPONSAVEIS                
+--
+ALTER TABLE POSTOS_MEDICOS_RESPONSAVEIS ADD ID_MEDICO_RESPONSAVEL NUMBER(6);
+-- fim bloco
+
+UPDATE POSTOS_MEDICOS_RESPONSAVEIS PMR SET PMR.ID_MEDICO_RESPONSAVEL = (SELECT M.ID_MEDICO
+                                                                          FROM MEDICOS M
+										 		                         WHERE M.CRM = PMR.CRM_RESPONSAVEL);
+-- fim bloco
+
+UPDATE POSTOS_MEDICOS_RESPONSAVEIS SET ID_MEDICO_RESPONSAVEL = -1 WHERE CRM_RESPONSAVEL = '-1';
+-- fim bloco
+
+ALTER TABLE POSTOS_MEDICOS_RESPONSAVEIS MODIFY ("ID_MEDICO_RESPONSAVEL" NOT NULL);
+-- fim bloco
+
+ALTER TABLE POSTOS_MEDICOS_RESPONSAVEIS DROP CONSTRAINT "POSTOS_MEDICOS_RESPONSAVEIS_PK";
+-- fim bloco
+
+DROP INDEX POSTOS_MEDICOS_RESPONSAVEIS_PK;
+-- fim bloco
+
+ALTER TABLE POSTOS_MEDICOS_RESPONSAVEIS ADD CONSTRAINT POSTOS_MEDICOS_RESPONSAVEIS_PK 
+      PRIMARY KEY ("POSTO","ID_MEDICO_RESPONSAVEL","SETOR") ENABLE;
+-- fim bloco
+
+ALTER TABLE POSTOS_MEDICOS_RESPONSAVEIS DROP COLUMN CRM_RESPONSAVEL;
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_POSTOS_MEDICOS_RESP(V_POSTO           IN POSTOS_MEDICOS_RESPONSAVEIS.POSTO%TYPE,
+                                                    V_SETOR           IN POSTOS_MEDICOS_RESPONSAVEIS.SETOR%TYPE,
+                                                    V_ID_MEDICO_RESPONSAVEL IN POSTOS_MEDICOS_RESPONSAVEIS.ID_MEDICO_RESPONSAVEL%TYPE,
+                                                    V_FUNCAO          IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO POSTOS_MEDICOS_RESPONSAVEIS VALUES (V_POSTO, V_SETOR, V_ID_MEDICO_RESPONSAVEL);
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE POSTOS_MEDICOS_RESPONSAVEIS WHERE POSTO = V_POSTO AND ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL AND SETOR = V_SETOR;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_POSTOS_MEDICOS_RESP;
+-- fim bloco 
+
+--
+-- VIEWS
+--
+
+--ATENDIMENTOS_VALORES                        
+  CREATE OR REPLACE FORCE VIEW "ATENDIMENTOS_VALORES" ("POSTO", "ATENDIMENTO", "CONTA_HOSP", "DATA_ATD", "REGISTRO", "CONVENIO", "MATRICULA", "CODIGO_PLANO", "DATA_FAT", "ID_SOLICITANTE", "SITUACAO", "LIB_FAT", "FATURAMENTO", "ID_FATURA", "GUIA_PRINCIPAL", "CARATER_ATENDIMENTO", "IDENTIFICACAO_BENEFICIARIO", "VALOR_DEVEDOR", "VALOR_PAGO", "VALOR_DESCONTO", "VALOR_EXAMES", "VALOR_EXAMES_CADASTRADOS", "VALOR_EXAMES_FATURADOS", "VALOR_ATENDIMENTO", "QT_EXAMES") AS 
+  SELECT A.POSTO, 
+         A.ATENDIMENTO,
+         NVL(CA.CONTA_HOSP,0) CONTA_HOSP,
+         A.DATA_ATD,
+         A.REGISTRO,
+         A.CONVENIO,
+         A.MATRICULA,
+         A.CODIGO_PLANO,
+         A.DATA_FAT,
+         A.ID_MEDICO_SOLICITANTE,
+         A.SITUACAO,
+         A.LIB_FAT,
+         A.FATURAMENTO,
+         A.ID_FATURA,
+         A.GUIA_PRINCIPAL,
+         A.CARATER_ATENDIMENTO,
+         A.IDENTIFICACAO_BENEFICIARIO,
+         D.VALOR VALOR_DEVEDOR,
+         SUM(C.VALOR) VALOR_PAGO,
+         SUM(C.DESCONTO) VALOR_DESCONTO,
+         GET_VALOR_EXAMES(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES,
+         GET_VALOR_EXAMES_CADASTRADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_CADASTRADOS,
+         GET_VALOR_EXAMES_FATURADOS(A.POSTO, A.ATENDIMENTO) VALOR_EXAMES_FATURADOS,
+         GET_VALOR_PAGO_ATENDIMENTO(A.POSTO, A.ATENDIMENTO) VALOR_ATENDIMENTO,
+         GET_COUNT_EXAMES_SITUACAO(A.POSTO, A.ATENDIMENTO, 'TODOS') QT_EXAMES
+    FROM ATENDIMENTOS A, 
+         CONTAS_ATENDIMENTOS CA, 
+         CAIXA C,
+         DEVEDORES D
+   WHERE CA.POSTO(+) = A.POSTO 
+     AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+     AND D.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.CONTA_HOSP(+) = CA.CONTA_HOSP
+     AND C.STATUS(+) = 'A'
+   GROUP BY A.POSTO, 
+            A.ATENDIMENTO,
+            CA.CONTA_HOSP,
+            A.DATA_ATD,
+            A.REGISTRO,
+            A.CONVENIO,
+            A.MATRICULA,
+            A.CODIGO_PLANO,
+            A.DATA_FAT,
+            A.ID_MEDICO_SOLICITANTE,
+            A.SITUACAO,
+            A.LIB_FAT,
+            A.FATURAMENTO,
+            A.ID_FATURA,
+            A.GUIA_PRINCIPAL,
+            A.CARATER_ATENDIMENTO,
+            A.IDENTIFICACAO_BENEFICIARIO,
+            D.VALOR;
+ -- fim bloco 
+			
+CREATE OR REPLACE
+FORCE VIEW "MEDICOS_WEB" ("CRM",
+                          "NOME",
+                          "CPF",
+                          "TIPO",
+                          "STATUS",
+                          "UF_CONSELHO",
+                          "TIPO_CR",
+                          "TELEFONE",
+                          "TELEFONE2",
+                          "EMAIL",
+                          "PASS",
+                          "ID_MEDICO",
+                          "DATA_NAS",
+                          "PREFIXO_NOME",
+                          "CODIGO_UNIMED",
+                          "ID_CBO",
+                          "ESPECIALIZACAO",
+                          "CNS") AS
+SELECT "CRM",
+       "NOME",
+       "CPF",
+       "TIPO",
+       "STATUS",
+       "UF_CONSELHO",
+       "TIPO_CR",
+       "TELEFONE",
+       "TELEFONE2",
+       "EMAIL",
+       "PASS",
+       "ID_MEDICO",
+       "DATA_NAS",
+       "PREFIXO_NOME",
+       "CODIGO_UNIMED",
+       "ID_CBO",
+       "ESPECIALIZACAO",
+       "CNS"
+FROM MEDICOS;
+-- fim bloco
+
+--AUMENTANDO ID_ACOMODACAO PARA 3 DIGITOS
+ALTER TABLE ACOMODACOES_TEMPOS_ENTREGA MODIFY ID_ACOMODACAO NUMBER(3);
+ -- fim bloco
+
+ALTER TABLE ACOMODACOES_POSTOS MODIFY ID_ACOMODACAO NUMBER(3);
+ -- fim bloco
+
+ALTER TABLE ACOMODACOES MODIFY ID_ACOMODACAO NUMBER(3);
+ -- fim bloco
+
+ALTER TABLE COMPLEMENTO_ATENDIMENTOS MODIFY ID_ACOMODACAO NUMBER(3);
+-- fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "RESULTADOS_WEB" ("REGISTRO",
+                                           "NOME",
+                                           "SEXO",
+                                           "DATA_NAS",
+                                           "IDENTIDADE",
+                                           "TELEFONE",
+                                           "ATENDIMENTO",
+                                           "DATA_ATD",
+                                           "POSTO",
+                                           "ID_MEDICO_SOLICITANTE",
+                                           "LIB_FAT",
+                                           "DATA_ENT",
+                                           "OBSERVACOES",
+                                           "USUARIO",
+                                           "CORREL",
+                                           "MNEMONICO",
+                                           "SITUACAO",
+                                           "SITUACAO_INTERFACE",
+                                           "PENDENCIA",
+                                           "DATA_COLE",
+                                           "ID_MEDICO_REALIZANTE1",
+                                           "ID_MEDICO_REALIZANTE2",
+                                           "NOME_PROCED",
+                                           "TIPO_ENTREGA",
+                                           "NOME_MED",
+                                           "NOME_CONV",
+                                           "NOME_POSTO") AS
+SELECT C.REGISTRO,
+       C.NOME,
+       C.SEXO,
+       C.DATA_NAS,
+       C.IDENTIDADE,
+       C.TELEFONE,
+       A.ATENDIMENTO,
+       A.DATA_ATD,
+       A.POSTO,
+       A.ID_MEDICO_SOLICITANTE,
+       A.LIB_FAT,
+       A.DATA_ENT,
+       E.OBSERVACOES,
+       E.USUARIO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       P.NOME NOME_PROCED,
+       P.TIPO_ENTREGA,
+       M.NOME NOME_MED,
+       CO.NOME NOME_CONV,
+       PO.NOME NOME_POSTO
+FROM CLIENTES C,
+     ATENDIMENTOS A,
+     EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M,
+     CONVENIOS CO,
+     POSTOS PO,
+     SETORES S,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE C.REGISTRO = A.REGISTRO
+  AND A.SITUACAO = 'A'
+  AND C.REGISTRO = A.REGISTRO
+  AND E.POSTO = A.POSTO
+  AND E.ATENDIMENTO = A.ATENDIMENTO
+  AND E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND S.SETOR(+) = P.SETOR
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND CO.CONVENIO(+) = A.CONVENIO
+  AND PO.POSTO(+) = A.POSTO
+ORDER BY ATENDIMENTO,
+         CORREL;
+-- fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "RESULTADOS_WEB" ("REGISTRO",
+                             "NOME",
+                             "SEXO",
+                             "DATA_NAS",
+                             "IDENTIDADE",
+                             "TELEFONE",
+                             "ATENDIMENTO",
+                             "DATA_ATD",
+                             "POSTO",
+                             "ID_MEDICO_SOLICITANTE",
+                             "LIB_FAT",
+                             "DATA_ENT",
+                             "OBSERVACOES",
+                             "USUARIO",
+                             "CORREL",
+                             "MNEMONICO",
+                             "SITUACAO",
+                             "SITUACAO_INTERFACE",
+                             "PENDENCIA",
+                             "DATA_COLE",
+                             "ID_MEDICO_REALIZANTE1",
+                             "ID_MEDICO_REALIZANTE2",
+                             "NOME_PROCED",
+                             "TIPO_ENTREGA",
+                             "NOME_MED",
+                             "NOME_CONV",
+                             "NOME_POSTO") AS
+SELECT C.REGISTRO,
+       C.NOME,
+       C.SEXO,
+       C.DATA_NAS,
+       C.IDENTIDADE,
+       C.TELEFONE,
+       A.ATENDIMENTO,
+       A.DATA_ATD,
+       A.POSTO,
+       A.ID_MEDICO_SOLICITANTE,
+       A.LIB_FAT,
+       A.DATA_ENT,
+       E.OBSERVACOES,
+       E.USUARIO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       P.NOME NOME_PROCED,
+       P.TIPO_ENTREGA,
+       M.NOME NOME_MED,
+       CO.NOME NOME_CONV,
+       PO.NOME NOME_POSTO
+FROM CLIENTES C,
+     ATENDIMENTOS A,
+     EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M,
+     CONVENIOS CO,
+     POSTOS PO,
+     SETORES S,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE C.REGISTRO = A.REGISTRO
+  AND A.SITUACAO = 'A'
+  AND C.REGISTRO = A.REGISTRO
+  AND E.POSTO = A.POSTO
+  AND E.ATENDIMENTO = A.ATENDIMENTO
+  AND E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND S.SETOR(+) = P.SETOR
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND CO.CONVENIO(+) = A.CONVENIO
+  AND PO.POSTO(+) = A.POSTO
+ORDER BY ATENDIMENTO,
+         CORREL;
+-- fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "VEX_ATENDIMENTOS" ("POSTO",
+                               "ATENDIMENTO",
+                               "REGISTRO",
+                               "DATA_ATD",
+                               "SOLICITANTE",
+                               "DATA_ENTREGA",
+                               "CONVENIO",
+                               "ID_SOLICITANTE",
+                               "NOME_SOLICITANTE",
+                               "NOME_CONVENIO",
+                               "NOME_POSTO",
+                               "ACOMODACAO",
+                               "LEITO",
+                               "SALDO_DEVEDOR",
+                               "SITUACAO_EXAMES_EXPERIENCE") AS
+SELECT A.POSTO,
+       A.ATENDIMENTO,
+       A.REGISTRO,
+       A.DATA_ATD,
+       A.ID_MEDICO_SOLICITANTE,
+       A.DATA_ENT,
+       A.CONVENIO,
+       M.ID_MEDICO,
+       M.NOME NOME_SOLICITANTE,
+       C.NOME NOME_CONVENIO,
+       P.NOME NOME_POSTO,
+       AC.NOME ACOMODACAO,
+       CA.LEITO,
+  (SELECT SUM(D.VALOR)
+   FROM DEVEDORES D,
+        CONTAS_ATENDIMENTOS CA
+   WHERE CA.POSTO = A.POSTO
+     AND CA.ATENDIMENTO = A.ATENDIMENTO
+     AND D.CONTA_HOSP = CA.CONTA_HOSP), GET_SITUACAO_EXAMES(A.POSTO, A.ATENDIMENTO)
+FROM ATENDIMENTOS A,
+     MEDICOS M,
+     CONVENIOS C,
+     POSTOS P,
+     ACOMODACOES AC,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE A.SITUACAO = 'A' -- cedro   AND TO_CHAR(A.DATA_ATD,'YYYY') >= '2010'
+
+  AND M.ID_MEDICO = A.ID_MEDICO_SOLICITANTE
+  AND C.CONVENIO = A.CONVENIO
+  AND P.POSTO = A.POSTO
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND AC.ID_ACOMODACAO(+) = CA.ID_ACOMODACAO
+ORDER BY POSTO,
+         ATENDIMENTO;
+--fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "VEX_EXAMES" ("POSTO",
+                         "ATENDIMENTO",
+                         "CORREL",
+                         "MNEMONICO",
+                         "SITUACAO",
+                         "SITUACAO_INTERFACE",
+                         "PENDENCIA",
+                         "DATA_COLE",
+                         "REALIZANTE1",
+                         "REALIZANTE2",
+                         "POSTO_REALIZANTE",
+                         "DATA_ENTREGA",
+                         "DATA_REA1",
+                         "DATA_REA2",
+                         "TIPO_COLETA",
+                         "USUARIO",
+                         "OBSERVACOES",
+                         "NOME_PROCEDIMENTO",
+                         "TIPO_ENTREGA",
+                         "NOME_REALIZANTE1",
+                         "NOME_REALIZANTE2",
+                         "ID_REALIZANTE1",
+                         "ID_REALIZANTE2",
+                         "NOME_POSTO_REALIZANTE",
+                         "TIPO_POSTO_REALIZANTE",
+                         "SITUACAO_EXPERIENCE",
+                         "AMOSTRA") AS
+SELECT E.POSTO,
+       E.ATENDIMENTO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       M1.CRM,
+       M2.CRM,
+       E.POSTO_REA,
+       E.DATA_ENT,
+       E.DATA_REA1,
+       E.DATA_REA2,
+       E.TIPO_COLETA,
+       E.USUARIO,
+       E.OBSERVACOES,
+       P.NOME,
+       P.TIPO_ENTREGA,
+       M1.NOME,
+       M2.NOME,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       PO.NOME,
+       PO.TIPO_POSTO,
+       GET_SITUACAO_EXAME(PENDENCIA, SITUACAO, SITUACAO_INTERFACE),
+       GET_AMOSTRA(E.POSTO, E.ATENDIMENTO, E.CORREL)
+FROM EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M1,
+     MEDICOS M2,
+     POSTOS PO
+WHERE E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND M1.ID_MEDICO(+) = E.ID_MEDICO_REALIZANTE1
+  AND M2.ID_MEDICO(+) = E.ID_MEDICO_REALIZANTE2
+  AND PO.POSTO = E.POSTO_REA
+ORDER BY POSTO,
+         ATENDIMENTO,
+         CORREL;
+-- fim bloco 
+
+CREATE OR REPLACE
+FORCE VIEW "VW_ATENDIMENTOS" ("POSTO",
+                              "ATENDIMENTO",
+                              "REGISTRO",
+                              "DATA_ATD",
+                              "SOLICITANTE",
+                              "DATA_ENTREGA",
+                              "CONVENIO",
+                              "ID_SOLICITANTE",
+                              "NOME_SOLICITANTE",
+                              "NOME_CONVENIO",
+                              "NOME_POSTO",
+                              "ACOMODACAO",
+                              "LEITO",
+                              "SALDO_DEVEDOR",
+                              "SITUACAO_EXAMES_EXPERIENCE") AS
+SELECT A.POSTO,
+       A.ATENDIMENTO,
+       A.REGISTRO,
+       A.DATA_ATD,
+       A.ID_MEDICO_SOLICITANTE,
+       A.DATA_ENT,
+       A.CONVENIO,
+       M.ID_MEDICO,
+       M.NOME NOME_SOLICITANTE,
+       C.NOME NOME_CONVENIO,
+       P.NOME NOME_POSTO,
+       AC.NOME ACOMODACAO,
+       CA.LEITO,
+  (SELECT SUM(D.VALOR)
+   FROM DEVEDORES D,
+        CONTAS_ATENDIMENTOS CA
+   WHERE CA.POSTO = A.POSTO
+     AND CA.ATENDIMENTO = A.ATENDIMENTO
+     AND D.CONTA_HOSP = CA.CONTA_HOSP), GET_SITUACAO_EXAMES(A.POSTO, A.ATENDIMENTO)
+FROM ATENDIMENTOS A,
+     MEDICOS M,
+     CONVENIOS C,
+     POSTOS P,
+     ACOMODACOES AC,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE A.SITUACAO = 'A'
+  AND M.ID_MEDICO = A.ID_MEDICO_SOLICITANTE
+  AND C.CONVENIO = A.CONVENIO
+  AND P.POSTO = A.POSTO
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND AC.ID_ACOMODACAO(+) = CA.ID_ACOMODACAO
+ORDER BY POSTO,
+         ATENDIMENTO;
+-- fim bloco 
+
+CREATE OR REPLACE
+FORCE VIEW "VW_EXAMES" ("POSTO",
+                        "ATENDIMENTO",
+                        "CORREL",
+                        "MNEMONICO",
+                        "SITUACAO",
+                        "SITUACAO_INTERFACE",
+                        "PENDENCIA",
+                        "DATA_COLE",
+                        "REALIZANTE1",
+                        "REALIZANTE2",
+                        "POSTO_REALIZANTE",
+                        "DATA_ENTREGA",
+                        "TIPO_COLETA",
+                        "USUARIO",
+                        "OBSERVACOES",
+                        "NOME_PROCEDIMENTO",
+                        "TIPO_ENTREGA",
+                        "NOME_REALIZANTE1",
+                        "NOME_REALIZANTE2",
+                        "NOME_POSTO_REALIZANTE",
+                        "SITUACAO_EXPERIENCE") AS
+SELECT E.POSTO,
+       E.ATENDIMENTO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       E.POSTO_REA,
+       E.DATA_ENT,
+       E.TIPO_COLETA,
+       E.USUARIO,
+       E.OBSERVACOES,
+       P.NOME,
+       P.TIPO_ENTREGA,
+       M1.NOME,
+       M2.NOME,
+       PO.NOME,
+       GET_SITUACAO_EXAME(PENDENCIA, SITUACAO, SITUACAO_INTERFACE)
+FROM EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M1,
+     MEDICOS M2,
+     POSTOS PO
+WHERE E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND M1.ID_MEDICO(+) = E.ID_MEDICO_REALIZANTE1
+  AND M2.ID_MEDICO(+) = E.ID_MEDICO_REALIZANTE2
+  AND PO.POSTO = E.POSTO_REA
+ORDER BY POSTO,
+         ATENDIMENTO,
+         CORREL;
+-- fim bloco 
+
+  CREATE OR REPLACE
+FORCE VIEW "VW_RESULTADOS" ("REGISTRO",
+                            "NOME",
+                            "SEXO",
+                            "DATA_NAS",
+                            "IDENTIDADE",
+                            "TELEFONE",
+                            "ATENDIMENTO",
+                            "DATA_ATD",
+                            "POSTO",
+                            "ID_MEDICO_SOLICITANTE",
+                            "LIB_FAT",
+                            "DATA_ENT",
+                            "OBSERVACOES",
+                            "USUARIO",
+                            "CORREL",
+                            "MNEMONICO",
+                            "SITUACAO",
+                            "SITUACAO_INTERFACE",
+                            "PENDENCIA",
+                            "DATA_COLE",
+                            "ID_MEDICO_REALIZANTE1",
+                            "ID_MEDICO_REALIZANTE2",
+                            "NOME_PROCED",
+                            "TIPO_ENTREGA",
+                            "NOME_MED",
+                            "NOME_CONV",
+                            "NOME_POSTO") AS
+SELECT C.REGISTRO,
+       C.NOME,
+       C.SEXO,
+       C.DATA_NAS,
+       C.IDENTIDADE,
+       C.TELEFONE,
+       A.ATENDIMENTO,
+       A.DATA_ATD,
+       A.POSTO,
+       A.ID_MEDICO_SOLICITANTE,
+       A.LIB_FAT,
+       A.DATA_ENT,
+       E.OBSERVACOES,
+       E.USUARIO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       P.NOME NOME_PROCED,
+       P.TIPO_ENTREGA,
+       M.NOME NOME_MED,
+       CO.NOME NOME_CONV,
+       PO.NOME NOME_POSTO
+FROM CLIENTES C,
+     ATENDIMENTOS A,
+     EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M,
+     CONVENIOS CO,
+     POSTOS PO,
+     SETORES S,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE C.REGISTRO = A.REGISTRO
+  AND A.SITUACAO = 'A'
+  AND C.REGISTRO = A.REGISTRO
+  AND E.POSTO = A.POSTO
+  AND E.ATENDIMENTO = A.ATENDIMENTO
+  AND E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND S.SETOR(+) = P.SETOR
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND CO.CONVENIO(+) = A.CONVENIO
+  AND PO.POSTO(+) = A.POSTO
+ORDER BY ATENDIMENTO,
+         CORREL;
+-- fim bloco
