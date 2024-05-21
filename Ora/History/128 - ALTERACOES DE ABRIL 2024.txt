@@ -1,0 +1,53 @@
+--
+-- INTERFACES_ENVIO
+--
+ALTER TABLE INTERFACES_ENVIO RENAME COLUMN DEVICES TO CONFIGURACAO;
+-- fim bloco
+
+ALTER TABLE INTERFACES_ENVIO MODIFY CONFIGURACAO VARCHAR2(4000);
+-- fim bloco
+
+
+create or replace
+PROCEDURE PRC_INTERFACES_ENVIO(
+                                                V_ID_INTERFACE_ENVIO   IN OUT INTERFACES_ENVIO.ID_INTERFACE_ENVIO%TYPE,
+                                                V_NOME                 IN     INTERFACES_ENVIO.NOME%TYPE,
+                                                V_TIPO_INTERFACE_ENVIO IN     INTERFACES_ENVIO.TIPO_INTERFACE_ENVIO%TYPE,
+                                                V_URL                  IN     INTERFACES_ENVIO.URL%TYPE,
+                                                V_PORTA                IN     INTERFACES_ENVIO.PORTA%TYPE,
+                                                V_USUARIO              IN     INTERFACES_ENVIO.USUARIO%TYPE,
+                                                V_SENHA                IN     INTERFACES_ENVIO.SENHA%TYPE,
+                                                V_CONFIGURACAO              IN     INTERFACES_ENVIO.CONFIGURACAO%TYPE,
+                                                V_FUNCAO               IN NUMBER
+                                            ) IS
+BEGIN
+    IF V_FUNCAO = 1 THEN
+        SELECT SQ_INTERFACES_ENVIO.NEXTVAL INTO V_ID_INTERFACE_ENVIO FROM DUAL;
+        INSERT INTO INTERFACES_ENVIO VALUES(V_ID_INTERFACE_ENVIO,  
+		                                    V_NOME,                
+		                                    V_TIPO_INTERFACE_ENVIO,
+		                                    V_URL,                 
+		                                    V_PORTA,               
+		                                    V_USUARIO,             
+		                                    V_SENHA,               
+		                                    V_CONFIGURACAO);             
+		
+
+    ELSIF V_FUNCAO = 2 THEN
+        UPDATE INTERFACES_ENVIO SET NOME = V_NOME, 
+									TIPO_INTERFACE_ENVIO = V_TIPO_INTERFACE_ENVIO,
+									URL = V_URL,
+									PORTA = V_PORTA,
+									USUARIO = V_USUARIO,
+									SENHA = V_SENHA,
+									CONFIGURACAO = V_CONFIGURACAO
+                              WHERE ID_INTERFACE_ENVIO = V_ID_INTERFACE_ENVIO;
+
+    ELSIF V_FUNCAO = 3 THEN
+        DELETE INTERFACES_ENVIO WHERE ID_INTERFACE_ENVIO = V_ID_INTERFACE_ENVIO;
+
+    END IF;
+
+    COMMIT WORK;
+END PRC_INTERFACES_ENVIO;
+-- fim bloco
