@@ -1,0 +1,85 @@
+--
+-- TAXAS_OPERADORAS (com quantidade de parcelas)
+--
+CREATE TABLE TAXAS_OPERADORAS (
+    ID_TAXA          NUMBER(5)  NOT NULL,          -- Identificador da taxa
+    ID_BANDEIRA      NUMBER(3)  NOT NULL,          -- Relacionamento com a tabela BANDEIRAS
+    ID_OPERADORA     NUMBER(3)  NOT NULL,          -- Relacionamento com a tabela OPERADORAS
+    TIPO_TAXA        VARCHAR2(20),                 -- Tipo de taxa (Crédito, Débito, etc.)
+    NUMERO_PARCELAS  NUMBER(2)  NOT NULL,          -- Número de parcelas para a taxa
+    VALOR_TAXA       NUMBER(5,2) NOT NULL,         -- Percentual da taxa
+    DATA_INICIO      DATE      NOT NULL,           -- Data de início da taxa
+    DATA_FIM         DATE,                         -- Data de fim da taxa (opcional)
+    USUARIO          VARCHAR2(10) NOT NULL,        -- Usuário que cadastrou a taxa
+    STATUS_TAXA      VARCHAR2(1)  NOT NULL         -- Status da taxa (A - Ativo, I - Inativo)
+);
+-- fim bloco
+
+ALTER TABLE TAXAS_OPERADORAS ADD CONSTRAINT TAXA_PK PRIMARY KEY (ID_TAXA);
+-- fim bloco
+
+ALTER TABLE TAXAS_OPERADORAS ADD CONSTRAINT FK_TAXA_BANDEIRA 
+    FOREIGN KEY (ID_BANDEIRA) REFERENCES BANDEIRAS(ID_BANDEIRA);
+-- fim bloco
+
+ALTER TABLE TAXAS_OPERADORAS ADD CONSTRAINT FK_TAXA_OPERADORA 
+    FOREIGN KEY (ID_OPERADORA) REFERENCES OPERADORAS(ID_OPERADORA);
+-- fim bloco
+
+CREATE SEQUENCE SQ_TAXAS_OPERADORAS
+MINVALUE 0
+MAXVALUE 999999999
+INCREMENT BY 1
+START WITH 1
+NOCACHE
+NOORDER;
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_TAXAS_OPERADORAS(
+                                        V_ID_TAXA          IN OUT TAXAS_OPERADORAS.ID_TAXA%TYPE,
+                                        V_ID_BANDEIRA      IN     TAXAS_OPERADORAS.ID_BANDEIRA%TYPE,
+                                        V_ID_OPERADORA     IN     TAXAS_OPERADORAS.ID_OPERADORA%TYPE,
+                                        V_TIPO_TAXA        IN     TAXAS_OPERADORAS.TIPO_TAXA%TYPE,
+                                        V_NUMERO_PARCELAS  IN     TAXAS_OPERADORAS.NUMERO_PARCELAS%TYPE,
+                                        V_VALOR_TAXA       IN     TAXAS_OPERADORAS.VALOR_TAXA%TYPE,
+                                        V_DATA_INICIO      IN     TAXAS_OPERADORAS.DATA_INICIO%TYPE,
+                                        V_DATA_FIM         IN     TAXAS_OPERADORAS.DATA_FIM%TYPE,
+										V_USUARIO          IN     TAXAS_OPERADORAS.USUARIO%TYPE,
+										V_STATUS_TAXA      IN     TAXAS_OPERADORAS.STATUS_TAXA%TYPE,
+                                        V_FUNCAO           IN     NUMBER
+                                        ) IS
+BEGIN
+    IF V_FUNCAO = 1 THEN
+        SELECT SQ_TAXAS_OPERADORAS.NEXTVAL INTO V_ID_TAXA FROM DUAL;
+        INSERT INTO TAXAS_OPERADORAS (ID_TAXA, ID_BANDEIRA, ID_OPERADORA, TIPO_TAXA, NUMERO_PARCELAS, VALOR_TAXA, DATA_INICIO, DATA_FIM, USUARIO, STATUS_TAXA)
+        VALUES (V_ID_TAXA, V_ID_BANDEIRA, V_ID_OPERADORA, V_TIPO_TAXA, V_NUMERO_PARCELAS, V_VALOR_TAXA, V_DATA_INICIO, V_DATA_FIM, V_USUARIO, V_STATUS_TAXA);
+
+    ELSIF V_FUNCAO = 2 THEN
+        UPDATE TAXAS_OPERADORAS 
+        SET ID_BANDEIRA      = V_ID_BANDEIRA,
+            ID_OPERADORA     = V_ID_OPERADORA,
+            TIPO_TAXA        = V_TIPO_TAXA,
+            NUMERO_PARCELAS  = V_NUMERO_PARCELAS,
+            VALOR_TAXA       = V_VALOR_TAXA,
+            DATA_INICIO      = V_DATA_INICIO,
+            DATA_FIM         = V_DATA_FIM,
+            USUARIO          = V_USUARIO,
+            STATUS_TAXA      = V_STATUS_TAXA
+        WHERE ID_TAXA = V_ID_TAXA;
+
+    ELSIF V_FUNCAO = 3 THEN
+        DELETE FROM TAXAS_OPERADORAS WHERE ID_TAXA = V_ID_TAXA;
+
+    ELSIF V_FUNCAO = 4 THEN
+        UPDATE TAXAS_OPERADORAS 
+        SET VALOR_TAXA       = V_VALOR_TAXA,
+            NUMERO_PARCELAS  = V_NUMERO_PARCELAS,
+            DATA_INICIO      = V_DATA_INICIO,
+            DATA_FIM         = V_DATA_FIM,
+            USUARIO          = V_USUARIO
+        WHERE ID_TAXA = V_ID_TAXA;
+    END IF;
+
+    COMMIT WORK;
+END PRC_TAXAS_OPERADORAS;
+-- fim bloco

@@ -1,0 +1,27 @@
+create or replace FUNCTION GET_ETIQUETA_SETOR_MNEMONICOS(V_POSTO       IN NUMBER,
+                                                         V_ATENDIMENTO IN NUMBER,
+										                                     V_ETIQUETA    IN NUMBER, 
+                                                         V_SETOR       IN NUMBER) RETURN VARCHAR2 IS MNEMONICOS VARCHAR2(2000);
+
+    CURSOR CUR_MNEMONICOS IS
+      SELECT E.MNEMONICO 
+	    FROM EXAMES E, PROCEDIMENTOS P 
+	   WHERE E.POSTO = V_POSTO 
+	     AND E.ATENDIMENTO = V_ATENDIMENTO 
+		   AND E.ETIQUETA = V_ETIQUETA
+       AND P.MNEMONICO = E.MNEMONICO
+		   AND P.SETOR = V_SETOR;
+
+BEGIN
+
+MNEMONICOS := '';
+
+FOR MNEMONICOS_REC in CUR_MNEMONICOS
+LOOP
+    MNEMONICOS := MNEMONICOS || MNEMONICOS_REC.MNEMONICO || ' ';
+END LOOP;
+
+RETURN MNEMONICOS;
+
+END;
+-- fim bloco

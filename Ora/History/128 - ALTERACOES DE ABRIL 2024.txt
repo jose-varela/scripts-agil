@@ -51,3 +51,7 @@ BEGIN
     COMMIT WORK;
 END PRC_INTERFACES_ENVIO;
 -- fim bloco
+
+criar index CLIENTES_B2B equipamento + codigo externo
+            ATENDIMENTOS_B2B
+			exames_b2b
