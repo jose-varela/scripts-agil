@@ -1,0 +1,488 @@
+--
+-- ATENDIMENTOS - solicitante avulso
+-- Contexto: cliente de rede publica precisa cadastrar o medico solicitante
+-- so pelo nome, sem vinculo com o cadastro de MEDICOS (sem CRM formal, nao
+-- passa por TISS). Em vez de afrouxar ATENDIMENTOS_MEDICOS_FK ou criar um
+-- registro coringa dentro de MEDICOS, ID_MEDICO_SOLICITANTE passa a aceitar
+-- NULL -- a FK continua ativa e obrigatoria sempre que houver valor, so
+-- passa a permitir a ausencia dele quando o atendimento usa solicitante
+-- avulso. O nome avulso fica numa tabela satelite separada (bloco seguinte),
+-- nao dentro de ATENDIMENTOS, pra nao alterar a tabela mais central do
+-- sistema pra um dado que a maioria dos clientes nunca vai usar.
+--
+ALTER TABLE ATENDIMENTOS MODIFY ("ID_MEDICO_SOLICITANTE" NULL);
+-- fim bloco
+
+--
+-- ATEND_SOLICITANTE_AVULSO
+-- Tabela satelite 1:0..1 de ATENDIMENTOS. So existe linha aqui quando
+-- ID_MEDICO_SOLICITANTE (bloco acima) esta NULL. FK com ON DELETE CASCADE
+-- pra acompanhar o ciclo de vida do atendimento sem precisar de passo extra
+-- na exclusao.
+--
+CREATE TABLE ATEND_SOLICITANTE_AVULSO (
+  POSTO            NUMBER        NOT NULL,
+  ATENDIMENTO      NUMBER        NOT NULL,
+  NOME_SOLICITANTE VARCHAR2(120) NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE ATEND_SOLICITANTE_AVULSO ADD CONSTRAINT ATEND_SOLICITANTE_AVULSO_PK
+  PRIMARY KEY (POSTO, ATENDIMENTO) ENABLE;
+-- fim bloco
+
+ALTER TABLE ATEND_SOLICITANTE_AVULSO ADD CONSTRAINT ATEND_SOLICITANTE_AVULSO_FK
+  FOREIGN KEY (POSTO, ATENDIMENTO) REFERENCES ATENDIMENTOS (POSTO, ATENDIMENTO) ON DELETE CASCADE ENABLE;
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_ATEND_SOLICITANTE_AVULSO(V_POSTO            IN ATEND_SOLICITANTE_AVULSO.POSTO%TYPE,
+                                        V_ATENDIMENTO      IN ATEND_SOLICITANTE_AVULSO.ATENDIMENTO%TYPE,
+                                        V_NOME_SOLICITANTE IN ATEND_SOLICITANTE_AVULSO.NOME_SOLICITANTE%TYPE,
+                                        V_FUNCAO           IN NUMBER) IS
+  V_ACHEI NUMBER(1);
+  CURSOR CUR_PROCURA IS
+    SELECT 1 FROM ATEND_SOLICITANTE_AVULSO WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     OPEN CUR_PROCURA;
+     FETCH CUR_PROCURA INTO V_ACHEI;
+     IF CUR_PROCURA%NOTFOUND THEN
+        INSERT INTO ATEND_SOLICITANTE_AVULSO VALUES (V_POSTO, V_ATENDIMENTO, V_NOME_SOLICITANTE);
+     ELSE
+        UPDATE ATEND_SOLICITANTE_AVULSO SET NOME_SOLICITANTE = V_NOME_SOLICITANTE
+         WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+     END IF;
+     CLOSE CUR_PROCURA;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE ATEND_SOLICITANTE_AVULSO WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO;
+  END IF;
+  COMMIT WORK;
+END PRC_ATEND_SOLICITANTE_AVULSO;
+-- fim bloco
+
+--
+-- SERVICOS_ADM - PERMITE_SOLICITANTE_AVULSO
+-- Mesmo padrao ja usado em MARDUK_CRM_ATIVO (script 140): toggle S/N por
+-- instalacao, pra rollout gradual -- so os clientes que pediram (atendimento
+-- de rede publica, sem TISS) ligam essa flag; os demais continuam exigindo
+-- o solicitante vinculado ao cadastro de MEDICOS, como hoje. Lado Delphi
+-- tolera ausencia da coluna (guard FindField em modUO.pas).
+--
+-- ACHADO ao testar contra schema UNIMED (LIS_CODEMED): esse banco ja tem
+-- SERVICOS_ADM.ID_INSTANCIA (coluna 63, entre MARDUK_CRM_ATIVO e esta),
+-- aplicada fora deste historico numerado -- ver docs/guia-atualizacao-clientes.md,
+-- item 1. O PRC_SERVICOS_ADM abaixo foi reconstruido a partir do script 140,
+-- que nao conhece essa coluna; por isso o V_ID_INSTANCIA foi incluido aqui
+-- tambem (parametro, INSERT e os dois UPDATE), na posicao real da coluna,
+-- pra nao regredir quem ja tem ID_INSTANCIA. U_ConfiguraAmbiente.pas ja conta
+-- com esse parametro (guard FindParam). Se o banco de destino nao tiver essa
+-- coluna ainda, rodar primeiro o ALTER TABLE do guia antes deste bloco.
+--
+ALTER TABLE SERVICOS_ADM ADD PERMITE_SOLICITANTE_AVULSO VARCHAR2(1) DEFAULT 'N';
+-- fim bloco
+
+ALTER TABLE SERVICOS_ADM MODIFY PERMITE_SOLICITANTE_AVULSO NOT NULL;
+-- fim bloco
+
+create or replace PROCEDURE PRC_SERVICOS_ADM(V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                              V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                              V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                              V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                              V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                              V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                              V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                              V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                              V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                              V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                              V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                              V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                              V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                              V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                              V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                              V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                              V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                              V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                              V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                              V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                              V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                              V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                              V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                              V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                              V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                              V_E_MAIL                    IN SERVICOS_ADM.E_MAIL%TYPE,
+                                              V_IMPRIME_INF_LIBERACAO     IN SERVICOS_ADM.IMPRIME_INF_LIBERACAO%TYPE,
+                                              V_UNICODE                   IN SERVICOS_ADM.UNICODE%TYPE,
+                                              V_LARGURA_FORMULARIO        IN SERVICOS_ADM.LARGURA_FORMULARIO%TYPE,
+                                              V_ALTURA_FORMULARIO         IN SERVICOS_ADM.ALTURA_FORMULARIO%TYPE,
+                                              V_LARGURA_LAUDO             IN SERVICOS_ADM.LARGURA_LAUDO%TYPE,
+                                              V_POSICAO_ESQUERDA_LAUDO    IN SERVICOS_ADM.POSICAO_ESQUERDA_LAUDO%TYPE,
+                                              V_FIXA_ASSINATURA_RODAPE    IN SERVICOS_ADM.FIXA_ASSINATURA_RODAPE%TYPE,
+                                              V_REVISAO_RESULTADOS        IN SERVICOS_ADM.REVISAO_RESULTADOS%TYPE,
+                                              V_TEMPO_PUBLICACAO_WEB      IN SERVICOS_ADM.TEMPO_PUBLICACAO_WEB%TYPE,
+                                              V_TEMPO_PUBLICACAO_INTERNA  IN SERVICOS_ADM.TEMPO_PUBLICACAO_INTERNA%TYPE,
+                                              V_LARGURA_ETIQUETA          IN SERVICOS_ADM.LARGURA_ETIQUETA%TYPE,
+                                              V_ALTURA_ETIQUETA           IN SERVICOS_ADM.ALTURA_ETIQUETA%TYPE,
+                                              V_CONFERE_GUIAS             IN SERVICOS_ADM.CONFERE_GUIAS%TYPE,
+                                              V_FORMULARIO_LAUDO          IN SERVICOS_ADM.FORMULARIO_LAUDO%TYPE,
+                                              V_CNES                      IN SERVICOS_ADM.CNES%TYPE,
+                                              V_LAYOUT_LAUDO              IN SERVICOS_ADM.LAYOUT_LAUDO%TYPE,
+                                              V_ID_MEDICO_RESPONSAVEL     IN SERVICOS_ADM.ID_MEDICO_RESPONSAVEL%TYPE,
+                                              V_PROXY                     IN SERVICOS_ADM.PROXY%TYPE,
+                                              V_LOGIN_PROXY               IN SERVICOS_ADM.LOGIN_PROXY%TYPE,
+                                              V_PASS_PROXY                IN SERVICOS_ADM.PASS_PROXY%TYPE,
+                                              V_ID_ADM_RESPONSAVEL        IN SERVICOS_ADM.ID_ADM_RESPONSAVEL%TYPE,
+                                              V_IMPRIME_HISTORICO         IN SERVICOS_ADM.IMPRIME_HISTORICO%TYPE,
+                                              V_DATA_INICIO_HISTORICO     IN SERVICOS_ADM.DATA_INICIO_HISTORICO%TYPE,
+                                              V_IMPRIME_HASH              IN SERVICOS_ADM.IMPRIME_HASH%TYPE,
+                                              V_IMPRIME_VALORES_ORCAMENTO IN SERVICOS_ADM.IMPRIME_VALORES_ORCAMENTO%TYPE,
+											  V_ID_INTERFACE_ENVIO_SMS    IN SERVICOS_ADM.ID_INTERFACE_ENVIO_SMS%TYPE,
+											  V_ID_INTERFACE_ENVIO_EMAIL  IN SERVICOS_ADM.ID_INTERFACE_ENVIO_EMAIL%TYPE,
+											  V_ID_CONTRATO               IN SERVICOS_ADM.ID_CONTRATO%TYPE,
+											  V_IMPRIME_QR_CODE           IN SERVICOS_ADM.IMPRIME_QR_CODE%TYPE,
+											  V_EXIGE_ENDERECO            IN SERVICOS_ADM.EXIGE_ENDERECO%TYPE,
+											  V_EXIGE_RESPONSAVEL_MENOR   IN SERVICOS_ADM.EXIGE_RESPONSAVEL_MENOR%TYPE,
+											  V_IMPRIME_VALORES_FICHA     IN SERVICOS_ADM.IMPRIME_VALORES_FICHA%TYPE,
+											  V_EXPORTA_PDF_SENHA         IN SERVICOS_ADM.EXPORTA_PDF_SENHA%TYPE,
+											  V_MARDUK_API_KEY            IN SERVICOS_ADM.MARDUK_API_KEY%TYPE,
+											  V_MARDUK_CRM_API_KEY        IN SERVICOS_ADM.MARDUK_CRM_API_KEY%TYPE,
+											  V_MARDUK_CRM_ATIVO          IN SERVICOS_ADM.MARDUK_CRM_ATIVO%TYPE,
+											  V_ID_INSTANCIA              IN SERVICOS_ADM.ID_INSTANCIA%TYPE,
+											  V_PERMITE_SOLICITANTE_AVULSO IN SERVICOS_ADM.PERMITE_SOLICITANTE_AVULSO%TYPE,
+                                              V_FUNCAO                    IN NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+
+      INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, '', '',
+                                       V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                       V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF,
+                                       V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE,
+                                       V_E_MAIL, V_IMPRIME_INF_LIBERACAO, V_UNICODE, V_LARGURA_FORMULARIO, V_ALTURA_FORMULARIO, V_LARGURA_LAUDO,
+                                       V_POSICAO_ESQUERDA_LAUDO, V_FIXA_ASSINATURA_RODAPE, V_REVISAO_RESULTADOS, V_TEMPO_PUBLICACAO_WEB,
+ 	    			                   V_TEMPO_PUBLICACAO_INTERNA, V_LARGURA_ETIQUETA, V_ALTURA_ETIQUETA, V_CONFERE_GUIAS, V_FORMULARIO_LAUDO,
+ 									   V_CNES, EMPTY_BLOB, V_ID_MEDICO_RESPONSAVEL, V_PROXY, V_LOGIN_PROXY, V_PASS_PROXY, V_ID_ADM_RESPONSAVEL,
+                                       V_IMPRIME_HISTORICO, v_DATA_INICIO_HISTORICO, V_IMPRIME_HASH, V_IMPRIME_VALORES_ORCAMENTO,
+									   V_ID_INTERFACE_ENVIO_SMS, V_ID_INTERFACE_ENVIO_EMAIL, '', V_IMPRIME_QR_CODE, V_EXIGE_ENDERECO, V_EXIGE_RESPONSAVEL_MENOR,
+									   V_IMPRIME_VALORES_FICHA, V_EXPORTA_PDF_SENHA, '', '', V_MARDUK_CRM_ATIVO, NULL, V_PERMITE_SOLICITANTE_AVULSO);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO, DATA_HORA_ALT = V_DATA_HORA_ALT,
+	                          USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                              CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                              TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                              WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO,
+                              IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE, RESULTADOS_WEB = V_RESULTADOS_WEB, E_MAIL = V_E_MAIL,
+                              IMPRIME_INF_LIBERACAO = V_IMPRIME_INF_LIBERACAO, UNICODE = V_UNICODE, LARGURA_FORMULARIO = V_LARGURA_FORMULARIO,
+                              ALTURA_FORMULARIO = V_ALTURA_FORMULARIO, LARGURA_LAUDO = V_LARGURA_LAUDO, POSICAO_ESQUERDA_LAUDO = V_POSICAO_ESQUERDA_LAUDO,
+ 			                  FIXA_ASSINATURA_RODAPE = V_FIXA_ASSINATURA_RODAPE, REVISAO_RESULTADOS = V_REVISAO_RESULTADOS, TEMPO_PUBLICACAO_WEB = V_TEMPO_PUBLICACAO_WEB,
+ 			                  TEMPO_PUBLICACAO_INTERNA = V_TEMPO_PUBLICACAO_INTERNA, LARGURA_ETIQUETA = V_LARGURA_ETIQUETA, ALTURA_ETIQUETA = V_ALTURA_ETIQUETA,
+                              CONFERE_GUIAS = V_CONFERE_GUIAS, FORMULARIO_LAUDO = V_FORMULARIO_LAUDO, CNES = V_CNES, ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL,
+                              PROXY = V_PROXY, LOGIN_PROXY = V_LOGIN_PROXY, PASS_PROXY = V_PASS_PROXY, ID_ADM_RESPONSAVEL = V_ID_ADM_RESPONSAVEL,
+                              IMPRIME_HISTORICO = V_IMPRIME_HISTORICO, DATA_INICIO_HISTORICO = V_DATA_INICIO_HISTORICO, IMPRIME_HASH = V_IMPRIME_HASH,
+							  IMPRIME_VALORES_ORCAMENTO = V_IMPRIME_VALORES_ORCAMENTO, ID_INTERFACE_ENVIO_SMS = V_ID_INTERFACE_ENVIO_SMS,
+							  ID_INTERFACE_ENVIO_EMAIL = V_ID_INTERFACE_ENVIO_EMAIL, IMPRIME_QR_CODE = V_IMPRIME_QR_CODE, EXIGE_ENDERECO = V_EXIGE_ENDERECO,
+							  EXIGE_RESPONSAVEL_MENOR = V_EXIGE_RESPONSAVEL_MENOR, IMPRIME_VALORES_FICHA = V_IMPRIME_VALORES_FICHA, EXPORTA_PDF_SENHA = V_EXPORTA_PDF_SENHA,
+							  ID_INSTANCIA = V_ID_INSTANCIA,
+							  PERMITE_SOLICITANTE_AVULSO = V_PERMITE_SOLICITANTE_AVULSO
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+
+   ELSIF V_FUNCAO = 4 THEN
+      UPDATE SERVICOS_ADM SET RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, ID_CONTRATO = V_ID_CONTRATO, MARDUK_API_KEY = V_MARDUK_API_KEY,
+                        MARDUK_CRM_API_KEY = V_MARDUK_CRM_API_KEY, MARDUK_CRM_ATIVO = V_MARDUK_CRM_ATIVO, ID_INSTANCIA = V_ID_INSTANCIA
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   END IF;
+   COMMIT WORK;
+ END PRC_SERVICOS_ADM;
+ -- fim bloco
+
+--
+-- VIEWS - solicitante avulso
+-- VEX_ATENDIMENTOS e VW_ATENDIMENTOS faziam M.ID_MEDICO = A.ID_MEDICO_SOLICITANTE
+-- sem outer join -- com a coluna agora aceitando NULL, isso faria essas views
+-- sumirem com a linha inteira do atendimento avulso (equijoin nao casa NULL).
+-- RESULTADOS_WEB/VW_RESULTADOS ja usavam M.ID_MEDICO(+), entao a linha nao
+-- sumia, mas NOME_MED voltava NULL. Fix comum aos quatro: LEFT JOIN em MEDICOS
+-- e em ATEND_SOLICITANTE_AVULSO, com COALESCE(nome do medico, nome avulso).
+--
+CREATE OR REPLACE
+FORCE VIEW "VEX_ATENDIMENTOS" ("POSTO",
+                               "ATENDIMENTO",
+                               "REGISTRO",
+                               "DATA_ATD",
+                               "SOLICITANTE",
+                               "DATA_ENTREGA",
+                               "CONVENIO",
+                               "ID_SOLICITANTE",
+                               "NOME_SOLICITANTE",
+                               "NOME_CONVENIO",
+                               "NOME_POSTO",
+                               "ACOMODACAO",
+                               "LEITO",
+                               "SALDO_DEVEDOR",
+                               "SITUACAO_EXAMES_EXPERIENCE") AS
+SELECT A.POSTO,
+       A.ATENDIMENTO,
+       A.REGISTRO,
+       A.DATA_ATD,
+       A.ID_MEDICO_SOLICITANTE,
+       A.DATA_ENT,
+       A.CONVENIO,
+       M.ID_MEDICO,
+       COALESCE(M.NOME, SA.NOME_SOLICITANTE) NOME_SOLICITANTE,
+       C.NOME NOME_CONVENIO,
+       P.NOME NOME_POSTO,
+       AC.NOME ACOMODACAO,
+       CA.LEITO,
+  (SELECT SUM(D.VALOR)
+   FROM DEVEDORES D,
+        CONTAS_ATENDIMENTOS CA
+   WHERE CA.POSTO = A.POSTO
+     AND CA.ATENDIMENTO = A.ATENDIMENTO
+     AND D.CONTA_HOSP = CA.CONTA_HOSP), GET_SITUACAO_EXAMES(A.POSTO, A.ATENDIMENTO)
+FROM ATENDIMENTOS A,
+     MEDICOS M,
+     ATEND_SOLICITANTE_AVULSO SA,
+     CONVENIOS C,
+     POSTOS P,
+     ACOMODACOES AC,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE A.SITUACAO = 'A' -- cedro   AND TO_CHAR(A.DATA_ATD,'YYYY') >= '2010'
+
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND SA.POSTO(+) = A.POSTO
+  AND SA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND C.CONVENIO = A.CONVENIO
+  AND P.POSTO = A.POSTO
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND AC.ID_ACOMODACAO(+) = CA.ID_ACOMODACAO
+ORDER BY POSTO,
+         ATENDIMENTO;
+--fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "VW_ATENDIMENTOS" ("POSTO",
+                              "ATENDIMENTO",
+                              "REGISTRO",
+                              "DATA_ATD",
+                              "SOLICITANTE",
+                              "DATA_ENTREGA",
+                              "CONVENIO",
+                              "ID_SOLICITANTE",
+                              "NOME_SOLICITANTE",
+                              "NOME_CONVENIO",
+                              "NOME_POSTO",
+                              "ACOMODACAO",
+                              "LEITO",
+                              "SALDO_DEVEDOR",
+                              "SITUACAO_EXAMES_EXPERIENCE") AS
+SELECT A.POSTO,
+       A.ATENDIMENTO,
+       A.REGISTRO,
+       A.DATA_ATD,
+       A.ID_MEDICO_SOLICITANTE,
+       A.DATA_ENT,
+       A.CONVENIO,
+       M.ID_MEDICO,
+       COALESCE(M.NOME, SA.NOME_SOLICITANTE) NOME_SOLICITANTE,
+       C.NOME NOME_CONVENIO,
+       P.NOME NOME_POSTO,
+       AC.NOME ACOMODACAO,
+       CA.LEITO,
+  (SELECT SUM(D.VALOR)
+   FROM DEVEDORES D,
+        CONTAS_ATENDIMENTOS CA
+   WHERE CA.POSTO = A.POSTO
+     AND CA.ATENDIMENTO = A.ATENDIMENTO
+     AND D.CONTA_HOSP = CA.CONTA_HOSP), GET_SITUACAO_EXAMES(A.POSTO, A.ATENDIMENTO)
+FROM ATENDIMENTOS A,
+     MEDICOS M,
+     ATEND_SOLICITANTE_AVULSO SA,
+     CONVENIOS C,
+     POSTOS P,
+     ACOMODACOES AC,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE A.SITUACAO = 'A'
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND SA.POSTO(+) = A.POSTO
+  AND SA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND C.CONVENIO = A.CONVENIO
+  AND P.POSTO = A.POSTO
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND AC.ID_ACOMODACAO(+) = CA.ID_ACOMODACAO
+ORDER BY POSTO,
+         ATENDIMENTO;
+-- fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "RESULTADOS_WEB" ("REGISTRO",
+                             "NOME",
+                             "SEXO",
+                             "DATA_NAS",
+                             "IDENTIDADE",
+                             "TELEFONE",
+                             "ATENDIMENTO",
+                             "DATA_ATD",
+                             "POSTO",
+                             "ID_MEDICO_SOLICITANTE",
+                             "LIB_FAT",
+                             "DATA_ENT",
+                             "OBSERVACOES",
+                             "USUARIO",
+                             "CORREL",
+                             "MNEMONICO",
+                             "SITUACAO",
+                             "SITUACAO_INTERFACE",
+                             "PENDENCIA",
+                             "DATA_COLE",
+                             "ID_MEDICO_REALIZANTE1",
+                             "ID_MEDICO_REALIZANTE2",
+                             "NOME_PROCED",
+                             "TIPO_ENTREGA",
+                             "NOME_MED",
+                             "NOME_CONV",
+                             "NOME_POSTO") AS
+SELECT C.REGISTRO,
+       C.NOME,
+       C.SEXO,
+       C.DATA_NAS,
+       C.IDENTIDADE,
+       C.TELEFONE,
+       A.ATENDIMENTO,
+       A.DATA_ATD,
+       A.POSTO,
+       A.ID_MEDICO_SOLICITANTE,
+       A.LIB_FAT,
+       A.DATA_ENT,
+       E.OBSERVACOES,
+       E.USUARIO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       P.NOME NOME_PROCED,
+       P.TIPO_ENTREGA,
+       COALESCE(M.NOME, SA.NOME_SOLICITANTE) NOME_MED,
+       CO.NOME NOME_CONV,
+       PO.NOME NOME_POSTO
+FROM CLIENTES C,
+     ATENDIMENTOS A,
+     EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M,
+     ATEND_SOLICITANTE_AVULSO SA,
+     CONVENIOS CO,
+     POSTOS PO,
+     SETORES S,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE C.REGISTRO = A.REGISTRO
+  AND A.SITUACAO = 'A'
+  AND C.REGISTRO = A.REGISTRO
+  AND E.POSTO = A.POSTO
+  AND E.ATENDIMENTO = A.ATENDIMENTO
+  AND E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND S.SETOR(+) = P.SETOR
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND SA.POSTO(+) = A.POSTO
+  AND SA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND CO.CONVENIO(+) = A.CONVENIO
+  AND PO.POSTO(+) = A.POSTO
+ORDER BY ATENDIMENTO,
+         CORREL;
+-- fim bloco
+
+CREATE OR REPLACE
+FORCE VIEW "VW_RESULTADOS" ("REGISTRO",
+                            "NOME",
+                            "SEXO",
+                            "DATA_NAS",
+                            "IDENTIDADE",
+                            "TELEFONE",
+                            "ATENDIMENTO",
+                            "DATA_ATD",
+                            "POSTO",
+                            "ID_MEDICO_SOLICITANTE",
+                            "LIB_FAT",
+                            "DATA_ENT",
+                            "OBSERVACOES",
+                            "USUARIO",
+                            "CORREL",
+                            "MNEMONICO",
+                            "SITUACAO",
+                            "SITUACAO_INTERFACE",
+                            "PENDENCIA",
+                            "DATA_COLE",
+                            "ID_MEDICO_REALIZANTE1",
+                            "ID_MEDICO_REALIZANTE2",
+                            "NOME_PROCED",
+                            "TIPO_ENTREGA",
+                            "NOME_MED",
+                            "NOME_CONV",
+                            "NOME_POSTO") AS
+SELECT C.REGISTRO,
+       C.NOME,
+       C.SEXO,
+       C.DATA_NAS,
+       C.IDENTIDADE,
+       C.TELEFONE,
+       A.ATENDIMENTO,
+       A.DATA_ATD,
+       A.POSTO,
+       A.ID_MEDICO_SOLICITANTE,
+       A.LIB_FAT,
+       A.DATA_ENT,
+       E.OBSERVACOES,
+       E.USUARIO,
+       E.CORREL,
+       E.MNEMONICO,
+       E.SITUACAO,
+       E.SITUACAO_INTERFACE,
+       E.PENDENCIA,
+       E.DATA_COLE,
+       E.ID_MEDICO_REALIZANTE1,
+       E.ID_MEDICO_REALIZANTE2,
+       P.NOME NOME_PROCED,
+       P.TIPO_ENTREGA,
+       COALESCE(M.NOME, SA.NOME_SOLICITANTE) NOME_MED,
+       CO.NOME NOME_CONV,
+       PO.NOME NOME_POSTO
+FROM CLIENTES C,
+     ATENDIMENTOS A,
+     EXAMES E,
+     PROCEDIMENTOS P,
+     MEDICOS M,
+     ATEND_SOLICITANTE_AVULSO SA,
+     CONVENIOS CO,
+     POSTOS PO,
+     SETORES S,
+     COMPLEMENTO_ATENDIMENTOS CA
+WHERE C.REGISTRO = A.REGISTRO
+  AND A.SITUACAO = 'A'
+  AND C.REGISTRO = A.REGISTRO
+  AND E.POSTO = A.POSTO
+  AND E.ATENDIMENTO = A.ATENDIMENTO
+  AND E.SITUACAO <> 'F'
+  AND E.SITUACAO <> 'C'
+  AND CA.POSTO(+) = A.POSTO
+  AND CA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND P.MNEMONICO(+) = E.MNEMONICO
+  AND S.SETOR(+) = P.SETOR
+  AND M.ID_MEDICO(+) = A.ID_MEDICO_SOLICITANTE
+  AND SA.POSTO(+) = A.POSTO
+  AND SA.ATENDIMENTO(+) = A.ATENDIMENTO
+  AND CO.CONVENIO(+) = A.CONVENIO
+  AND PO.POSTO(+) = A.POSTO
+ORDER BY ATENDIMENTO,
+         CORREL;
+-- fim bloco
