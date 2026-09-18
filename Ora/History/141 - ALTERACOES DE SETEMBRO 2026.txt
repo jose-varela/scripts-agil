@@ -504,3 +504,111 @@ WHERE C.REGISTRO = A.REGISTRO
 ORDER BY ATENDIMENTO,
          CORREL;
 -- fim bloco
+
+--
+-- SEQ_PERFIL_EXAME
+-- Contexto: docs/spec-perfis-exames.md (workspace ExpxAgents) -- agrupa
+-- varios mnemonicos num "perfil" pra inserir de uma vez em Atendimentos, em
+-- vez de um a um. Sequence gera o ID_PERFIL (PK de PERFIS_EXAMES).
+--
+CREATE SEQUENCE SEQ_PERFIL_EXAME
+    START WITH 1
+    INCREMENT BY 1
+    MAXVALUE 999999999
+    NOCACHE
+    NOCYCLE;
+-- fim bloco
+
+--
+-- PERFIS_EXAMES
+-- Cabecalho do perfil (nome/descricao/status). Preco nao e armazenado aqui
+-- de proposito -- cada exame do perfil e inserido em Atendimentos pelo mesmo
+-- fluxo real de sempre (rxdbcMnemonicoCloseUp, via
+-- PreCarregaExamesOrcamentoMarduk reaproveitado), entao ja sai com o preco
+-- do convenio calculado normalmente; nao ha desconto de combo na v1.
+--
+CREATE TABLE PERFIS_EXAMES (
+  ID_PERFIL   NUMBER        NOT NULL,
+  NOME        VARCHAR2(120) NOT NULL,
+  DESCRICAO   VARCHAR2(255),
+  STATUS      CHAR(1)       DEFAULT 'A' NOT NULL,
+  DATA_CAD    DATE          DEFAULT SYSDATE NOT NULL,
+  USUARIO_CAD VARCHAR2(30)
+);
+-- fim bloco
+
+ALTER TABLE PERFIS_EXAMES ADD CONSTRAINT PERFIS_EXAMES_PK
+  PRIMARY KEY (ID_PERFIL) ENABLE;
+-- fim bloco
+
+ALTER TABLE PERFIS_EXAMES ADD CONSTRAINT PERFIS_EXAMES_STATUS_CK
+  CHECK (STATUS IN ('A', 'I')) ENABLE;
+-- fim bloco
+
+--
+-- PERFIS_EXAMES_ITENS
+-- Mnemonicos que compoem o perfil. FK pra PERFIS_EXAMES com ON DELETE
+-- CASCADE (item nao existe sem o cabecalho); FK pra PROCEDIMENTOS sem
+-- cascade (nunca apaga um procedimento por causa de um perfil).
+--
+CREATE TABLE PERFIS_EXAMES_ITENS (
+  ID_PERFIL  NUMBER      NOT NULL,
+  MNEMONICO  VARCHAR2(7) NOT NULL,
+  ORDEM      NUMBER
+);
+-- fim bloco
+
+ALTER TABLE PERFIS_EXAMES_ITENS ADD CONSTRAINT PERFIS_EXAMES_ITENS_PK
+  PRIMARY KEY (ID_PERFIL, MNEMONICO) ENABLE;
+-- fim bloco
+
+ALTER TABLE PERFIS_EXAMES_ITENS ADD CONSTRAINT PERFIS_EXAMES_ITENS_PERFIL_FK
+  FOREIGN KEY (ID_PERFIL) REFERENCES PERFIS_EXAMES (ID_PERFIL) ON DELETE CASCADE ENABLE;
+-- fim bloco
+
+ALTER TABLE PERFIS_EXAMES_ITENS ADD CONSTRAINT PERFIS_EXAMES_ITENS_MNEMO_FK
+  FOREIGN KEY (MNEMONICO) REFERENCES PROCEDIMENTOS (MNEMONICO) ENABLE;
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_PERFIS_EXAMES(V_ID_PERFIL   IN OUT PERFIS_EXAMES.ID_PERFIL%TYPE,
+                             V_NOME            IN PERFIS_EXAMES.NOME%TYPE,
+                             V_DESCRICAO       IN PERFIS_EXAMES.DESCRICAO%TYPE,
+                             V_STATUS          IN PERFIS_EXAMES.STATUS%TYPE,
+                             V_USUARIO_CAD     IN PERFIS_EXAMES.USUARIO_CAD%TYPE,
+                             V_FUNCAO          IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SEQ_PERFIL_EXAME.NEXTVAL INTO V_ID_PERFIL FROM DUAL;
+
+     INSERT INTO PERFIS_EXAMES (ID_PERFIL, NOME, DESCRICAO, STATUS, DATA_CAD, USUARIO_CAD)
+       VALUES (V_ID_PERFIL, V_NOME, V_DESCRICAO, V_STATUS, SYSDATE, V_USUARIO_CAD);
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PERFIS_EXAMES
+        SET NOME = V_NOME, DESCRICAO = V_DESCRICAO, STATUS = V_STATUS
+      WHERE ID_PERFIL = V_ID_PERFIL;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PERFIS_EXAMES WHERE ID_PERFIL = V_ID_PERFIL;
+  END IF;
+  COMMIT WORK;
+END PRC_PERFIS_EXAMES;
+-- fim bloco
+
+create or replace
+PROCEDURE PRC_PERFIS_EXAMES_ITENS(V_ID_PERFIL  IN PERFIS_EXAMES_ITENS.ID_PERFIL%TYPE,
+                                   V_MNEMONICO  IN PERFIS_EXAMES_ITENS.MNEMONICO%TYPE,
+                                   V_ORDEM      IN PERFIS_EXAMES_ITENS.ORDEM%TYPE,
+                                   V_FUNCAO     IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO PERFIS_EXAMES_ITENS (ID_PERFIL, MNEMONICO, ORDEM)
+       VALUES (V_ID_PERFIL, V_MNEMONICO, V_ORDEM);
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE PERFIS_EXAMES_ITENS SET ORDEM = V_ORDEM
+      WHERE ID_PERFIL = V_ID_PERFIL AND MNEMONICO = V_MNEMONICO;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE PERFIS_EXAMES_ITENS WHERE ID_PERFIL = V_ID_PERFIL AND MNEMONICO = V_MNEMONICO;
+  END IF;
+  COMMIT WORK;
+END PRC_PERFIS_EXAMES_ITENS;
+-- fim bloco
