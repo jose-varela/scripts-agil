@@ -1,4 +1,22 @@
 --
+-- SEQ_ORCAMENTO
+-- Contexto: integracao AGIL -> Marduk-CRM (docs/api-contrato-agil.md).
+-- Gera o codigo curto do orcamento (campo codigoAgil, mandado no POST
+-- /orcamentos e impresso no recibo da Consulta de Precos) -- o AGIL gera
+-- esse codigo, nao o Marduk-CRM, porque o envio e fire-and-forget e nao
+-- pode esperar resposta de rede antes de imprimir. START WITH 100000 pra
+-- comecar com 6 digitos (mais facil de ler/digitar de volta na recuperacao
+-- do orcamento); MAXVALUE alto o bastante pra nunca precisar de CYCLE.
+--
+CREATE SEQUENCE SEQ_ORCAMENTO
+    START WITH 100000
+    INCREMENT BY 1
+    MAXVALUE 999999999
+    NOCACHE
+    NOCYCLE;
+-- fim bloco
+
+--
 -- ATENDIMENTOS - solicitante avulso
 -- Contexto: cliente de rede publica precisa cadastrar o medico solicitante
 -- so pelo nome, sem vinculo com o cadastro de MEDICOS (sem CRM formal, nao
