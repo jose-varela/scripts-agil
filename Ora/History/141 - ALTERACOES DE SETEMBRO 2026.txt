@@ -612,3 +612,17 @@ BEGIN
   COMMIT WORK;
 END PRC_PERFIS_EXAMES_ITENS;
 -- fim bloco
+
+--
+-- PERFIS_EXAMES.ID_PERFIL -- fix de precisao
+-- Achado abrindo o cadastro U_PerfisExames.pas pela 1a vez: ID_PERFIL foi
+-- criado acima como NUMBER puro (sem precisao), diferente do padrao do
+-- resto do schema pra PK surrogate (ex. ACOMODACOES.ID_ACOMODACAO e
+-- NUMBER(3,0)). UniDAC mapeia NUMBER irrestrito como campo float, nao
+-- integer -- o form (TIntegerField, coerente com o padrao dos outros
+-- cadastros) estourava EDatabaseError "Type mismatch for field
+-- 'ID_PERFIL', expecting: Integer actual: Float" ao abrir. NUMBER(9)
+-- casa com o MAXVALUE 999999999 de SEQ_PERFIL_EXAME.
+--
+ALTER TABLE PERFIS_EXAMES MODIFY ID_PERFIL NUMBER(9);
+-- fim bloco
