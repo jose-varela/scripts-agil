@@ -691,3 +691,24 @@ ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_PAGTO_CK
 -- Varredura da fila: ENVIAR = 'S' e PROXIMA_TENTATIVA vencida.
 CREATE INDEX ATEND_MARDUK_CRM_FILA_IX ON ATEND_MARDUK_CRM (ENVIAR, PROXIMA_TENTATIVA);
 -- fim bloco
+
+--
+-- ATEND_MARDUK_CRM.PAGAMENTO_ALVO / VALOR_ALVO / DESCONTO_ALVO -- fix
+-- Achado testando ao vivo em 22/09/2026: ORA-00904 "DESCONTO_ALVO": identificador
+-- invalido, ao abrir o AGIL (Atendimentos.exe). Causa: Model.MardukCRM.Sincronia.pas
+-- guarda DUAS visoes do estado de pagamento nesta tabela -- o ALVO (recalculado do
+-- caixa/EXAMES/DEVEDORES a cada evento) e o ENVIADO (ultimo estado que o Marduk-CRM
+-- confirmou, usado pra decidir se ha algo novo a mandar) -- mas o bloco original
+-- desta tabela (acima) so criou as colunas *_ENVIADO. As colunas *_ALVO nunca
+-- existiram. Aditivo: a tabela ja foi criada e populada, nao mexe no bloco original.
+--
+ALTER TABLE ATEND_MARDUK_CRM ADD (
+  PAGAMENTO_ALVO VARCHAR2(10),
+  VALOR_ALVO     NUMBER(12,2),
+  DESCONTO_ALVO  NUMBER(12,2)
+);
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_ALVO_CK
+  CHECK (PAGAMENTO_ALVO IN ('PAGO', 'PENDENTE')) ENABLE;
+-- fim bloco
