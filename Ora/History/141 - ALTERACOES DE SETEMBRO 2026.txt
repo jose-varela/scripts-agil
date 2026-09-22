@@ -626,3 +626,68 @@ END PRC_PERFIS_EXAMES_ITENS;
 --
 ALTER TABLE PERFIS_EXAMES MODIFY ID_PERFIL NUMBER(9);
 -- fim bloco
+
+--
+-- ATEND_MARDUK_CRM
+-- Contexto: integracao AGIL -> Marduk-CRM, contrato v0.5.2 (pagamento, valor do
+-- atendimento e desconto -- docs/api-contrato-agil.md). Tabela satelite 1:0..1
+-- de ATENDIMENTOS: so tem linha quando o atendimento nasceu de um orcamento do
+-- CRM. Guarda o id do orcamento no CRM (o POST /orcamentos/{id}/pagamento
+-- precisa dele depois da efetivacao, e o AGIL antes o descartava) e a fila de
+-- envio: o que o CRM ja sabe e o que ainda falta informar, para reenviar depois
+-- de falha de rede, 429 ou codeTOOLS sem a rota nova.
+--
+-- EFETIVADO          'S' depois que o /efetivar respondeu 2xx ou 409 (ja efetivado)
+-- ATENDENTE_EFETIVACAO  usuario que efetivou, para reenviar o /efetivar se ele se perder
+-- PAGAMENTO_ENVIADO / VALOR_ENVIADO / DESCONTO_ENVIADO
+--                    ultimo estado que o CRM confirmou; o proximo envio so acontece
+--                    se o estado calculado no AGIL for diferente destes
+-- PAGO_AT_UTC        hora real da confirmacao do pagamento, em UTC (CAIXA.DATA_PAG
+--                    guarda so a data); NULL enquanto nao estiver PAGO
+-- ENVIAR             'S' = ha algo a informar ao CRM
+-- TENTATIVAS / PROXIMA_TENTATIVA / ULTIMO_ERRO
+--                    controle do reenvio (espera crescente ate 1 h, para de
+--                    insistir no limite de tentativas)
+-- FK com ON DELETE CASCADE para acompanhar o ciclo de vida do atendimento.
+--
+CREATE TABLE ATEND_MARDUK_CRM (
+  POSTO                NUMBER(3)     NOT NULL,
+  ATENDIMENTO          NUMBER(9)     NOT NULL,
+  ID_ORCAMENTO         VARCHAR2(64)  NOT NULL,
+  ATENDENTE_EFETIVACAO VARCHAR2(60),
+  EFETIVADO            CHAR(1)       DEFAULT 'N' NOT NULL,
+  PAGAMENTO_ENVIADO    VARCHAR2(10),
+  VALOR_ENVIADO        NUMBER(12,2),
+  DESCONTO_ENVIADO     NUMBER(12,2),
+  PAGO_AT_UTC          DATE,
+  ENVIAR               CHAR(1)       DEFAULT 'N' NOT NULL,
+  TENTATIVAS           NUMBER(3)     DEFAULT 0 NOT NULL,
+  PROXIMA_TENTATIVA    DATE,
+  ULTIMO_ERRO          VARCHAR2(400),
+  ATUALIZADO_EM        DATE          DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_PK
+  PRIMARY KEY (POSTO, ATENDIMENTO) ENABLE;
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_FK
+  FOREIGN KEY (POSTO, ATENDIMENTO) REFERENCES ATENDIMENTOS (POSTO, ATENDIMENTO) ON DELETE CASCADE ENABLE;
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_EFETIVADO_CK
+  CHECK (EFETIVADO IN ('S', 'N')) ENABLE;
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_ENVIAR_CK
+  CHECK (ENVIAR IN ('S', 'N')) ENABLE;
+-- fim bloco
+
+ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_PAGTO_CK
+  CHECK (PAGAMENTO_ENVIADO IN ('PAGO', 'PENDENTE')) ENABLE;
+-- fim bloco
+
+-- Varredura da fila: ENVIAR = 'S' e PROXIMA_TENTATIVA vencida.
+CREATE INDEX ATEND_MARDUK_CRM_FILA_IX ON ATEND_MARDUK_CRM (ENVIAR, PROXIMA_TENTATIVA);
+-- fim bloco
