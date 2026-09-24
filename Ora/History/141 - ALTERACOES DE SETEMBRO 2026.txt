@@ -712,3 +712,78 @@ ALTER TABLE ATEND_MARDUK_CRM ADD (
 ALTER TABLE ATEND_MARDUK_CRM ADD CONSTRAINT ATEND_MARDUK_CRM_ALVO_CK
   CHECK (PAGAMENTO_ALVO IN ('PAGO', 'PENDENTE')) ENABLE;
 -- fim bloco
+
+--
+-- VALIDADE DA SENHA DOS USUARIOS (feature validade-senha-usuarios, 24/09/2026)
+--
+-- AUXILIAR.VALIDADE_USUARIO_PASS (criada no 99 - JULHO 2018, default 90) passa a
+-- ser usada: e a validade da senha em dias, por laboratorio, editada no formulario
+-- Opcoes (so SUPERVISOR). 0 = a senha nao expira. Padrao pedido: 60 dias.
+--
+ALTER TABLE AUXILIAR MODIFY VALIDADE_USUARIO_PASS DEFAULT 60;
+-- fim bloco
+
+UPDATE AUXILIAR SET VALIDADE_USUARIO_PASS = 60;
+COMMIT;
+-- fim bloco
+
+--
+-- USUARIOS.DATA_VALIDADE passa a significar "dia em que a senha deixa de valer".
+-- A coluna existia sem uso e com datas antigas sem padrao; o relogio de todos os
+-- usuarios e zerado para a data da migracao + validade do laboratorio, para que
+-- ninguem seja barrado no primeiro login apos a atualizacao.
+--
+UPDATE USUARIOS SET DATA_VALIDADE = TRUNC(SYSDATE) + (SELECT NVL(MAX(VALIDADE_USUARIO_PASS), 60) FROM AUXILIAR);
+COMMIT;
+-- fim bloco
+
+--
+-- PRC_USUARIOS: a FUNCAO 4 (troca de senha no login) passa a gravar tambem o novo
+-- vencimento. Assinatura inalterada (V_DATA_VALIDADE ja existia). NVL mantem o
+-- vencimento atual quando um executavel antigo chama a FUNCAO 4 sem a data.
+-- Base: texto vivo da procedure (user_source) em 24/09/2026.
+--
+CREATE OR REPLACE PROCEDURE PRC_USUARIOS(V_USER_CODIGO    IN OUT USUARIOS.USER_CODIGO%TYPE,
+                                         V_USER_TIPO      IN     USUARIOS.USER_TIPO%TYPE,
+                                         V_USER_NOME      IN     USUARIOS.USER_NOME%TYPE,
+                                         V_USER_ID        IN     USUARIOS.USER_ID%TYPE,
+                                         V_SENHA          IN     USUARIOS.SENHA%TYPE,
+                                         V_GRUPO          IN     USUARIOS.GRUPO%TYPE,
+                                         V_DATA_CAD       IN     USUARIOS.DATA_CAD%TYPE,
+                                         V_DATA_VALIDADE  IN     USUARIOS.DATA_VALIDADE%TYPE,
+                                         V_VALIDADE       IN     USUARIOS.VALIDADE%TYPE,
+                                         V_ATIVO          IN     USUARIOS.ATIVO%TYPE,
+                                         V_FECHA_APP      IN     USUARIOS.FECHA_APP%TYPE,
+                                         V_ID_MEDICO      IN     USUARIOS.ID_MEDICO%TYPE,
+										 V_ALIAS          IN     USUARIOS.ALIAS%TYPE,
+                                         V_FUNCAO         IN     NUMBER) IS
+
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     SELECT SQ_USUARIOS.NEXTVAL INTO V_USER_CODIGO FROM DUAL;
+     INSERT INTO USUARIOS VALUES (V_USER_CODIGO, V_USER_TIPO, V_USER_NOME, V_USER_ID,
+                                        V_SENHA,       V_GRUPO,     V_DATA_CAD,  V_DATA_VALIDADE,
+                                        V_VALIDADE,    V_ATIVO,     V_FECHA_APP, EMPTY_BLOB(),
+                                        V_ID_MEDICO,   V_ALIAS);
+
+   ELSIF V_FUNCAO = 2 THEN
+     UPDATE USUARIOS SET USER_NOME  = V_USER_NOME, SENHA = V_SENHA, GRUPO = V_GRUPO,
+                               DATA_CAD   = V_DATA_CAD,  DATA_VALIDADE = V_DATA_VALIDADE,
+                               VALIDADE   = V_VALIDADE,  ATIVO = V_ATIVO, FECHA_APP = V_FECHA_APP,
+                               ID_MEDICO  = V_ID_MEDICO, ALIAS = V_ALIAS
+                            WHERE USER_CODIGO = V_USER_CODIGO;
+
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE USUARIOS WHERE USER_CODIGO = V_USER_CODIGO;
+
+   ELSIF V_FUNCAO = 4 THEN
+     UPDATE USUARIOS SET SENHA         = V_SENHA,
+                         DATA_VALIDADE = NVL(V_DATA_VALIDADE, DATA_VALIDADE)
+                            WHERE USER_CODIGO = V_USER_CODIGO;
+
+  END IF;
+
+  COMMIT WORK;
+
+END PRC_USUARIOS;
+-- fim bloco
