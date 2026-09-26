@@ -787,3 +787,58 @@ BEGIN
 
 END PRC_USUARIOS;
 -- fim bloco
+
+--
+-- SEQ_CAIXA_ALTERACAO
+-- Gera o ID_CAIXA_ALTERACAO (PK de CAIXA_ALTERACOES, bloco abaixo).
+--
+CREATE SEQUENCE SEQ_CAIXA_ALTERACAO
+    START WITH 1
+    INCREMENT BY 1
+    MAXVALUE 999999999
+    NOCACHE
+    NOCYCLE;
+-- fim bloco
+
+--
+-- CAIXA_ALTERACOES
+-- Historico das alteracoes que mexem no caixa, listado no fim do relatorio
+-- do caixa (R_Caixa) pela data da alteracao:
+--   TIPO = 'C': mudanca de convenio envolvendo convenio com pagamento no ato
+--               (CONVENIOS.PAG_ATO = 'S', na origem ou no destino). Antes o
+--               convenio anterior se perdia e o devedor era apagado sem rastro.
+--   TIPO = 'P': cancelamento de pagamento (Alt+Delete no Registro de Caixa).
+-- Guarda o motivo (obrigatorio), quem autorizou e o efeito: VALOR_CAIXA =
+-- soma dos pagamentos cancelados, VALOR_DEVEDOR = saldo devedor eliminado.
+-- CONTA e a conta do caixa dos pagamentos cancelados (NULL quando a mudanca
+-- de convenio nao cancelou pagamento).
+--
+CREATE TABLE CAIXA_ALTERACOES (
+  ID_CAIXA_ALTERACAO NUMBER(9)     NOT NULL,
+  TIPO               CHAR(1)       NOT NULL,
+  POSTO              NUMBER(3)     NOT NULL,
+  ATENDIMENTO        NUMBER(9),
+  CONTA_HOSP         NUMBER(7),
+  CORREL             NUMBER(2),
+  CONTA              NUMBER(3),
+  CONVENIO_ANTERIOR  NUMBER(3),
+  CONVENIO_NOVO      NUMBER(3),
+  VALOR_CAIXA        NUMBER(10,2)  DEFAULT 0 NOT NULL,
+  VALOR_DEVEDOR      NUMBER(10,2)  DEFAULT 0 NOT NULL,
+  MOTIVO             VARCHAR2(250) NOT NULL,
+  USUARIO            VARCHAR2(10),
+  USUARIO_AUTORIZOU  VARCHAR2(10),
+  DATA_ALT           DATE          DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE CAIXA_ALTERACOES ADD CONSTRAINT CAIXA_ALTERACOES_PK
+  PRIMARY KEY (ID_CAIXA_ALTERACAO) ENABLE;
+-- fim bloco
+
+ALTER TABLE CAIXA_ALTERACOES ADD CONSTRAINT CAIXA_ALTERACOES_TIPO_CK
+  CHECK (TIPO IN ('C', 'P')) ENABLE;
+-- fim bloco
+
+CREATE INDEX CAIXA_ALTERACOES_DATA_IX ON CAIXA_ALTERACOES (DATA_ALT, POSTO);
+-- fim bloco
