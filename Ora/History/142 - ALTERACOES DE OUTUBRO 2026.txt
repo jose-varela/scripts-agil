@@ -1,0 +1,286 @@
+--
+-- CAIXA_ALTERACOES - novo tipo 'D' (desconto acima do maximo)
+-- Contexto: feature motivo-desconto-acima-maximo (PD-2026-0002, laboratorio
+-- Analyses). O desconto acima do maximo passa a exigir e gravar motivo,
+-- reaproveitando o historico de alteracoes do caixa ja usado para troca de
+-- convenio ('C') e cancelamento de pagamento ('P'). Precisa de dois ajustes
+-- na tabela: o CHECK de TIPO so aceitava C/P, e nao havia coluna para
+-- guardar o percentual do desconto (so VALOR_CAIXA em R$) -- sem ela o
+-- relatorio de caixa nao conseguiria reconstruir o "(Y%)" do efeito ao
+-- reler do banco depois de gravado.
+--
+ALTER TABLE CAIXA_ALTERACOES DROP CONSTRAINT CAIXA_ALTERACOES_TIPO_CK;
+-- fim bloco
+
+ALTER TABLE CAIXA_ALTERACOES ADD CONSTRAINT CAIXA_ALTERACOES_TIPO_CK
+  CHECK (TIPO IN ('C', 'P', 'D')) ENABLE;
+-- fim bloco
+
+ALTER TABLE CAIXA_ALTERACOES ADD (PERCENTUAL NUMBER(5,2) DEFAULT 0 NOT NULL);
+-- fim bloco
+
+--
+-- EXAMES_ALTERACOES - tabela nova (historico de alteracoes de exame)
+-- Contexto: feature motivo-desliberacao-exame-impresso (PD-2026-0003, pedido
+-- companheiro do mesmo laboratorio Analyses). Deliberar (eliminar a
+-- liberacao de) um exame ja impresso passa a exigir e gravar motivo.
+-- Diferente do caixa, EXAMES nao tem equivalente a CAIXA_ALTERACOES -- esta
+-- tabela nova cobre esse historico, seguindo a mesma convencao (sequence +
+-- tabela + PK + CHECK + indice). Guarda MNEMONICO alem da chave
+-- (POSTO/ATENDIMENTO/CORREL) para leitura direto no banco sem join.
+--
+CREATE SEQUENCE SEQ_EXAME_ALTERACAO START WITH 1 INCREMENT BY 1 NOCACHE;
+-- fim bloco
+
+CREATE TABLE EXAMES_ALTERACOES (
+  ID_EXAME_ALTERACAO NUMBER(9)     NOT NULL,
+  TIPO                CHAR(1)      NOT NULL,
+  POSTO               NUMBER(3)    NOT NULL,
+  ATENDIMENTO         NUMBER(9)    NOT NULL,
+  CORREL              NUMBER(2)    NOT NULL,
+  MNEMONICO           VARCHAR2(7),
+  MOTIVO              VARCHAR2(250) NOT NULL,
+  USUARIO             VARCHAR2(10),
+  USUARIO_AUTORIZOU   VARCHAR2(10),
+  DATA_ALT            DATE DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE EXAMES_ALTERACOES ADD CONSTRAINT EXAMES_ALTERACOES_PK
+  PRIMARY KEY (ID_EXAME_ALTERACAO);
+-- fim bloco
+
+ALTER TABLE EXAMES_ALTERACOES ADD CONSTRAINT EXAMES_ALTERACOES_TIPO_CK
+  CHECK (TIPO IN ('D')) ENABLE;
+-- fim bloco
+
+CREATE INDEX EXAMES_ALTERACOES_EXAME_IX ON EXAMES_ALTERACOES
+  (POSTO, ATENDIMENTO, CORREL, DATA_ALT);
+-- fim bloco
+
+--
+-- SERVICOS_ADM - MARDUK_FINANCE_API_KEY / MARDUK_FINANCE_ATIVO
+-- Contexto: feature integracao-marduk-finance (T-01.01). Mesmo padrao ja
+-- usado em MARDUK_CRM_API_KEY/MARDUK_CRM_ATIVO (script 140/141): toggle S/N
+-- por instalacao + API Key cifrada por CNPJ, tela U_ConfiguraAmbiente.pas.
+-- O PRC_SERVICOS_ADM abaixo foi reconstruido a partir do que estava live no
+-- schema de teste (conferido direto via DBMS_METADATA.GET_DDL antes de
+-- reescrever -- Oracle nao altera procedure parcialmente), acrescentando os
+-- dois parametros novos ao fim da lista (antes de V_FUNCAO), no INSERT
+-- (FUNCAO=1, API Key nasce em branco, igual MARDUK_API_KEY/MARDUK_CRM_API_KEY)
+-- e no UPDATE de ativacao (FUNCAO=4, junto dos outros campos Marduk).
+--
+ALTER TABLE SERVICOS_ADM ADD (MARDUK_FINANCE_API_KEY VARCHAR2(500), MARDUK_FINANCE_ATIVO VARCHAR2(1));
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_SERVICOS_ADM (V_ID_SERVICO_ADM IN        OUT SERVICOS_ADM.ID_SERVICO_ADM%TYPE,
+                                            V_MNEMO_SERVICO_ADM         IN SERVICOS_ADM.MNEMO_SERVICO_ADM%TYPE,
+                                            V_NOME                      IN SERVICOS_ADM.NOME%TYPE,
+                                            V_TIPO_SERVICO              IN SERVICOS_ADM.TIPO_SERVICO%TYPE,
+                                            V_RAZAO_SOCIAL              IN SERVICOS_ADM.RAZAO_SOCIAL%TYPE,
+                                            V_CPF_CGC                   IN SERVICOS_ADM.CPF_CGC%TYPE,
+                                            V_DATA_HORA_ALT             IN SERVICOS_ADM.DATA_HORA_ALT%TYPE,
+                                            V_USUARIO_ALT               IN SERVICOS_ADM.USUARIO_ALT%TYPE,
+                                            V_STATUS                    IN SERVICOS_ADM.STATUS%TYPE,
+                                            V_ENDERECO                  IN SERVICOS_ADM.ENDERECO%TYPE,
+                                            V_LOGO                      IN SERVICOS_ADM.LOGO%TYPE,
+                                            V_RESULTADOS_WEB            IN SERVICOS_ADM.RESULTADOS_WEB%TYPE,
+                                            V_CONEXAO_DB                IN SERVICOS_ADM.CONEXAO_DB%TYPE,
+                                            V_CIDADE                    IN SERVICOS_ADM.CIDADE%TYPE,
+                                            V_WEB_SITE                  IN SERVICOS_ADM.WEB_SITE%TYPE,
+                                            V_DDD                       IN SERVICOS_ADM.DDD%TYPE,
+                                            V_IDADE_CLIENTE             IN SERVICOS_ADM.IDADE_CLIENTE%TYPE,
+                                            V_TEXTO_RECIBO              IN SERVICOS_ADM.TEXTO_RECIBO%TYPE,
+                                            V_PASTA_WEB_PDF             IN SERVICOS_ADM.PASTA_WEB_PDF%TYPE,
+                                            V_PASTA_WEB_XML             IN SERVICOS_ADM.PASTA_WEB_XML%TYPE,
+                                            V_WEB_PREPARO               IN SERVICOS_ADM.WEB_PREPARO%TYPE,
+                                            V_WEB_LAUDO                 IN SERVICOS_ADM.WEB_LAUDO%TYPE,
+                                            V_WEB_PORTA                 IN SERVICOS_ADM.WEB_PORTA%TYPE,
+                                            V_IMPRIME_RECIBO            IN SERVICOS_ADM.IMPRIME_RECIBO%TYPE,
+                                            V_IMPRIME_CARTAO_FIDELIDADE IN SERVICOS_ADM.IMPRIME_CARTAO_FIDELIDADE%TYPE,
+                                            V_E_MAIL                    IN SERVICOS_ADM.E_MAIL%TYPE,
+                                            V_IMPRIME_INF_LIBERACAO     IN SERVICOS_ADM.IMPRIME_INF_LIBERACAO%TYPE,
+                                            V_UNICODE                   IN SERVICOS_ADM.UNICODE%TYPE,
+                                            V_LARGURA_FORMULARIO        IN SERVICOS_ADM.LARGURA_FORMULARIO%TYPE,
+                                            V_ALTURA_FORMULARIO         IN SERVICOS_ADM.ALTURA_FORMULARIO%TYPE,
+                                            V_LARGURA_LAUDO             IN SERVICOS_ADM.LARGURA_LAUDO%TYPE,
+                                            V_POSICAO_ESQUERDA_LAUDO    IN SERVICOS_ADM.POSICAO_ESQUERDA_LAUDO%TYPE,
+                                            V_FIXA_ASSINATURA_RODAPE    IN SERVICOS_ADM.FIXA_ASSINATURA_RODAPE%TYPE,
+                                            V_REVISAO_RESULTADOS        IN SERVICOS_ADM.REVISAO_RESULTADOS%TYPE,
+                                            V_TEMPO_PUBLICACAO_WEB      IN SERVICOS_ADM.TEMPO_PUBLICACAO_WEB%TYPE,
+                                            V_TEMPO_PUBLICACAO_INTERNA  IN SERVICOS_ADM.TEMPO_PUBLICACAO_INTERNA%TYPE,
+                                            V_LARGURA_ETIQUETA          IN SERVICOS_ADM.LARGURA_ETIQUETA%TYPE,
+                                            V_ALTURA_ETIQUETA           IN SERVICOS_ADM.ALTURA_ETIQUETA%TYPE,
+                                            V_CONFERE_GUIAS             IN SERVICOS_ADM.CONFERE_GUIAS%TYPE,
+                                            V_FORMULARIO_LAUDO          IN SERVICOS_ADM.FORMULARIO_LAUDO%TYPE,
+                                            V_CNES                      IN SERVICOS_ADM.CNES%TYPE,
+                                            V_LAYOUT_LAUDO              IN SERVICOS_ADM.LAYOUT_LAUDO%TYPE,
+                                            V_ID_MEDICO_RESPONSAVEL     IN SERVICOS_ADM.ID_MEDICO_RESPONSAVEL%TYPE,
+                                            V_PROXY                     IN SERVICOS_ADM.PROXY%TYPE,
+                                            V_LOGIN_PROXY               IN SERVICOS_ADM.LOGIN_PROXY%TYPE,
+                                            V_PASS_PROXY                IN SERVICOS_ADM.PASS_PROXY%TYPE,
+                                            V_ID_ADM_RESPONSAVEL        IN SERVICOS_ADM.ID_ADM_RESPONSAVEL%TYPE,
+                                            V_IMPRIME_HISTORICO         IN SERVICOS_ADM.IMPRIME_HISTORICO%TYPE,
+                                            V_DATA_INICIO_HISTORICO     IN SERVICOS_ADM.DATA_INICIO_HISTORICO%TYPE,
+                                            V_IMPRIME_HASH              IN SERVICOS_ADM.IMPRIME_HASH%TYPE,
+                                            V_IMPRIME_VALORES_ORCAMENTO IN SERVICOS_ADM.IMPRIME_VALORES_ORCAMENTO%TYPE,
+                                            V_ID_INTERFACE_ENVIO_SMS    IN SERVICOS_ADM.ID_INTERFACE_ENVIO_SMS%TYPE,
+                                            V_ID_INTERFACE_ENVIO_EMAIL  IN SERVICOS_ADM.ID_INTERFACE_ENVIO_EMAIL%TYPE,
+                                            V_ID_CONTRATO               IN SERVICOS_ADM.ID_CONTRATO%TYPE,
+                                            V_IMPRIME_QR_CODE           IN SERVICOS_ADM.IMPRIME_QR_CODE%TYPE,
+                                            V_EXIGE_ENDERECO            IN SERVICOS_ADM.EXIGE_ENDERECO%TYPE,
+                                            V_EXIGE_RESPONSAVEL_MENOR   IN SERVICOS_ADM.EXIGE_RESPONSAVEL_MENOR%TYPE,
+                                            V_IMPRIME_VALORES_FICHA     IN SERVICOS_ADM.IMPRIME_VALORES_FICHA%TYPE,
+                                            V_EXPORTA_PDF_SENHA         IN SERVICOS_ADM.EXPORTA_PDF_SENHA%TYPE,
+                                            V_MARDUK_API_KEY            IN SERVICOS_ADM.MARDUK_API_KEY%TYPE,
+                                            V_MARDUK_CRM_API_KEY        IN SERVICOS_ADM.MARDUK_CRM_API_KEY%TYPE,
+                                            V_MARDUK_CRM_ATIVO          IN SERVICOS_ADM.MARDUK_CRM_ATIVO%TYPE,
+                                            V_ID_INSTANCIA              IN SERVICOS_ADM.ID_INSTANCIA%TYPE,
+                                            V_PERMITE_SOLICITANTE_AVULSO IN SERVICOS_ADM.PERMITE_SOLICITANTE_AVULSO%TYPE,
+                                            V_MARDUK_FINANCE_API_KEY    IN SERVICOS_ADM.MARDUK_FINANCE_API_KEY%TYPE,
+                                            V_MARDUK_FINANCE_ATIVO      IN SERVICOS_ADM.MARDUK_FINANCE_ATIVO%TYPE,
+                                            V_FUNCAO                    IN NUMBER) IS
+ BEGIN
+   IF V_FUNCAO = 1 THEN
+      SELECT SQ_SERVICO_ADM.NEXTVAL INTO V_ID_SERVICO_ADM FROM DUAL;
+
+      INSERT INTO SERVICOS_ADM VALUES (V_ID_SERVICO_ADM, V_MNEMO_SERVICO_ADM, V_NOME, V_TIPO_SERVICO, '', '',
+                                       V_DATA_HORA_ALT, V_USUARIO_ALT,V_STATUS, V_ENDERECO, EMPTY_BLOB(), V_RESULTADOS_WEB,
+                                       V_CONEXAO_DB, V_CIDADE, V_WEB_SITE, V_DDD, V_IDADE_CLIENTE, V_TEXTO_RECIBO, V_PASTA_WEB_PDF,
+                                       V_PASTA_WEB_XML, V_WEB_PREPARO, V_WEB_LAUDO, V_WEB_PORTA, V_IMPRIME_RECIBO, V_IMPRIME_CARTAO_FIDELIDADE,
+                                       V_E_MAIL, V_IMPRIME_INF_LIBERACAO, V_UNICODE, V_LARGURA_FORMULARIO, V_ALTURA_FORMULARIO, V_LARGURA_LAUDO,
+                                       V_POSICAO_ESQUERDA_LAUDO, V_FIXA_ASSINATURA_RODAPE, V_REVISAO_RESULTADOS, V_TEMPO_PUBLICACAO_WEB,
+ 	    			                   V_TEMPO_PUBLICACAO_INTERNA, V_LARGURA_ETIQUETA, V_ALTURA_ETIQUETA, V_CONFERE_GUIAS, V_FORMULARIO_LAUDO,
+ 									   V_CNES, EMPTY_BLOB, V_ID_MEDICO_RESPONSAVEL, V_PROXY, V_LOGIN_PROXY, V_PASS_PROXY, V_ID_ADM_RESPONSAVEL,
+                                       V_IMPRIME_HISTORICO, v_DATA_INICIO_HISTORICO, V_IMPRIME_HASH, V_IMPRIME_VALORES_ORCAMENTO,
+									   V_ID_INTERFACE_ENVIO_SMS, V_ID_INTERFACE_ENVIO_EMAIL, '', V_IMPRIME_QR_CODE, V_EXIGE_ENDERECO, V_EXIGE_RESPONSAVEL_MENOR,
+									   V_IMPRIME_VALORES_FICHA, V_EXPORTA_PDF_SENHA, '', '', V_MARDUK_CRM_ATIVO, NULL, V_PERMITE_SOLICITANTE_AVULSO,
+									   '', V_MARDUK_FINANCE_ATIVO);
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE SERVICOS_ADM SET MNEMO_SERVICO_ADM = V_MNEMO_SERVICO_ADM, NOME = V_NOME, TIPO_SERVICO = V_TIPO_SERVICO, DATA_HORA_ALT = V_DATA_HORA_ALT,
+	                          USUARIO_ALT = V_USUARIO_ALT, STATUS = V_STATUS, ENDERECO = V_ENDERECO, CONEXAO_DB = V_CONEXAO_DB,
+                              CIDADE = V_CIDADE, WEB_SITE = V_WEB_SITE, DDD = V_DDD, IDADE_CLIENTE = V_IDADE_CLIENTE,
+                              TEXTO_RECIBO = V_TEXTO_RECIBO, PASTA_WEB_PDF = V_PASTA_WEB_PDF, PASTA_WEB_XML = V_PASTA_WEB_XML,
+                              WEB_PREPARO = V_WEB_PREPARO, WEB_LAUDO = V_WEB_LAUDO, WEB_PORTA = V_WEB_PORTA, IMPRIME_RECIBO = V_IMPRIME_RECIBO,
+                              IMPRIME_CARTAO_FIDELIDADE = V_IMPRIME_CARTAO_FIDELIDADE, RESULTADOS_WEB = V_RESULTADOS_WEB, E_MAIL = V_E_MAIL,
+                              IMPRIME_INF_LIBERACAO = V_IMPRIME_INF_LIBERACAO, UNICODE = V_UNICODE, LARGURA_FORMULARIO = V_LARGURA_FORMULARIO,
+                              ALTURA_FORMULARIO = V_ALTURA_FORMULARIO, LARGURA_LAUDO = V_LARGURA_LAUDO, POSICAO_ESQUERDA_LAUDO = V_POSICAO_ESQUERDA_LAUDO,
+ 					  FIXA_ASSINATURA_RODAPE = V_FIXA_ASSINATURA_RODAPE, REVISAO_RESULTADOS = V_REVISAO_RESULTADOS, TEMPO_PUBLICACAO_WEB = V_TEMPO_PUBLICACAO_WEB,
+ 					  TEMPO_PUBLICACAO_INTERNA = V_TEMPO_PUBLICACAO_INTERNA, LARGURA_ETIQUETA = V_LARGURA_ETIQUETA, ALTURA_ETIQUETA = V_ALTURA_ETIQUETA,
+                              CONFERE_GUIAS = V_CONFERE_GUIAS, FORMULARIO_LAUDO = V_FORMULARIO_LAUDO, CNES = V_CNES, ID_MEDICO_RESPONSAVEL = V_ID_MEDICO_RESPONSAVEL,
+                              PROXY = V_PROXY, LOGIN_PROXY = V_LOGIN_PROXY, PASS_PROXY = V_PASS_PROXY, ID_ADM_RESPONSAVEL = V_ID_ADM_RESPONSAVEL,
+                              IMPRIME_HISTORICO = V_IMPRIME_HISTORICO, DATA_INICIO_HISTORICO = V_DATA_INICIO_HISTORICO, IMPRIME_HASH = V_IMPRIME_HASH,
+							  IMPRIME_VALORES_ORCAMENTO = V_IMPRIME_VALORES_ORCAMENTO, ID_INTERFACE_ENVIO_SMS = V_ID_INTERFACE_ENVIO_SMS,
+							  ID_INTERFACE_ENVIO_EMAIL = V_ID_INTERFACE_ENVIO_EMAIL, IMPRIME_QR_CODE = V_IMPRIME_QR_CODE, EXIGE_ENDERECO = V_EXIGE_ENDERECO,
+							  EXIGE_RESPONSAVEL_MENOR = V_EXIGE_RESPONSAVEL_MENOR, IMPRIME_VALORES_FICHA = V_IMPRIME_VALORES_FICHA, EXPORTA_PDF_SENHA = V_EXPORTA_PDF_SENHA,
+							  ID_INSTANCIA = V_ID_INSTANCIA,
+							  PERMITE_SOLICITANTE_AVULSO = V_PERMITE_SOLICITANTE_AVULSO
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   ELSIF V_FUNCAO = 3 THEN
+      DELETE SERVICOS_ADM WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+
+   ELSIF V_FUNCAO = 4 THEN
+      UPDATE SERVICOS_ADM SET RAZAO_SOCIAL = V_RAZAO_SOCIAL, CPF_CGC = V_CPF_CGC, ID_CONTRATO = V_ID_CONTRATO, MARDUK_API_KEY = V_MARDUK_API_KEY,
+                        MARDUK_CRM_API_KEY = V_MARDUK_CRM_API_KEY, MARDUK_CRM_ATIVO = V_MARDUK_CRM_ATIVO, ID_INSTANCIA = V_ID_INSTANCIA,
+                        MARDUK_FINANCE_API_KEY = V_MARDUK_FINANCE_API_KEY, MARDUK_FINANCE_ATIVO = V_MARDUK_FINANCE_ATIVO
+                        WHERE ID_SERVICO_ADM = V_ID_SERVICO_ADM;
+   END IF;
+   COMMIT WORK;
+ END PRC_SERVICOS_ADM;
+/
+-- fim bloco
+
+--
+-- EQUIPAMENTOS - registro novo "MARDUK FINANCE"
+-- Contexto: feature integracao-marduk-finance (T-01.01, decisao D-09). O
+-- mapeamento de id_externo dos cadastros (formas de pagamento, bandeiras,
+-- operadoras) segue o padrao MAP_EQUIPAMENTOS_* ja usado por MV/SISREG/AGHU
+-- e apoio B2B -- um EQUIPAMENTO por sistema externo interfaceado, e uma
+-- tabela MAP_EQUIPAMENTOS_<ENTIDADE> por tipo de entidade mapeada.
+-- TIPO_INTERFACE=INTEGRA e MODELO_EQUIPAMENTO=10 reaproveitam exatamente o
+-- que MV (equipamento existente mais antigo), SISREG e a integracao PEP ja
+-- usam para integracoes via webservice/API -- conferido ao vivo no schema de
+-- teste antes de escrever este bloco. MAP_EQUIPAMENTOS_FORMAS_PAG,
+-- MAP_EQUIPAMENTOS_BANDEIRAS e MAP_EQUIPAMENTOS_OPERADORAS JA EXISTEM no
+-- schema (achado durante a execucao desta task -- nao precisam ser criadas).
+--
+DECLARE
+  V_EQUIPAMENTO NUMBER;
+BEGIN
+  SELECT SQ_EQUIPAMENTO.NEXTVAL INTO V_EQUIPAMENTO FROM DUAL;
+  INSERT INTO EQUIPAMENTOS (EQUIPAMENTO, NOME, MODELO_EQUIPAMENTO, STATUS, MODO_OPERACAO, TIPO_COMUNICACAO, TIPO_INTERFACE,
+                            SEPARA_LOGS, TERMINATION_CODE_ASTM, SEPARA_BLOCOS_ENVIO, VERIFICA_COMUNICACAO,
+                            FREQUENCIA_VERIFICACAO, SEPARA_COMUNICACAO, HOST, PORTA)
+  VALUES (V_EQUIPAMENTO, 'MARDUK FINANCE', 10, 'A', 'G', 'W', 'INTEGRA',
+          'S', 'N', 'N', 'N',
+          0, 'N', 'marduk/finance (via proxy codeTOOLS)', 1);
+  COMMIT;
+END;
+/
+-- fim bloco
+
+--
+-- MARDUK_FINANCE_FILA_CADASTROS - tabela nova (fila de sincronizacao)
+-- Contexto: feature integracao-marduk-finance (T-02.01). Fila generica por
+-- TIPO+ID_LOCAL (formas de pagamento, bandeiras, operadoras de cartao) --
+-- mesma ideia da fila do CRM (ATEND_MARDUK_CRM), mas sem o conceito de
+-- "alvo" (aqui um cadastro so tem "enviar ou nao", upsert idempotente).
+--
+CREATE TABLE MARDUK_FINANCE_FILA_CADASTROS (
+  TIPO               VARCHAR2(30)  NOT NULL,
+  ID_LOCAL           NUMBER(9)     NOT NULL,
+  ENVIAR             VARCHAR2(1)   DEFAULT 'S' NOT NULL,
+  TENTATIVAS         NUMBER(3)     DEFAULT 0 NOT NULL,
+  PROXIMA_TENTATIVA  DATE,
+  ULTIMO_ERRO        VARCHAR2(400),
+  ATUALIZADO_EM      DATE          DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS ADD CONSTRAINT MARDUK_FIN_FILA_CAD_PK
+  PRIMARY KEY (TIPO, ID_LOCAL);
+-- fim bloco
+
+ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS ADD CONSTRAINT MARDUK_FIN_FILA_CAD_TIPO_CK
+  CHECK (TIPO IN ('FORMAS_PAGAMENTO', 'BANDEIRAS', 'OPERADORAS_CARTAO')) ENABLE;
+-- fim bloco
+
+CREATE INDEX MARDUK_FIN_FILA_CAD_ENVIAR_IX ON MARDUK_FINANCE_FILA_CADASTROS (ENVIAR, PROXIMA_TENTATIVA);
+-- fim bloco
+
+--
+-- MARDUK_FINANCE_LANCAMENTOS - tabela nova (fila de lancamento)
+-- Contexto: feature integracao-marduk-finance (T-03.01). Chaveada por
+-- POSTO+ATENDIMENTO (um lancamento por atendimento, igual ao
+-- atendimento_id_externo do contrato). IDEMPOTENCY_KEY nasce ANTES de
+-- qualquer chamada (gerada no RegistraLancamento, igual ao padrao
+-- RegistraEfetivacao do CRM) e fica gravada ate a resposta confirmar --
+-- requisito do contrato (Idempotency-Key vale 24h, precisa sobreviver a
+-- uma chamada perdida). OPERACAO indica o que a fila deve fazer no proximo
+-- ciclo (CRIAR/ALTERAR/CANCELAR).
+--
+CREATE TABLE MARDUK_FINANCE_LANCAMENTOS (
+  POSTO              NUMBER(3)    NOT NULL,
+  ATENDIMENTO        NUMBER(9)    NOT NULL,
+  ID_LANCAMENTO      NUMBER(9),
+  IDEMPOTENCY_KEY    VARCHAR2(50) NOT NULL,
+  STATUS_LANCAMENTO  VARCHAR2(20),
+  OPERACAO           VARCHAR2(10) DEFAULT 'CRIAR' NOT NULL,
+  ENVIAR             VARCHAR2(1)  DEFAULT 'S' NOT NULL,
+  TENTATIVAS         NUMBER(3)    DEFAULT 0 NOT NULL,
+  PROXIMA_TENTATIVA  DATE,
+  ULTIMO_ERRO        VARCHAR2(400),
+  ATUALIZADO_EM      DATE         DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE MARDUK_FINANCE_LANCAMENTOS ADD CONSTRAINT MARDUK_FIN_LANC_PK
+  PRIMARY KEY (POSTO, ATENDIMENTO);
+-- fim bloco
+
+ALTER TABLE MARDUK_FINANCE_LANCAMENTOS ADD CONSTRAINT MARDUK_FIN_LANC_OPER_CK
+  CHECK (OPERACAO IN ('CRIAR', 'ALTERAR', 'CANCELAR')) ENABLE;
+-- fim bloco
+
+CREATE INDEX MARDUK_FIN_LANC_ENVIAR_IX ON MARDUK_FINANCE_LANCAMENTOS (ENVIAR, PROXIMA_TENTATIVA);
+-- fim bloco
