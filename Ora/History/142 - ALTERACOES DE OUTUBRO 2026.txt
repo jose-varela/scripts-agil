@@ -319,3 +319,42 @@ ALTER TABLE MARDUK_FINANCE_RECEBIMENTOS ADD CONSTRAINT MARDUK_FIN_REC_OPER_CK
 
 CREATE INDEX MARDUK_FIN_REC_ENVIAR_IX ON MARDUK_FINANCE_RECEBIMENTOS (ENVIAR, PROXIMA_TENTATIVA);
 -- fim bloco
+
+--
+-- PRC_MARDUK_FIN_ENFILEIRA_REC - procedure nova (enfileira um pagamento)
+-- Contexto: feature marduk-finance-recebimentos (T-02.01). Chamada pela
+-- PRC_CAIXA (funcoes 1, 2, 3, 4 e 5; nunca a 6 - importacao, D-05) antes do
+-- COMMIT dela, na mesma transacao do pagamento. So enfileira com o Finance
+-- ligado (SERVICOS_ADM.MARDUK_FINANCE_ATIVO). Nunca propaga erro: o caixa
+-- tem de gravar mesmo se a fila falhar. Nao faz COMMIT.
+-- OPERACAO e informativa (a fila do AGIL decide de novo no envio, pelo
+-- estado do CAIXA e de ENVIADO).
+--
+CREATE OR REPLACE PROCEDURE PRC_MARDUK_FIN_ENFILEIRA_REC(V_ID_CAIXA IN CAIXA.ID_CAIXA%TYPE) IS
+  V_ATIVO NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO V_ATIVO FROM SERVICOS_ADM WHERE MARDUK_FINANCE_ATIVO = 'S';
+  IF V_ATIVO = 0 THEN
+    RETURN;
+  END IF;
+
+  MERGE INTO MARDUK_FINANCE_RECEBIMENTOS F
+  USING (SELECT ID_CAIXA, POSTO, CONTA_HOSP, STATUS FROM CAIXA WHERE ID_CAIXA = V_ID_CAIXA) C
+     ON (F.ID_CAIXA = C.ID_CAIXA)
+  WHEN MATCHED THEN UPDATE SET
+       F.OPERACAO          = CASE WHEN C.STATUS = 'C' THEN 'CANCELAR'
+                                  WHEN F.ENVIADO = 'S' THEN 'ALTERAR'
+                                  ELSE 'CRIAR' END,
+       F.ENVIAR            = 'S',
+       F.TENTATIVAS        = 0,
+       F.PROXIMA_TENTATIVA = NULL,
+       F.ULTIMO_ERRO       = NULL,
+       F.ATUALIZADO_EM     = SYSDATE
+  WHEN NOT MATCHED THEN INSERT (ID_CAIXA, POSTO, CONTA_HOSP, OPERACAO)
+       VALUES (C.ID_CAIXA, C.POSTO, C.CONTA_HOSP, CASE WHEN C.STATUS = 'C' THEN 'CANCELAR' ELSE 'CRIAR' END);
+EXCEPTION
+  WHEN OTHERS THEN
+    NULL;
+END PRC_MARDUK_FIN_ENFILEIRA_REC;
+/
+-- fim bloco
