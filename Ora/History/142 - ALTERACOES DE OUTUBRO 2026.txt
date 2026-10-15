@@ -358,3 +358,119 @@ EXCEPTION
 END PRC_MARDUK_FIN_ENFILEIRA_REC;
 /
 -- fim bloco
+
+--
+-- PRC_CAIXA - recriada (enfileira o pagamento no Marduk Finance)
+-- Contexto: feature marduk-finance-recebimentos (T-02.02). Corpo identico ao
+-- da USER_SOURCE de 2026-10-15 (o prc_caixa.sql do repositorio esta
+-- desatualizado), mais a chamada a PRC_MARDUK_FIN_ENFILEIRA_REC antes do
+-- COMMIT (D-04, D-17): 1 inclui, 2 e 5 alteram, 4 cancela um, 3 cancela os
+-- que estavam ativos na conta, 6 (importacao) nao enfileira (D-05).
+-- A procedure de enfileiramento nunca propaga erro; o caixa grava sempre.
+--
+CREATE OR REPLACE PROCEDURE PRC_CAIXA(V_CONTA_HOSP      IN CAIXA.CONTA_HOSP%TYPE,
+                                       V_REGISTRO       IN CAIXA.REGISTRO%TYPE,
+                                       V_CONTA          IN CAIXA.CONTA%TYPE,
+                                       V_DATA_PAG       IN CAIXA.DATA_PAG%TYPE,
+                                       V_VALOR          IN CAIXA.VALOR%TYPE,
+                                       V_DESCONTO       IN CAIXA.DESCONTO%TYPE,
+                                       V_TIPO_DTO       IN CAIXA.TIPO_DTO%TYPE,
+                                       V_USUARIO        IN CAIXA.USUARIO%TYPE,
+                                       V_DATA_CAD       IN CAIXA.DATA_CAD%TYPE,
+                                       V_CORREL         IN OUT CAIXA.CORREL%TYPE,
+                                       V_ID_FORMA_PAGAMENTO       IN CAIXA.ID_FORMA_PAGAMENTO%TYPE,
+                                       V_CATALOGO       IN CAIXA.CATALOGO%TYPE,
+                                       V_USUARIO_DTO    IN CAIXA.USUARIO_DTO%TYPE,
+                                       V_USUARIO_ALT    IN CAIXA.USUARIO_ALT%TYPE,
+                                       V_DATA_ALT       IN CAIXA.DATA_ALT%TYPE,
+                                       V_ID_BANDEIRA    IN CAIXA.ID_BANDEIRA%TYPE,
+                                       V_ID_OPERADORA   IN CAIXA.ID_OPERADORA%TYPE,
+                                       V_COD_PAGAMENTO  IN CAIXA.COD_PAGAMENTO%TYPE,
+                                       V_PARCELAS       IN CAIXA.PARCELAS%TYPE,
+                                       V_ID_CAIXA       IN OUT CAIXA.ID_CAIXA%TYPE,
+                                       V_ID_RESPONSAVEL_FINANCEIRO IN CAIXA.ID_RESPONSAVEL_FINANCEIRO%TYPE,
+                                       V_STATUS         IN CAIXA.STATUS%TYPE,
+                                       V_POSTO          IN CAIXA.POSTO%TYPE,
+                                       V_FUNCAO         IN NUMBER) IS
+   TYPE T_IDS IS TABLE OF CAIXA.ID_CAIXA%TYPE;
+   V_IDS T_IDS := T_IDS();
+
+   -- Marduk Finance: pagamento de POSTO+CONTA_HOSP+REGISTRO+CORREL (2, 4 e 5)
+   PROCEDURE ENFILEIRA_PAGAMENTO IS
+   BEGIN
+     FOR R IN (SELECT ID_CAIXA FROM CAIXA
+                WHERE POSTO = V_POSTO AND CONTA_HOSP = V_CONTA_HOSP
+                  AND REGISTRO = V_REGISTRO AND CORREL = V_CORREL) LOOP
+       PRC_MARDUK_FIN_ENFILEIRA_REC(R.ID_CAIXA);
+     END LOOP;
+   EXCEPTION
+     WHEN OTHERS THEN NULL;
+   END;
+ BEGIN
+   IF (V_FUNCAO = 1) OR (V_FUNCAO = 6) THEN
+      IF (V_FUNCAO = 1) THEN
+         SELECT NVL(MAX(C.CORREL)+1,1) INTO V_CORREL FROM CAIXA C
+         WHERE C.POSTO = V_POSTO
+           AND C.CONTA_HOSP = V_CONTA_HOSP;
+      END IF;
+      SELECT SQ_CAIXA.NEXTVAL INTO V_ID_CAIXA FROM DUAL;
+      INSERT INTO CAIXA VALUES (V_CONTA_HOSP,  V_REGISTRO,    V_CONTA,     V_DATA_PAG,
+                                V_VALOR,       V_DESCONTO,    V_TIPO_DTO,  V_USUARIO,
+                                V_DATA_CAD,    V_CORREL,      V_ID_FORMA_PAGAMENTO,  V_CATALOGO,
+                                V_USUARIO_DTO, V_USUARIO_ALT, V_DATA_ALT, V_ID_BANDEIRA,
+                                V_ID_OPERADORA, V_COD_PAGAMENTO, V_PARCELAS, V_ID_CAIXA,
+                                V_ID_RESPONSAVEL_FINANCEIRO, V_STATUS, V_POSTO);
+      -- Marduk Finance: so o pagamento feito aqui; o importado (6) nao (D-05)
+      IF (V_FUNCAO = 1) THEN
+         PRC_MARDUK_FIN_ENFILEIRA_REC(V_ID_CAIXA);
+      END IF;
+   ELSIF V_FUNCAO = 2 THEN
+      UPDATE CAIXA SET VALOR = V_VALOR
+                       WHERE POSTO = V_POSTO
+                         AND CONTA_HOSP = V_CONTA_HOSP
+                         AND REGISTRO = V_REGISTRO
+                         AND CORREL = V_CORREL;
+      ENFILEIRA_PAGAMENTO;
+   ELSIF V_FUNCAO = 3 THEN
+     -- Marduk Finance: so os que estavam ativos viram cancelamento
+     BEGIN
+       SELECT ID_CAIXA BULK COLLECT INTO V_IDS FROM CAIXA
+        WHERE POSTO = V_POSTO AND CONTA_HOSP = V_CONTA_HOSP AND STATUS = 'A';
+     EXCEPTION
+       WHEN OTHERS THEN V_IDS := T_IDS();
+     END;
+     UPDATE CAIXA SET STATUS = 'C' WHERE POSTO = V_POSTO
+                                     AND CONTA_HOSP = V_CONTA_HOSP;
+     FOR I IN 1 .. V_IDS.COUNT LOOP
+       PRC_MARDUK_FIN_ENFILEIRA_REC(V_IDS(I));
+     END LOOP;
+   ELSIF V_FUNCAO = 4 THEN
+     UPDATE CAIXA SET STATUS = 'C', USUARIO_ALT = V_USUARIO_ALT, DATA_ALT = V_DATA_ALT
+      WHERE POSTO = V_POSTO
+        AND CONTA_HOSP = V_CONTA_HOSP
+        AND REGISTRO = V_REGISTRO
+        AND CORREL = V_CORREL;
+     ENFILEIRA_PAGAMENTO;
+   ELSIF V_FUNCAO = 5 THEN
+      UPDATE CAIXA SET VALOR = V_VALOR,
+                       DATA_PAG = V_DATA_PAG,
+                       DESCONTO = V_DESCONTO,
+                       TIPO_DTO = V_TIPO_DTO,
+                       ID_FORMA_PAGAMENTO = V_ID_FORMA_PAGAMENTO,
+                       USUARIO_ALT = V_USUARIO_ALT,
+                       DATA_ALT = V_DATA_ALT,
+                       ID_BANDEIRA = V_ID_BANDEIRA,
+                       ID_OPERADORA = V_ID_OPERADORA,
+                       COD_PAGAMENTO = V_COD_PAGAMENTO,
+                       PARCELAS = V_PARCELAS,
+                       ID_RESPONSAVEL_FINANCEIRO = V_ID_RESPONSAVEL_FINANCEIRO
+                  WHERE POSTO = V_POSTO
+                    AND CONTA_HOSP = V_CONTA_HOSP
+                    AND REGISTRO = V_REGISTRO
+                    AND CORREL = V_CORREL;
+      ENFILEIRA_PAGAMENTO;
+   END IF;
+   COMMIT WORK;
+ END PRC_CAIXA;
+/
+-- fim bloco
