@@ -756,3 +756,15 @@ END TRG_EXAMES_B2B_MARDUK_FIN;
 /
 -- fim bloco
 -- <<< finance-apoio T-02.04 fim
+
+--
+-- finance-apoio T-04.01 - a fila de cadastros do Finance passa a aceitar o tipo LABORATORIOS_APOIO
+--
+-- >>> finance-apoio T-04.01 inicio
+ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS DROP CONSTRAINT MARDUK_FIN_FILA_CAD_TIPO_CK;
+-- fim bloco
+
+ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS ADD CONSTRAINT MARDUK_FIN_FILA_CAD_TIPO_CK
+  CHECK (TIPO IN ('FORMAS_PAGAMENTO', 'BANDEIRAS', 'OPERADORAS_CARTAO', 'LABORATORIOS_APOIO'));
+-- fim bloco
+-- <<< finance-apoio T-04.01 fim
