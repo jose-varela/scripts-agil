@@ -768,3 +768,89 @@ ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS ADD CONSTRAINT MARDUK_FIN_FILA_CAD_TIP
   CHECK (TIPO IN ('FORMAS_PAGAMENTO', 'BANDEIRAS', 'OPERADORAS_CARTAO', 'LABORATORIOS_APOIO'));
 -- fim bloco
 -- <<< finance-apoio T-04.01 fim
+
+--
+-- integracao-iris - notificacoes por WhatsApp via Iris (contrato em
+-- projects/iris/docs/api/contrato-agil.md). Tres tabelas novas, nenhuma
+-- alteracao em tabela existente (a configuracao NAO entra em SERVICOS_ADM /
+-- PRC_SERVICOS_ADM, para nao recriar a procedure inteira).
+--   IRIS_CFG            - 1 linha: URL base, API key cifrada, ATIVO, eventos ligados
+--   IRIS_CONSENTIMENTOS - autorizacao de contato por numero e finalidade
+--                         (T transacional / M marketing), com dono do numero,
+--                         origem, usuario, data e revogacao. O Iris nao valida
+--                         consentimento: o AGIL so chama com registro valido.
+--   IRIS_NOTIFICACOES   - um registro por envio pedido (contador persistido de
+--                         reenvio do orcamento e rastro de quem pediu)
+--
+-- >>> integracao-iris inicio
+CREATE TABLE IRIS_CFG (
+  BASE_URL       VARCHAR2(200),
+  API_KEY        VARCHAR2(500),
+  ATIVO          CHAR(1) DEFAULT 'N' NOT NULL,
+  EVENTOS        VARCHAR2(300),
+  USUARIO        VARCHAR2(10),
+  ATUALIZADO_EM  DATE DEFAULT SYSDATE
+);
+-- fim bloco
+
+ALTER TABLE IRIS_CFG ADD CONSTRAINT IRIS_CFG_ATIVO_CK
+  CHECK (ATIVO IN ('S', 'N')) ENABLE;
+-- fim bloco
+
+CREATE SEQUENCE SEQ_IRIS_CONSENTIMENTO START WITH 1 INCREMENT BY 1 NOCACHE;
+-- fim bloco
+
+CREATE TABLE IRIS_CONSENTIMENTOS (
+  ID_CONSENTIMENTO    NUMBER(9)     NOT NULL,
+  TELEFONE            VARCHAR2(15)  NOT NULL,
+  NOME                VARCHAR2(100),
+  DONO_NUMERO         CHAR(1)       NOT NULL,
+  FINALIDADE          CHAR(1)       NOT NULL,
+  CANAL               VARCHAR2(10)  DEFAULT 'WHATSAPP' NOT NULL,
+  ORIGEM              VARCHAR2(30)  NOT NULL,
+  VERSAO_TERMO        VARCHAR2(20),
+  USUARIO             VARCHAR2(10),
+  DATA_CONSENTIMENTO  DATE DEFAULT SYSDATE NOT NULL,
+  REVOGADO_EM         DATE,
+  USUARIO_REVOGOU     VARCHAR2(10)
+);
+-- fim bloco
+
+ALTER TABLE IRIS_CONSENTIMENTOS ADD CONSTRAINT IRIS_CONSENTIMENTOS_PK
+  PRIMARY KEY (ID_CONSENTIMENTO);
+-- fim bloco
+
+ALTER TABLE IRIS_CONSENTIMENTOS ADD CONSTRAINT IRIS_CONSENT_DONO_CK
+  CHECK (DONO_NUMERO IN ('P', 'R', 'O')) ENABLE;
+-- fim bloco
+
+ALTER TABLE IRIS_CONSENTIMENTOS ADD CONSTRAINT IRIS_CONSENT_FINALIDADE_CK
+  CHECK (FINALIDADE IN ('T', 'M')) ENABLE;
+-- fim bloco
+
+CREATE INDEX IRIS_CONSENT_TELEFONE_IX ON IRIS_CONSENTIMENTOS
+  (TELEFONE, FINALIDADE);
+-- fim bloco
+
+CREATE SEQUENCE SEQ_IRIS_NOTIFICACAO START WITH 1 INCREMENT BY 1 NOCACHE;
+-- fim bloco
+
+CREATE TABLE IRIS_NOTIFICACOES (
+  ID_NOTIFICACAO  NUMBER(12)    NOT NULL,
+  EVENTO          VARCHAR2(30)  NOT NULL,
+  REFERENCIA      VARCHAR2(60)  NOT NULL,
+  CHAVE           VARCHAR2(120) NOT NULL,
+  TELEFONE        VARCHAR2(15)  NOT NULL,
+  USUARIO         VARCHAR2(10),
+  DATA_CRIACAO    DATE DEFAULT SYSDATE NOT NULL
+);
+-- fim bloco
+
+ALTER TABLE IRIS_NOTIFICACOES ADD CONSTRAINT IRIS_NOTIFICACOES_PK
+  PRIMARY KEY (ID_NOTIFICACAO);
+-- fim bloco
+
+CREATE INDEX IRIS_NOTIFICACOES_REF_IX ON IRIS_NOTIFICACOES
+  (EVENTO, REFERENCIA);
+-- fim bloco
+-- <<< integracao-iris fim
