@@ -770,31 +770,127 @@ ALTER TABLE MARDUK_FINANCE_FILA_CADASTROS ADD CONSTRAINT MARDUK_FIN_FILA_CAD_TIP
 -- <<< finance-apoio T-04.01 fim
 
 --
--- integracao-iris - notificacoes por WhatsApp via Iris (contrato em
--- projects/iris/docs/api/contrato-agil.md). Tres tabelas novas, nenhuma
--- alteracao em tabela existente (a configuracao NAO entra em SERVICOS_ADM /
--- PRC_SERVICOS_ADM, para nao recriar a procedure inteira).
---   IRIS_CFG            - 1 linha: URL base, API key cifrada, ATIVO, eventos ligados
---   IRIS_CONSENTIMENTOS - autorizacao de contato por numero e finalidade
---                         (T transacional / M marketing), com dono do numero,
---                         origem, usuario, data e revogacao. O Iris nao valida
---                         consentimento: o AGIL so chama com registro valido.
---   IRIS_NOTIFICACOES   - um registro por envio pedido (contador persistido de
---                         reenvio do orcamento e rastro de quem pediu)
+-- integracao-iris - configuracao das integracoes numa tabela so + notificacoes
+-- por WhatsApp via Iris (contrato em projects/iris/docs/api/contrato-agil.md).
+--
+-- INTEGRACOES_CFG: uma linha por integracao + parametro, para Marduk-CRM,
+-- Marduk Finance e Iris (API_KEY cifrada com o CNPJ, como antes; ATIVO S/N;
+-- Finance tambem APOIO_ATIVO). Substitui as colunas MARDUK_CRM_* e
+-- MARDUK_FINANCE_* de SERVICOS_ADM e a tabela MARDUK_FINANCE_APOIO_CFG, que
+-- ficam no banco so para estacoes com executavel antigo (o AGIL novo ainda
+-- grava as colunas de SERVICOS_ADM, mas le de INTEGRACOES_CFG). Nova
+-- integracao = linhas novas aqui, sem recriar PRC_SERVICOS_ADM.
+-- Marduk Cost (contrato, instancia, API key) continua em SERVICOS_ADM.
+--
+-- IRIS_CONSENTIMENTOS - autorizacao de contato por numero e finalidade
+--   (T transacional / M marketing), com dono do numero, origem, usuario, data
+--   e revogacao. O Iris nao valida consentimento: o AGIL so chama com registro.
+-- IRIS_NOTIFICACOES - um registro por envio pedido (contador persistido de
+--   reenvio do orcamento e rastro de quem pediu).
 --
 -- >>> integracao-iris inicio
-CREATE TABLE IRIS_CFG (
-  BASE_URL       VARCHAR2(200),
-  API_KEY        VARCHAR2(500),
-  ATIVO          CHAR(1) DEFAULT 'N' NOT NULL,
-  EVENTOS        VARCHAR2(300),
+CREATE TABLE INTEGRACOES_CFG (
+  INTEGRACAO     VARCHAR2(30)   NOT NULL,
+  PARAMETRO      VARCHAR2(40)   NOT NULL,
+  VALOR          VARCHAR2(1000),
   USUARIO        VARCHAR2(10),
-  ATUALIZADO_EM  DATE DEFAULT SYSDATE
+  ATUALIZADO_EM  DATE DEFAULT SYSDATE NOT NULL
 );
 -- fim bloco
 
-ALTER TABLE IRIS_CFG ADD CONSTRAINT IRIS_CFG_ATIVO_CK
-  CHECK (ATIVO IN ('S', 'N')) ENABLE;
+ALTER TABLE INTEGRACOES_CFG ADD CONSTRAINT INTEGRACOES_CFG_PK
+  PRIMARY KEY (INTEGRACAO, PARAMETRO);
+-- fim bloco
+
+-- Valores atuais: as chaves ja estao cifradas com o CNPJ em SERVICOS_ADM e
+-- sao copiadas como estao. MAX: o banco tem uma configuracao por laboratorio.
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO)
+  SELECT 'MARDUK_CRM', 'API_KEY', MAX(MARDUK_CRM_API_KEY), 'SCRIPT142' FROM SERVICOS_ADM;
+-- fim bloco
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO)
+  SELECT 'MARDUK_CRM', 'ATIVO', NVL(MAX(MARDUK_CRM_ATIVO), 'N'), 'SCRIPT142' FROM SERVICOS_ADM;
+-- fim bloco
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO)
+  SELECT 'MARDUK_FINANCE', 'API_KEY', MAX(MARDUK_FINANCE_API_KEY), 'SCRIPT142' FROM SERVICOS_ADM;
+-- fim bloco
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO)
+  SELECT 'MARDUK_FINANCE', 'ATIVO', NVL(MAX(MARDUK_FINANCE_ATIVO), 'N'), 'SCRIPT142' FROM SERVICOS_ADM;
+-- fim bloco
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO)
+  SELECT 'MARDUK_FINANCE', 'APOIO_ATIVO', NVL(MAX(ATIVO), 'N'), 'SCRIPT142' FROM MARDUK_FINANCE_APOIO_CFG;
+-- fim bloco
+
+INSERT INTO INTEGRACOES_CFG (INTEGRACAO, PARAMETRO, VALOR, USUARIO) VALUES ('IRIS', 'ATIVO', 'N', 'SCRIPT142');
+-- fim bloco
+
+COMMIT;
+-- fim bloco
+
+-- As procedures do Finance que liam SERVICOS_ADM.MARDUK_FINANCE_ATIVO e
+-- MARDUK_FINANCE_APOIO_CFG passam a ler INTEGRACOES_CFG (corpo igual ao dos
+-- blocos marduk-finance-recebimentos e finance-apoio acima, so a leitura muda).
+CREATE OR REPLACE PROCEDURE PRC_MARDUK_FIN_ENFILEIRA_REC(V_ID_CAIXA IN CAIXA.ID_CAIXA%TYPE) IS
+  V_ATIVO NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO V_ATIVO FROM INTEGRACOES_CFG
+   WHERE INTEGRACAO = 'MARDUK_FINANCE' AND PARAMETRO = 'ATIVO' AND VALOR = 'S';
+  IF V_ATIVO = 0 THEN
+    RETURN;
+  END IF;
+
+  MERGE INTO MARDUK_FINANCE_RECEBIMENTOS F
+  USING (SELECT ID_CAIXA, POSTO, CONTA_HOSP, STATUS FROM CAIXA WHERE ID_CAIXA = V_ID_CAIXA) C
+     ON (F.ID_CAIXA = C.ID_CAIXA)
+  WHEN MATCHED THEN UPDATE SET
+       F.OPERACAO          = CASE WHEN C.STATUS = 'C' THEN 'CANCELAR'
+                                  WHEN F.ENVIADO = 'S' THEN 'ALTERAR'
+                                  ELSE 'CRIAR' END,
+       F.ENVIAR            = 'S',
+       F.TENTATIVAS        = 0,
+       F.PROXIMA_TENTATIVA = NULL,
+       F.ULTIMO_ERRO       = NULL,
+       F.ATUALIZADO_EM     = SYSDATE
+  WHEN NOT MATCHED THEN INSERT (ID_CAIXA, POSTO, CONTA_HOSP, OPERACAO)
+       VALUES (C.ID_CAIXA, C.POSTO, C.CONTA_HOSP, CASE WHEN C.STATUS = 'C' THEN 'CANCELAR' ELSE 'CRIAR' END);
+EXCEPTION
+  WHEN OTHERS THEN
+    NULL;
+END PRC_MARDUK_FIN_ENFILEIRA_REC;
+/
+-- fim bloco
+
+CREATE OR REPLACE PROCEDURE PRC_MARDUK_FIN_ENFILEIRA_LANC(V_POSTO IN NUMBER, V_ATENDIMENTO IN NUMBER, V_CORREL IN NUMBER) IS
+  V_ATIVO NUMBER;
+  V_APOIO NUMBER;
+  V_E_APOIO NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO V_ATIVO FROM INTEGRACOES_CFG
+   WHERE INTEGRACAO = 'MARDUK_FINANCE' AND PARAMETRO = 'ATIVO' AND VALOR = 'S';
+  IF V_ATIVO = 0 THEN RETURN; END IF;
+  SELECT COUNT(*) INTO V_APOIO FROM INTEGRACOES_CFG
+   WHERE INTEGRACAO = 'MARDUK_FINANCE' AND PARAMETRO = 'APOIO_ATIVO' AND VALOR = 'S';
+  IF V_APOIO = 0 THEN RETURN; END IF;
+
+  SELECT COUNT(*) INTO V_E_APOIO FROM EXAMES E, POSTOS P
+   WHERE E.POSTO = V_POSTO AND E.ATENDIMENTO = V_ATENDIMENTO AND E.CORREL = V_CORREL
+     AND P.POSTO = E.POSTO_REA AND P.TIPO_POSTO = 'A';
+  IF V_E_APOIO = 0 THEN RETURN; END IF;
+
+  UPDATE MARDUK_FINANCE_LANCAMENTOS
+     SET OPERACAO = 'ALTERAR', ENVIAR = 'S', TENTATIVAS = 0, PROXIMA_TENTATIVA = NULL,
+         ULTIMO_ERRO = NULL, ATUALIZADO_EM = SYSDATE
+   WHERE POSTO = V_POSTO AND ATENDIMENTO = V_ATENDIMENTO
+     AND ID_LANCAMENTO IS NOT NULL AND OPERACAO <> 'CANCELAR';
+EXCEPTION
+  WHEN OTHERS THEN
+    NULL;
+END PRC_MARDUK_FIN_ENFILEIRA_LANC;
+/
 -- fim bloco
 
 CREATE SEQUENCE SEQ_IRIS_CONSENTIMENTO START WITH 1 INCREMENT BY 1 NOCACHE;
