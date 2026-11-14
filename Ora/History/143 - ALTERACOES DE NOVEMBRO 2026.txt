@@ -77,17 +77,22 @@ END TRG_EXAMES_IRIS_RESULTADO;
 -- >>> limite-mensal-exames inicio
 --
 -- LIMITES_MENSAIS_EXAMES
--- Regras de limite mensal de exames do laboratorio. Cada regra conta os exames
--- ativos (SITUACAO fora de C e F, atendimento nao cancelado) do mes calendario
--- de ATENDIMENTOS.DATA_ATD. POSTO, CONVENIO e MNEMONICO nulos = qualquer um:
---   geral                     POSTO, CONVENIO e MNEMONICO nulos
---   por convenio              CONVENIO
---   por posto                 POSTO
---   procedimento por posto    MNEMONICO e POSTO
---   procedimento por convenio MNEMONICO e CONVENIO
--- Ao atingir LIMITE, a tela de Atendimento so inclui exame (ou grava atendimento
--- novo) com a senha de quem tem a permissao acLiberaLimiteMensalExames. A funcao
--- liga pela chave INTEGRACOES_CFG ATENDIMENTO/LIMITE_MENSAL_EXAMES (Opcoes).
+-- Regras de limite mensal de exames do laboratorio. Cada regra vale para um
+-- posto e um convenio (nulo = qualquer um) e limita de duas formas, que podem
+-- valer juntas:
+--   LIMITE                 limite total opcional: todos os exames da regra no mes
+--   LIMITES_MENSAIS_ITENS  grade de procedimentos: cada linha com limite proprio,
+--                          contada sozinha
+-- Contam os exames ativos (SITUACAO fora de C e F, atendimento nao cancelado) do
+-- mes calendario de ATENDIMENTOS.DATA_ATD. Os tipos pedidos:
+--   geral                     POSTO e CONVENIO nulos, LIMITE
+--   por convenio              CONVENIO e LIMITE
+--   por posto                 POSTO e LIMITE
+--   procedimento por posto    POSTO e linhas na grade
+--   procedimento por convenio CONVENIO e linhas na grade
+-- Ao atingir um limite, a tela de Atendimento so inclui exame (ou grava
+-- atendimento novo) com a senha de quem tem a permissao acLiberaLimiteMensalExames.
+-- A funcao liga pela chave INTEGRACOES_CFG ATENDIMENTO/LIMITE_MENSAL_EXAMES (Opcoes).
 --
 CREATE SEQUENCE SEQ_LIMITE_MENSAL_EXAME START WITH 1 INCREMENT BY 1 MAXVALUE 999999999 NOCACHE;
 -- fim bloco
@@ -97,28 +102,47 @@ CREATE TABLE LIMITES_MENSAIS_EXAMES (
   DESCRICAO  VARCHAR2(60)  NOT NULL,
   POSTO      NUMBER(3),
   CONVENIO   NUMBER(3),
-  MNEMONICO  VARCHAR2(7),
-  LIMITE     NUMBER(9)     NOT NULL,
+  LIMITE     NUMBER(9),
   ATIVO      CHAR(1)       DEFAULT 'S' NOT NULL,
   USUARIO    VARCHAR2(30),
   DATA_CAD   DATE          DEFAULT SYSDATE NOT NULL,
   CONSTRAINT LIMITES_MENSAIS_EXAMES_PK PRIMARY KEY (ID_LIMITE),
-  CONSTRAINT LIMITES_MENSAIS_EXAMES_LIM CHECK (LIMITE > 0),
+  CONSTRAINT LIMITES_MENSAIS_EXAMES_LIM CHECK (LIMITE IS NULL OR LIMITE > 0),
   CONSTRAINT LIMITES_MENSAIS_EXAMES_ATV CHECK (ATIVO IN ('S', 'N'))
 );
 -- fim bloco
 
--- Uma regra so por combinacao de posto, convenio e procedimento.
+-- Uma regra so por combinacao de posto e convenio.
 CREATE UNIQUE INDEX LIMITES_MENSAIS_EXAMES_UK ON LIMITES_MENSAIS_EXAMES
-  (NVL(POSTO, -1), NVL(CONVENIO, -1), NVL(MNEMONICO, '#'));
+  (NVL(POSTO, -1), NVL(CONVENIO, -1));
+-- fim bloco
+
+--
+-- LIMITES_MENSAIS_ITENS
+-- Grade de procedimentos da regra: cada linha e um procedimento com o proprio
+-- limite mensal, contado sozinho dentro do posto e do convenio da regra. Um
+-- procedimento entra uma vez so por regra. A linha segue o ATIVO da regra.
+--
+CREATE TABLE LIMITES_MENSAIS_ITENS (
+  ID_LIMITE  NUMBER(9)     NOT NULL,
+  MNEMONICO  VARCHAR2(7)   NOT NULL,
+  LIMITE     NUMBER(9)     NOT NULL,
+  USUARIO    VARCHAR2(30),
+  DATA_CAD   DATE          DEFAULT SYSDATE NOT NULL,
+  CONSTRAINT LIMITES_MENSAIS_ITENS_PK PRIMARY KEY (ID_LIMITE, MNEMONICO),
+  CONSTRAINT LIMITES_MENSAIS_ITENS_FK FOREIGN KEY (ID_LIMITE) REFERENCES LIMITES_MENSAIS_EXAMES (ID_LIMITE),
+  CONSTRAINT LIMITES_MENSAIS_ITENS_LIM CHECK (LIMITE > 0)
+);
 -- fim bloco
 
 --
 -- LIMITES_MENSAIS_LIBERACOES
 -- Historico de cada liberacao por senha: qual regra estava no limite, em qual
 -- atendimento, a contagem e o limite no momento, quem liberou (dono da senha) e
--- quem operava a tela. ATENDIMENTO fica nulo quando a liberacao foi dada antes de
--- gravar um atendimento novo e o numero ainda nao existia.
+-- quem operava a tela. MNEMONICO e o procedimento do exame liberado, o que
+-- identifica a linha da grade quando o limite atingido era o de uma linha.
+-- ATENDIMENTO fica nulo quando a liberacao foi dada antes de gravar um
+-- atendimento novo e o numero ainda nao existia.
 --
 CREATE SEQUENCE SEQ_LIMITE_MENSAL_LIBERACAO START WITH 1 INCREMENT BY 1 MAXVALUE 999999999 NOCACHE;
 -- fim bloco
@@ -141,41 +165,67 @@ CREATE TABLE LIMITES_MENSAIS_LIBERACOES (
 CREATE INDEX LIMITES_MENSAIS_LIBERACOES_I1 ON LIMITES_MENSAIS_LIBERACOES (POSTO, ATENDIMENTO);
 -- fim bloco
 
--- CRUD da tela Limites Mensais de Exames. A tela usa -1 para "Todos" (o cadastro
--- padrao troca numero nulo por 0, e o posto 0 existe), e a procedure grava NULL.
+-- Cabecalho da regra na tela Limites Mensais de Exames. A tela usa -1 para
+-- "Todos" e manda 0 no limite total vazio (o cadastro padrao troca numero nulo
+-- por 0, e o posto 0 existe); a procedure grava NULL nos dois casos. Apagar a
+-- regra apaga as linhas da grade dela.
 create or replace
 PROCEDURE PRC_LIMITES_MENSAIS_EXAMES(V_ID_LIMITE  IN OUT LIMITES_MENSAIS_EXAMES.ID_LIMITE%TYPE,
                                      V_DESCRICAO  IN LIMITES_MENSAIS_EXAMES.DESCRICAO%TYPE,
                                      V_POSTO      IN NUMBER,
                                      V_CONVENIO   IN NUMBER,
-                                     V_MNEMONICO  IN LIMITES_MENSAIS_EXAMES.MNEMONICO%TYPE,
-                                     V_LIMITE     IN LIMITES_MENSAIS_EXAMES.LIMITE%TYPE,
+                                     V_LIMITE     IN NUMBER,
                                      V_ATIVO      IN LIMITES_MENSAIS_EXAMES.ATIVO%TYPE,
                                      V_USUARIO    IN LIMITES_MENSAIS_EXAMES.USUARIO%TYPE,
                                      V_FUNCAO     IN NUMBER) IS
   W_POSTO     NUMBER;
   W_CONVENIO  NUMBER;
-  W_MNEMONICO VARCHAR2(7);
+  W_LIMITE    NUMBER;
 BEGIN
   W_POSTO := CASE WHEN V_POSTO IS NULL OR V_POSTO = -1 THEN NULL ELSE V_POSTO END;
   W_CONVENIO := CASE WHEN V_CONVENIO IS NULL OR V_CONVENIO = -1 THEN NULL ELSE V_CONVENIO END;
-  -- Sem TRIM: ha procedimento antigo com espaco a esquerda (' HIVGEN').
-  W_MNEMONICO := V_MNEMONICO;
+  W_LIMITE := CASE WHEN V_LIMITE IS NULL OR V_LIMITE <= 0 THEN NULL ELSE V_LIMITE END;
   IF V_FUNCAO = 1 THEN
      SELECT SEQ_LIMITE_MENSAL_EXAME.NEXTVAL INTO V_ID_LIMITE FROM DUAL;
 
-     INSERT INTO LIMITES_MENSAIS_EXAMES (ID_LIMITE, DESCRICAO, POSTO, CONVENIO, MNEMONICO, LIMITE, ATIVO, USUARIO, DATA_CAD)
-       VALUES (V_ID_LIMITE, V_DESCRICAO, W_POSTO, W_CONVENIO, W_MNEMONICO, V_LIMITE, NVL(V_ATIVO, 'S'), V_USUARIO, SYSDATE);
+     INSERT INTO LIMITES_MENSAIS_EXAMES (ID_LIMITE, DESCRICAO, POSTO, CONVENIO, LIMITE, ATIVO, USUARIO, DATA_CAD)
+       VALUES (V_ID_LIMITE, V_DESCRICAO, W_POSTO, W_CONVENIO, W_LIMITE, NVL(V_ATIVO, 'S'), V_USUARIO, SYSDATE);
   ELSIF V_FUNCAO = 2 THEN
      UPDATE LIMITES_MENSAIS_EXAMES
-        SET DESCRICAO = V_DESCRICAO, POSTO = W_POSTO, CONVENIO = W_CONVENIO, MNEMONICO = W_MNEMONICO,
-            LIMITE = V_LIMITE, ATIVO = NVL(V_ATIVO, 'S'), USUARIO = V_USUARIO
+        SET DESCRICAO = V_DESCRICAO, POSTO = W_POSTO, CONVENIO = W_CONVENIO,
+            LIMITE = W_LIMITE, ATIVO = NVL(V_ATIVO, 'S'), USUARIO = V_USUARIO
       WHERE ID_LIMITE = V_ID_LIMITE;
   ELSIF V_FUNCAO = 3 THEN
+     DELETE LIMITES_MENSAIS_ITENS WHERE ID_LIMITE = V_ID_LIMITE;
      DELETE LIMITES_MENSAIS_EXAMES WHERE ID_LIMITE = V_ID_LIMITE;
   END IF;
   COMMIT WORK;
 END PRC_LIMITES_MENSAIS_EXAMES;
+/
+-- fim bloco
+
+-- Linhas da grade de procedimentos da regra (Ins inclui = 1, Espaco altera o
+-- limite = 2, Del apaga = 3). Sem TRIM no mnemonico: ha procedimento antigo com
+-- espaco a esquerda (' HIVGEN').
+create or replace
+PROCEDURE PRC_LIMITES_MENSAIS_ITENS(V_ID_LIMITE  IN LIMITES_MENSAIS_ITENS.ID_LIMITE%TYPE,
+                                    V_MNEMONICO  IN LIMITES_MENSAIS_ITENS.MNEMONICO%TYPE,
+                                    V_LIMITE     IN LIMITES_MENSAIS_ITENS.LIMITE%TYPE,
+                                    V_USUARIO    IN LIMITES_MENSAIS_ITENS.USUARIO%TYPE,
+                                    V_FUNCAO     IN NUMBER) IS
+BEGIN
+  IF V_FUNCAO = 1 THEN
+     INSERT INTO LIMITES_MENSAIS_ITENS (ID_LIMITE, MNEMONICO, LIMITE, USUARIO, DATA_CAD)
+       VALUES (V_ID_LIMITE, V_MNEMONICO, V_LIMITE, V_USUARIO, SYSDATE);
+  ELSIF V_FUNCAO = 2 THEN
+     UPDATE LIMITES_MENSAIS_ITENS
+        SET LIMITE = V_LIMITE, USUARIO = V_USUARIO
+      WHERE ID_LIMITE = V_ID_LIMITE AND MNEMONICO = V_MNEMONICO;
+  ELSIF V_FUNCAO = 3 THEN
+     DELETE LIMITES_MENSAIS_ITENS WHERE ID_LIMITE = V_ID_LIMITE AND MNEMONICO = V_MNEMONICO;
+  END IF;
+  COMMIT WORK;
+END PRC_LIMITES_MENSAIS_ITENS;
 /
 -- fim bloco
 -- <<< limite-mensal-exames fim
